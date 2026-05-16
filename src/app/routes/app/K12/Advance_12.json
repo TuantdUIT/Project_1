@@ -1,0 +1,148 @@
+{
+  "course": {
+    "id": "math-12-advance",
+    "title": "Toán học 12 - Khóa Advance",
+    "status": "ĐANG HOẠT ĐỘNG",
+    "rating": {
+      "score": 4.9,
+      "count": 120
+    },
+    "description": "Khóa học bứt phá điểm số với các kỹ thuật giải nhanh và tư duy toán học đỉnh cao, giúp học sinh chinh phục mục tiêu 9+ trong các kỳ thi quốc gia.",
+    "descriptionHighlight": "bứt phá điểm số",
+    "price": {
+      "current": 1500000,
+      "original": 2500000,
+      "discountPercent": 40,
+      "currency": "VND"
+    },
+    "cta": {
+      "primary": "Đăng ký học ngay",
+      "secondary": "Liên hệ tư vấn"
+    },
+    "cover": {
+      "audience": "2k8",
+      "headline": "LUYỆN THI CHINH PHỤC",
+      "letter": "A",
+      "fullName": "NÂNG CAO (ADVANCED)",
+      "caption": "BỨT PHÁ DẠNG TOÁN KHÓ",
+      "brand": "EdTech Pro"
+    },
+    "instructor": {
+      "title": "GIẢNG VIÊN HƯỚNG DẪN",
+      "name": "ThS. Nguyễn Văn A",
+      "avatar": ""
+    },
+    "knowledgeContent": [
+      {
+        "icon": "target",
+        "label": "Mục tiêu",
+        "detail": "Chinh phục các câu hỏi khó, các chuyên đề tích hợp (mục tiêu 8.5+ và 9+)."
+      },
+      {
+        "icon": "book",
+        "label": "Trọng tâm",
+        "detail": "Tập trung vào các phương pháp tư duy đặc biệt: Ghép trục, sơ đồ V, kỹ thuật chọn hàm, Casio bổ trợ nâng cao và các bài toán thực tế trong chương trình mới."
+      },
+      {
+        "icon": "list",
+        "label": "Giáo án",
+        "detail": "Được biên soạn mới hoàn toàn, cập nhật các xu hướng ra đề của Bộ GD&ĐT và các kỳ thi riêng (ĐGNL, ĐGTD)."
+      }
+    ],
+    "learningFormat": [
+      {
+        "icon": "users",
+        "label": "Học trực tiếp tại trung tâm",
+        "detail": "Tương tác trực tiếp với giáo viên."
+      },
+      {
+        "icon": "edit",
+        "label": "Luyện tập",
+        "detail": "Hệ thống bài tập tự luyện theo từng video bài giảng (File PDF và làm bài trên Web)."
+      },
+      {
+        "icon": "message-circle",
+        "label": "Hỗ trợ",
+        "detail": "Đội ngũ trợ giảng trực chiến tại nhóm Zalo, giải đáp thắc mắc ngay khi gặp khó khăn."
+      }
+    ],
+    "weeks": [
+      {
+        "index": 1,
+        "title": "Kỹ thuật sơ đồ V và Ghép trục trong giải toán hàm hợp.",
+        "stats": { "lessons": 4, "duration": 120 },
+        "items": [
+          { "type": "video", "title": "1.1 Tổng quan về phương pháp Ghép trục", "duration": "25:15" },
+          { "type": "video", "title": "1.2 Kỹ thuật Sơ đồ V trong giải toán hàm hợp", "duration": "32:40" },
+          { "type": "pdf", "title": "Bài tập vận dụng cao Tuần 1", "format": "60 phút", "required": true }
+        ]
+      },
+      {
+        "index": 2,
+        "title": "Cực trị hàm chứa dấu giá trị tuyệt đối (Vận dụng cao).",
+        "stats": { "lessons": 5, "duration": 150 },
+        "items": []
+      },
+      {
+        "index": 3,
+        "title": "Bài toán Max-Min và Tiệm cận chứa tham số m.",
+        "stats": { "lessons": 4 },
+        "items": []
+      },
+      {
+        "index": 4,
+        "title": "Biến đổi Logarit phức tạp & Phương pháp đặc trưng.",
+        "stats": { "lessons": 6 },
+        "items": []
+      },
+      {
+        "index": 5,
+        "title": "Các bài toán lãi suất, thực tế và ứng dụng thực tiễn.",
+        "stats": { "lessons": 4 },
+        "items": []
+      },
+      {
+        "index": 6,
+        "title": "Tổ hợp - Xác suất (Các bài toán đếm khó và xác suất có điều kiện).",
+        "stats": { "lessons": 5 },
+        "items": []
+      },
+      {
+        "index": 7,
+        "title": "Tích phân hàm ẩn và các phương pháp đổi biến, từng phần nâng cao.",
+        "stats": { "lessons": 6 },
+        "items": []
+      },
+      {
+        "index": 8,
+        "title": "Cực trị số phức (Phương pháp hình học & Đại số).",
+        "stats": { "lessons": 5 },
+        "items": []
+      },
+      {
+        "index": 9,
+        "title": "Cực trị hình học Oxyz (Các bài toán về khoảng cách và góc).",
+        "stats": { "lessons": 4 },
+        "items": []
+      },
+      {
+        "index": 10,
+        "title": "Tương quan vị trí và bài toán phối hợp Oxyz.",
+        "stats": { "lessons": 5 },
+        "items": []
+      },
+      {
+        "index": 11,
+        "title": "Chuyên đề tư duy hình học không gian (Góc, khoảng cách lớp 11 nâng cao).",
+        "stats": { "lessons": 5 },
+        "items": []
+      },
+      {
+        "index": 12,
+        "title": "Tổng ôn kiến thức & Kiểm tra cuối khóa (Checkpoint 2).",
+        "stats": { "mockExams": 2 },
+        "items": []
+      }
+    ]
+  }
+}

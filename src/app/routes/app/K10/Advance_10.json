@@ -1,0 +1,144 @@
+{
+  "course": {
+    "id": "math-10-advance",
+    "title": "Toán học 10 - Khóa Advance",
+    "status": "ĐANG HOẠT ĐỘNG",
+    "rating": {
+      "score": 4.8,
+      "count": 115
+    },
+    "description": "Khóa học chinh phục các dạng toán khó và tư duy sáng tạo, giúp học sinh bứt phá điểm số 9+ và chuẩn bị cho các kỳ thi học sinh giỏi.",
+    "descriptionHighlight": "bứt phá điểm số",
+    "price": {
+      "current": 1500000,
+      "original": 2500000,
+      "discountPercent": 40,
+      "currency": "VND"
+    },
+    "cta": {
+      "primary": "Đăng ký học ngay",
+      "secondary": "Liên hệ tư vấn"
+    },
+    "cover": {
+      "audience": "2k10",
+      "headline": "LUYỆN THI CHINH PHỤC",
+      "letter": "A",
+      "fullName": "NÂNG CAO (ADVANCED)",
+      "caption": "BỨT PHÁ DẠNG TOÁN KHÓ 10",
+      "brand": "EdTech Pro"
+    },
+    "instructor": {
+      "title": "GIẢNG VIÊN HƯỚNG DẪN",
+      "name": "ThS. Nguyễn Văn A",
+      "avatar": ""
+    },
+    "knowledgeContent": [
+      {
+        "icon": "target",
+        "label": "Mục tiêu",
+        "detail": "Làm chủ các bài toán vận dụng cao (VDC), rèn luyện tư duy logic và kỹ năng chứng minh toán học."
+      },
+      {
+        "icon": "book",
+        "label": "Trọng tâm",
+        "detail": "Cực trị hàm số bậc hai, Giải tam giác nâng cao, Chứng minh đẳng thức vectơ và Phương pháp tọa độ phẳng (Oxy) nâng cao."
+      },
+      {
+        "icon": "list",
+        "label": "Giáo án",
+        "detail": "Hệ thống bài tập bóc tách từ các đề thi chuyên và các kỳ thi Olympic toán học trẻ."
+      }
+    ],
+    "learningFormat": [
+      {
+        "icon": "users",
+        "label": "Học trực tiếp tại trung tâm",
+        "detail": "Thảo luận chuyên sâu về các phương pháp giải mới."
+      },
+      {
+        "icon": "edit",
+        "label": "Luyện tập",
+        "detail": "Ngân hàng câu hỏi VDC phân loại theo từng chuyên đề."
+      },
+      {
+        "icon": "message-circle",
+        "label": "Hỗ trợ",
+        "detail": "Mentor là các sinh viên chuyên toán/đạt giải quốc gia."
+      }
+    ],
+    "weeks": [
+      {
+        "index": 1,
+        "title": "Toán tập hợp nâng cao và các bài toán thực tế sử dụng biểu đồ Ven.",
+        "stats": { "lessons": 5 },
+        "items": []
+      },
+      {
+        "index": 2,
+        "title": "Cực trị và bài toán thực tế của hệ bất phương trình bậc nhất hai ẩn.",
+        "stats": { "lessons": 5 },
+        "items": []
+      },
+      {
+        "index": 3,
+        "title": "Biện luận nghiệm phương trình và bất phương trình bậc hai chứa tham số.",
+        "stats": { "lessons": 7 },
+        "items": []
+      },
+      {
+        "index": 4,
+        "title": "Ứng dụng tam thức bậc hai chứng minh bất đẳng thức.",
+        "stats": { "lessons": 6 },
+        "items": []
+      },
+      {
+        "index": 5,
+        "title": "Kỹ thuật giải tam giác nâng cao và ứng dụng thực tế phức tạp.",
+        "stats": { "lessons": 6 },
+        "items": []
+      },
+      {
+        "index": 6,
+        "title": "Phân tích vectơ, chứng minh thẳng hàng và đồng quy.",
+        "stats": { "lessons": 8 },
+        "items": []
+      },
+      {
+        "index": 7,
+        "title": "Cực trị hình học sử dụng phương pháp vectơ và tích vô hướng.",
+        "stats": { "lessons": 7 },
+        "items": []
+      },
+      {
+        "index": 8,
+        "title": "Phương trình đường thẳng: Các bài toán về khoảng cách và góc nâng cao.",
+        "stats": { "lessons": 6 },
+        "items": []
+      },
+      {
+        "index": 9,
+        "title": "Phương trình đường tròn và các bài toán tiếp tuyến phức hợp.",
+        "stats": { "lessons": 6 },
+        "items": []
+      },
+      {
+        "index": 10,
+        "title": "Ba đường Conic (Elip, Hyperbol, Parabol) và các tính chất đặc trưng.",
+        "stats": { "lessons": 8 },
+        "items": []
+      },
+      {
+        "index": 11,
+        "title": "Tổ hợp nâng cao và các bài toán xác suất thực tế khó.",
+        "stats": { "lessons": 5 },
+        "items": []
+      },
+      {
+        "index": 12,
+        "title": "Tổng ôn Advance 10 & Kiểm tra đánh giá năng lực.",
+        "stats": { "exams": 2 },
+        "items": []
+      }
+    ]
+  }
+}

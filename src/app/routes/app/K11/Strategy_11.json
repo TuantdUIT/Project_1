@@ -1,0 +1,144 @@
+{
+  "course": {
+    "id": "math-11-strategy",
+    "title": "Toán học 11 - Khóa Strategy",
+    "status": "ĐANG HOẠT ĐỘNG",
+    "rating": {
+      "score": 4.7,
+      "count": 130
+    },
+    "description": "Chương trình luyện kỹ năng giải đề, tối ưu hóa thời gian và làm chủ các kỹ thuật bấm máy Casio cho lớp 11.",
+    "descriptionHighlight": "tối ưu hóa điểm số",
+    "price": {
+      "current": 1500000,
+      "original": 2500000,
+      "discountPercent": 40,
+      "currency": "VND"
+    },
+    "cta": {
+      "primary": "Đăng ký học ngay",
+      "secondary": "Liên hệ tư vấn"
+    },
+    "cover": {
+      "audience": "2k9",
+      "headline": "CHIẾN THUẬT GIẢI ĐỀ",
+      "letter": "S",
+      "fullName": "CHIẾN THUẬT (STRATEGY)",
+      "caption": "THỰC CHIẾN - TỐI ƯU ĐIỂM SỐ 11",
+      "brand": "EdTech Pro"
+    },
+    "instructor": {
+      "title": "GIẢNG VIÊN HƯỚNG DẪN",
+      "name": "ThS. Nguyễn Văn A",
+      "avatar": ""
+    },
+    "knowledgeContent": [
+      {
+        "icon": "target",
+        "label": "Mục tiêu",
+        "detail": "Quét sạch lỗi sai lý thuyết, làm chủ kỹ thuật Casio và kỹ năng phòng thi."
+      },
+      {
+        "icon": "book",
+        "label": "Nội dung",
+        "detail": "Luyện bộ đề thi giữa kỳ, cuối kỳ của các trường chuyên. Tổng ôn kiến thức thông qua giải đề."
+      },
+      {
+        "icon": "list",
+        "label": "Kỹ năng",
+        "detail": "Chiến thuật phân bổ thời gian, nhận diện bẫy trong đề trắc nghiệm mới."
+      }
+    ],
+    "learningFormat": [
+      {
+        "icon": "users",
+        "label": "Học trực tiếp tại trung tâm",
+        "detail": "Tương tác trực tiếp với giáo viên."
+      },
+      {
+        "icon": "edit",
+        "label": "Luyện tập",
+        "detail": "Luyện đề áp lực thời gian trên Web."
+      },
+      {
+        "icon": "message-circle",
+        "label": "Hỗ trợ",
+        "detail": "Đội ngũ trợ giảng giải đáp 24/7."
+      }
+    ],
+    "weeks": [
+      {
+        "index": 1,
+        "title": "Quét lỗi sai lý thuyết chương Lượng giác & Dãy số.",
+        "stats": { "lessons": 4, "documents": 2 },
+        "items": []
+      },
+      {
+        "index": 2,
+        "title": "Kỹ thuật Casio hỗ trợ tính Giới hạn và Đạo hàm thần tốc.",
+        "stats": { "lessons": 6 },
+        "items": []
+      },
+      {
+        "index": 3,
+        "title": "Luyện đề chuyên đề: Phép tính giải tích lớp 11.",
+        "stats": { "lessons": 5 },
+        "items": []
+      },
+      {
+        "index": 4,
+        "title": "Luyện đề chuyên đề: Hình học không gian & Xác suất.",
+        "stats": { "lessons": 5 },
+        "items": []
+      },
+      {
+        "index": 5,
+        "title": "Chiến thuật phân bổ thời gian làm bài thi trắc nghiệm.",
+        "stats": { "lessons": 3 },
+        "items": []
+      },
+      {
+        "index": 6,
+        "title": "Thực chiến đề thi giữa kỳ các trường chuyên tiêu biểu.",
+        "stats": { "lessons": 8, "documents": 3 },
+        "items": []
+      },
+      {
+        "index": 7,
+        "title": "Giải chi tiết bộ đề dự đoán cấu trúc mới năm 2026.",
+        "stats": { "lessons": 6 },
+        "items": []
+      },
+      {
+        "index": 8,
+        "title": "Luyện đề áp lực (Tập trung phản xạ nhanh).",
+        "stats": { "lessons": 4 },
+        "items": []
+      },
+      {
+        "index": 9,
+        "title": "Kỹ năng loại trừ phương án sai và \"mẹo\" làm bài trắc nghiệm.",
+        "stats": { "lessons": 5 },
+        "items": []
+      },
+      {
+        "index": 10,
+        "title": "Đề dự đoán số 1 & Rà soát lỗ hổng kiến thức.",
+        "stats": { "lessons": 3, "documents": 2 },
+        "items": []
+      },
+      {
+        "index": 11,
+        "title": "Đề dự đoán số 2 & Tâm lý vững vàng trước kỳ thi.",
+        "stats": { "lessons": 3 },
+        "items": []
+      },
+      {
+        "index": 12,
+        "title": "Về đích: Tổng kết kỹ năng & Chốt tinh thần thi cử.",
+        "stats": { "lessons": 6 },
+        "items": []
+      }
+    ]
+  }
+}

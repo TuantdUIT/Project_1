@@ -1,0 +1,148 @@
+{
+  "course": {
+    "id": "math-12-foundation",
+    "title": "Toán học 12 - Khóa Foundation",
+    "status": "ĐANG HOẠT ĐỘNG",
+    "rating": {
+      "score": 4.9,
+      "count": 120
+    },
+    "description": "Khóa học xây dựng nền móng vững chắc, giúp học sinh lấy lại căn bản và làm chủ toàn bộ kiến thức trọng tâm.",
+    "descriptionHighlight": "nền móng vững chắc",
+    "price": {
+      "current": 1200000,
+      "original": 2000000,
+      "discountPercent": 40,
+      "currency": "VND"
+    },
+    "cta": {
+      "primary": "Đăng ký học ngay",
+      "secondary": "Liên hệ tư vấn"
+    },
+    "cover": {
+      "audience": "2k8",
+      "headline": "NẮM VỮNG LÍ THUYẾT",
+      "letter": "F",
+      "fullName": "NỀN TẢNG (FOUNDATION)",
+      "caption": "TOÁN HỌC - CHUYÊN SÂU TRỌNG TÂM",
+      "brand": "EdTech Pro"
+    },
+    "instructor": {
+      "title": "GIẢNG VIÊN HƯỚNG DẪN",
+      "name": "ThS. Nguyễn Văn A",
+      "avatar": ""
+    },
+    "knowledgeContent": [
+      {
+        "icon": "target",
+        "label": "Mục tiêu",
+        "detail": "Nắm chắc lý thuyết cơ bản, giải quyết tốt các bài tập mức độ Nhận biết và Thông hiểu (mục tiêu 7+)."
+      },
+      {
+        "icon": "book",
+        "label": "Chương trình",
+        "detail": "Bám sát 100% SGK mới (Kết nối tri thức, Cánh diều, Chân trời sáng tạo). Bao gồm các chuyên đề: Hàm số, Vectơ trong không gian, Xác suất, Số phức (theo khung chương trình mới)."
+      },
+      {
+        "icon": "list",
+        "label": "Số lượng",
+        "detail": "Hơn 120 bài giảng chi tiết, chia nhỏ từng dạng bài để học sinh dễ hấp thụ."
+      }
+    ],
+    "learningFormat": [
+      {
+        "icon": "users",
+        "label": "Học trực tiếp tại trung tâm",
+        "detail": "Tương tác trực tiếp với giáo viên."
+      },
+      {
+        "icon": "edit",
+        "label": "Luyện tập",
+        "detail": "Hệ thống bài tập tự luyện theo từng video bài giảng (File PDF và làm bài trên Web)."
+      },
+      {
+        "icon": "message-circle",
+        "label": "Hỗ trợ",
+        "detail": "Đội ngũ trợ giảng trực chiến tại nhóm Zalo, giải đáp thắc mắc ngay khi gặp khó khăn."
+      }
+    ],
+    "weeks": [
+      {
+        "index": 1,
+        "title": "Sự biến thiên và Cực trị (Nhận biết/Thông hiểu).",
+        "stats": { "lessons": 6, "documents": 2 },
+        "items": [
+          { "type": "video", "title": "1.1 Định nghĩa tính đơn điệu của hàm số", "duration": "18:24" },
+          { "type": "video", "title": "1.2 Các quy tắc tìm cực trị của hàm số", "duration": "25:10" },
+          { "type": "pdf", "title": "Bài tập rèn luyện Tuần 1", "format": "PDF" }
+        ]
+      },
+      {
+        "index": 2,
+        "title": "GTLN - GTNN & Tiệm cận của đồ thị hàm số.",
+        "stats": { "lessons": 5, "documents": 1 },
+        "items": []
+      },
+      {
+        "index": 3,
+        "title": "Khảo sát hàm số & Các bài toán tương giao cơ bản.",
+        "stats": { "lessons": 8 },
+        "items": []
+      },
+      {
+        "index": 4,
+        "title": "Hàm số Lũy thừa, Mũ và Logarit (Định nghĩa & Tính chất).",
+        "stats": { "lessons": 7 },
+        "items": []
+      },
+      {
+        "index": 5,
+        "title": "Giải phương trình và Bất phương trình Mũ - Logarit cơ bản.",
+        "stats": { "lessons": 6 },
+        "items": []
+      },
+      {
+        "index": 6,
+        "title": "Khối đa diện và Thể tích khối đa diện (Lăng trụ, chóp).",
+        "stats": { "lessons": 10, "reviews": 1 },
+        "items": []
+      },
+      {
+        "index": 7,
+        "title": "Nguyên hàm và các bảng công thức cơ bản.",
+        "stats": { "lessons": 9 },
+        "items": []
+      },
+      {
+        "index": 8,
+        "title": "Tích phân và Ứng dụng tính diện tích, thể tích.",
+        "stats": { "lessons": 8 },
+        "items": []
+      },
+      {
+        "index": 9,
+        "title": "Số phức: Các phép toán và Biểu diễn hình học.",
+        "stats": { "lessons": 6 },
+        "items": []
+      },
+      {
+        "index": 10,
+        "title": "Tọa độ trong không gian Oxyz (Điểm, Vectơ, Mặt phẳng).",
+        "stats": { "lessons": 7 },
+        "items": []
+      },
+      {
+        "index": 11,
+        "title": "Đường thẳng và Mặt cầu trong Oxyz.",
+        "stats": { "lessons": 6 },
+        "items": []
+      },
+      {
+        "index": 12,
+        "title": "Tổng ôn kiến thức F & Kiểm tra cuối khóa (Checkpoint 1).",
+        "stats": { "exams": 2, "documents": 1 },
+        "items": []
+      }
+    ]
+  }
+}

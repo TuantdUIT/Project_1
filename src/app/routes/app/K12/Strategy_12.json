@@ -1,0 +1,144 @@
+{
+  "course": {
+    "id": "math-12-strategy",
+    "title": "Toán học 12 - Khóa Strategy",
+    "status": "ĐANG HOẠT ĐỘNG",
+    "rating": {
+      "score": 4.8,
+      "count": 156
+    },
+    "description": "Chương trình ôn luyện cường độ cao, tập trung tối ưu hóa điểm số thông qua các chiến thuật giải đề thực chiến và kỹ năng xử lý bẫy lý thuyết.",
+    "descriptionHighlight": "tối ưu hóa điểm số",
+    "price": {
+      "current": 1500000,
+      "original": 2500000,
+      "discountPercent": 40,
+      "currency": "VND"
+    },
+    "cta": {
+      "primary": "Đăng ký học ngay",
+      "secondary": "Liên hệ tư vấn"
+    },
+    "cover": {
+      "audience": "2k8",
+      "headline": "LUYỆN ĐỀ ĐỈNH CAO",
+      "letter": "S",
+      "fullName": "CHIẾN THUẬT (STRATEGY)",
+      "caption": "THỰC CHIẾN - TỐI ƯU ĐIỂM SỐ",
+      "brand": "EdTech Pro"
+    },
+    "instructor": {
+      "title": "GIẢNG VIÊN HƯỚNG DẪN",
+      "name": "ThS. Nguyễn Văn A",
+      "avatar": ""
+    },
+    "knowledgeContent": [
+      {
+        "icon": "target",
+        "label": "Mục tiêu",
+        "detail": "Quét sạch mọi dạng bài, tối ưu thời gian làm bài và đạt điểm rơi phong độ cao nhất."
+      },
+      {
+        "icon": "book",
+        "label": "Nội dung",
+        "detail": "Tổng ôn toàn bộ kiến thức lớp 10, 11, 12 có trong ma trận đề thi. Luyện bộ đề thực chiến (Đề minh họa, đề của các Sở và các trường chuyên trên cả nước)."
+      },
+      {
+        "icon": "list",
+        "label": "Kỹ năng",
+        "detail": "Chiến thuật phân bổ thời gian, kỹ năng nhận diện bẫy trong đề thi trắc nghiệm theo định dạng mới của Bộ."
+      }
+    ],
+    "learningFormat": [
+      {
+        "icon": "users",
+        "label": "Học trực tiếp tại trung tâm",
+        "detail": "Tương tác trực tiếp với giáo viên."
+      },
+      {
+        "icon": "edit",
+        "label": "Luyện tập",
+        "detail": "Hệ thống bài tập tự luyện theo từng video bài giảng (File PDF và làm bài trên Web)."
+      },
+      {
+        "icon": "message-circle",
+        "label": "Hỗ trợ",
+        "detail": "Đội ngũ trợ giảng trực chiến tại nhóm Zalo, giải đáp thắc mắc ngay khi gặp khó khăn."
+      }
+    ],
+    "weeks": [
+      {
+        "index": 1,
+        "title": "Quét lỗi sai lý thuyết (Bẫy thường gặp trong 35 câu đầu).",
+        "stats": { "lessons": 4, "documents": 1 },
+        "items": []
+      },
+      {
+        "index": 2,
+        "title": "Kỹ thuật bấm máy Casio hỗ trợ giải nhanh & Kiểm tra ngược.",
+        "stats": { "lessons": 6, "documents": 2 },
+        "items": []
+      },
+      {
+        "index": 3,
+        "title": "Luyện đề chuyên đề: Hàm số - Mũ - Log (60 phút/đề).",
+        "stats": { "lessons": 5, "documents": 1 },
+        "items": []
+      },
+      {
+        "index": 4,
+        "title": "Luyện đề chuyên đề: Giải tích - Oxyz (60 phút/đề).",
+        "stats": { "lessons": 5, "documents": 2 },
+        "items": []
+      },
+      {
+        "index": 5,
+        "title": "Chiến thuật phân bổ thời gian: \"Quy tắc 30-30-30\".",
+        "stats": { "lessons": 3, "documents": 1 },
+        "items": []
+      },
+      {
+        "index": 6,
+        "title": "Thực chiến đề thi thử các trường chuyên (Đợt 1).",
+        "stats": { "lessons": 8, "documents": 5 },
+        "items": []
+      },
+      {
+        "index": 7,
+        "title": "Giải chi tiết bộ đề tinh hoa (Cập nhật cấu trúc 2026).",
+        "stats": { "lessons": 6, "documents": 3 },
+        "items": []
+      },
+      {
+        "index": 8,
+        "title": "Luyện đề áp lực thời gian (80 phút thay vì 90 phút).",
+        "stats": { "lessons": 4, "documents": 2 },
+        "items": []
+      },
+      {
+        "index": 9,
+        "title": "Phân tích cấu trúc câu hỏi 9+ và chiến thuật \"khoanh vùng\".",
+        "stats": { "lessons": 5, "documents": 1 },
+        "items": []
+      },
+      {
+        "index": 10,
+        "title": "Đề dự đoán số 1 & Tổng rà soát kiến thức toàn diện.",
+        "stats": { "lessons": 3, "documents": 2 },
+        "items": []
+      },
+      {
+        "index": 11,
+        "title": "Đề dự đoán số 2 & Ổn định tâm lý phòng thi.",
+        "stats": { "lessons": 3, "documents": 2 },
+        "items": []
+      },
+      {
+        "index": 12,
+        "title": "Về đích: Chốt kỹ năng cuối cùng & Lên dây cót tinh thần.",
+        "stats": { "lessons": 6, "documents": 4 },
+        "items": []
+      }
+    ]
+  }
+}

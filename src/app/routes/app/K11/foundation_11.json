@@ -1,0 +1,144 @@
+{
+  "course": {
+    "id": "math-11-foundation",
+    "title": "Toán học 11 - Khóa Foundation",
+    "status": "ĐANG HOẠT ĐỘNG",
+    "rating": {
+      "score": 4.9,
+      "count": 145
+    },
+    "description": "Khóa học xây dựng nền tảng vững chắc cho chương trình lớp 11, giúp học sinh lấy lại căn bản và làm chủ các chuyên đề trọng tâm theo chương trình mới.",
+    "descriptionHighlight": "nền tảng vững chắc",
+    "price": {
+      "current": 1200000,
+      "original": 2000000,
+      "discountPercent": 40,
+      "currency": "VND"
+    },
+    "cta": {
+      "primary": "Đăng ký học ngay",
+      "secondary": "Liên hệ tư vấn"
+    },
+    "cover": {
+      "audience": "2k9",
+      "headline": "NẮM VỮNG LÝ THUYẾT",
+      "letter": "F",
+      "fullName": "NỀN TẢNG (FOUNDATION)",
+      "caption": "TOÁN HỌC 11 - CHUYÊN SÂU TRỌNG TÂM",
+      "brand": "EdTech Pro"
+    },
+    "instructor": {
+      "title": "GIẢNG VIÊN HƯỚNG DẪN",
+      "name": "ThS. Nguyễn Văn A",
+      "avatar": ""
+    },
+    "knowledgeContent": [
+      {
+        "icon": "target",
+        "label": "Mục tiêu",
+        "detail": "Nắm chắc lý thuyết, giải quyết tốt các bài tập mức độ Nhận biết và Thông hiểu (mục tiêu 7.5+)."
+      },
+      {
+        "icon": "book",
+        "label": "Chương trình",
+        "detail": "Bám sát SGK mới. Bao gồm: Hàm số lượng giác, Dãy số, Giới hạn, Đạo hàm, Quan hệ song song và vuông góc trong không gian."
+      },
+      {
+        "icon": "list",
+        "label": "Số lượng",
+        "detail": "Hơn 110 bài giảng chi tiết, lộ trình học bài bản giúp học sinh không bị hổng kiến thức."
+      }
+    ],
+    "learningFormat": [
+      {
+        "icon": "users",
+        "label": "Học trực tiếp tại trung tâm",
+        "detail": "Tương tác trực tiếp với giáo viên."
+      },
+      {
+        "icon": "edit",
+        "label": "Luyện tập",
+        "detail": "Hệ thống bài tập tự luyện (File PDF và làm bài trên Web)."
+      },
+      {
+        "icon": "message-circle",
+        "label": "Hỗ trợ",
+        "detail": "Đội ngũ trợ giảng trực chiến tại nhóm Zalo."
+      }
+    ],
+    "weeks": [
+      {
+        "index": 1,
+        "title": "Hàm số lượng giác và Phương trình lượng giác cơ bản.",
+        "stats": { "lessons": 6, "documents": 2 },
+        "items": []
+      },
+      {
+        "index": 2,
+        "title": "Dãy số, Cấp số cộng và Cấp số nhân.",
+        "stats": { "lessons": 5, "documents": 1 },
+        "items": []
+      },
+      {
+        "index": 3,
+        "title": "Giới hạn của dãy số và Giới hạn của hàm số.",
+        "stats": { "lessons": 7 },
+        "items": []
+      },
+      {
+        "index": 4,
+        "title": "Hàm số liên tục (Định nghĩa và bài tập ứng dụng).",
+        "stats": { "lessons": 4 },
+        "items": []
+      },
+      {
+        "index": 5,
+        "title": "Đạo hàm: Định nghĩa và các quy tắc tính đạo hàm cơ bản.",
+        "stats": { "lessons": 8 },
+        "items": []
+      },
+      {
+        "index": 6,
+        "title": "Đạo hàm hàm số lượng giác và Đạo hàm cấp hai.",
+        "stats": { "lessons": 6 },
+        "items": []
+      },
+      {
+        "index": 7,
+        "title": "Đường thẳng và mặt phẳng trong không gian (Quan hệ song song).",
+        "stats": { "lessons": 9 },
+        "items": []
+      },
+      {
+        "index": 8,
+        "title": "Quan hệ vuông góc trong không gian (Đường thẳng và mặt phẳng).",
+        "stats": { "lessons": 8 },
+        "items": []
+      },
+      {
+        "index": 9,
+        "title": "Phép tính xác suất và Các quy tắc đếm cơ bản.",
+        "stats": { "lessons": 7 },
+        "items": []
+      },
+      {
+        "index": 10,
+        "title": "Biến cố giao, biến cố xung khắc và xác suất có điều kiện.",
+        "stats": { "lessons": 6 },
+        "items": []
+      },
+      {
+        "index": 11,
+        "title": "Số đặc trưng đo xu thế trung tâm của mẫu số liệu ghép nhóm.",
+        "stats": { "lessons": 5 },
+        "items": []
+      },
+      {
+        "index": 12,
+        "title": "Tổng ôn kiến thức lớp 11 & Kiểm tra cuối khóa.",
+        "stats": { "exams": 2 },
+        "items": []
+      }
+    ]
+  }
+}

@@ -1,0 +1,144 @@
+{
+  "course": {
+    "id": "math-11-advance",
+    "title": "Toán học 11 - Khóa Advance",
+    "status": "ĐANG HOẠT ĐỘNG",
+    "rating": {
+      "score": 4.8,
+      "count": 110
+    },
+    "description": "Khóa học nâng cao tư duy, bứt phá điểm số 9+ với các phương pháp giải toán đỉnh cao và các bài toán vận dụng cao lớp 11.",
+    "descriptionHighlight": "bứt phá điểm số",
+    "price": {
+      "current": 1500000,
+      "original": 2500000,
+      "discountPercent": 40,
+      "currency": "VND"
+    },
+    "cta": {
+      "primary": "Đăng ký học ngay",
+      "secondary": "Liên hệ tư vấn"
+    },
+    "cover": {
+      "audience": "2k9",
+      "headline": "LUYỆN THI CHINH PHỤC",
+      "letter": "A",
+      "fullName": "NÂNG CAO (ADVANCED)",
+      "caption": "BỨT PHÁ DẠNG TOÁN KHÓ 11",
+      "brand": "EdTech Pro"
+    },
+    "instructor": {
+      "title": "GIẢNG VIÊN HƯỚNG DẪN",
+      "name": "ThS. Nguyễn Văn A",
+      "avatar": ""
+    },
+    "knowledgeContent": [
+      {
+        "icon": "target",
+        "label": "Mục tiêu",
+        "detail": "Chinh phục các câu hỏi lấy điểm 9, 10 trong các bài thi học kỳ và kỳ thi chọn HSG."
+      },
+      {
+        "icon": "book",
+        "label": "Trọng tâm",
+        "detail": "Kỹ thuật giải phương trình lượng giác khó, các bài toán cực trị, góc và khoảng cách trong không gian (VDC)."
+      },
+      {
+        "icon": "list",
+        "label": "Giáo án",
+        "detail": "Biên soạn chuyên biệt với các bài tập từ các đề thi thử chuyên và đề thi HSG cấp tỉnh."
+      }
+    ],
+    "learningFormat": [
+      {
+        "icon": "users",
+        "label": "Học trực tiếp tại trung tâm",
+        "detail": "Tương tác trực tiếp với giáo viên."
+      },
+      {
+        "icon": "edit",
+        "label": "Luyện tập",
+        "detail": "Hệ thống bài tập VDC (File PDF và làm bài trên Web)."
+      },
+      {
+        "icon": "message-circle",
+        "label": "Hỗ trợ",
+        "detail": "Giải đáp thắc mắc chuyên sâu tại nhóm Zalo."
+      }
+    ],
+    "weeks": [
+      {
+        "index": 1,
+        "title": "Phương trình lượng giác chứa tham số và các bài toán thực tế.",
+        "stats": { "lessons": 5 },
+        "items": []
+      },
+      {
+        "index": 2,
+        "title": "Tổng dãy số đặc biệt và Giới hạn dãy số nâng cao.",
+        "stats": { "lessons": 6 },
+        "items": []
+      },
+      {
+        "index": 3,
+        "title": "Ứng dụng đạo hàm trong chứng minh đẳng thức và tìm cực trị.",
+        "stats": { "lessons": 6 },
+        "items": []
+      },
+      {
+        "index": 4,
+        "title": "Kỹ thuật tính Góc giữa đường thẳng, mặt phẳng trong không gian.",
+        "stats": { "lessons": 7 },
+        "items": []
+      },
+      {
+        "index": 5,
+        "title": "Bài toán Khoảng cách: Từ điểm đến mặt, giữa hai đường chéo nhau.",
+        "stats": { "lessons": 8 },
+        "items": []
+      },
+      {
+        "index": 6,
+        "title": "Thể tích khối đa diện (Lồng ghép kiến thức lớp 11).",
+        "stats": { "lessons": 5 },
+        "items": []
+      },
+      {
+        "index": 7,
+        "title": "Xác suất nâng cao: Các bài toán về sơ đồ hình cây và Bayes.",
+        "stats": { "lessons": 6 },
+        "items": []
+      },
+      {
+        "index": 8,
+        "title": "Bài toán đếm và Nhị thức Newton (Mở rộng).",
+        "stats": { "lessons": 5 },
+        "items": []
+      },
+      {
+        "index": 9,
+        "title": "Hàm số mũ, logarit và ứng dụng tăng trưởng/lãi suất.",
+        "stats": { "lessons": 6 },
+        "items": []
+      },
+      {
+        "index": 10,
+        "title": "Sự tương quan và quy luật trong số liệu thống kê.",
+        "stats": { "lessons": 4 },
+        "items": []
+      },
+      {
+        "index": 11,
+        "title": "Các bài toán tích hợp: Giải tích kết hợp Hình học.",
+        "stats": { "lessons": 5 },
+        "items": []
+      },
+      {
+        "index": 12,
+        "title": "Tổng ôn kiến thức Advance & Checkpoint 11.",
+        "stats": { "exams": 2 },
+        "items": []
+      }
+    ]
+  }
+}

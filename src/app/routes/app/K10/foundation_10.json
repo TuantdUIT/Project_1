@@ -1,0 +1,144 @@
+{
+  "course": {
+    "id": "math-10-foundation",
+    "title": "Toán học 10 - Khóa Foundation",
+    "status": "ĐANG HOẠT ĐỘNG",
+    "rating": {
+      "score": 4.9,
+      "count": 160
+    },
+    "description": "Khóa học xây dựng nền tảng vững chắc cho lớp 10, giúp học sinh làm quen với phương pháp học mới và nắm trọn kiến thức trọng tâm chương trình GDPT 2018.",
+    "descriptionHighlight": "nền tảng vững chắc",
+    "price": {
+      "current": 1200000,
+      "original": 2000000,
+      "discountPercent": 40,
+      "currency": "VND"
+    },
+    "cta": {
+      "primary": "Đăng ký học ngay",
+      "secondary": "Liên hệ tư vấn"
+    },
+    "cover": {
+      "audience": "2k10",
+      "headline": "NẮM VỮNG LÝ THUYẾT",
+      "letter": "F",
+      "fullName": "NỀN TẢNG (FOUNDATION)",
+      "caption": "TOÁN HỌC 10 - CHUYÊN SÂU TRỌNG TÂM",
+      "brand": "EdTech Pro"
+    },
+    "instructor": {
+      "title": "GIẢNG VIÊN HƯỚNG DẪN",
+      "name": "ThS. Nguyễn Văn A",
+      "avatar": ""
+    },
+    "knowledgeContent": [
+      {
+        "icon": "target",
+        "label": "Mục tiêu",
+        "detail": "Nắm vững định nghĩa, công thức cơ bản và giải quyết tốt các bài tập nhận biết, thông hiểu (mục tiêu 7.5+)."
+      },
+      {
+        "icon": "book",
+        "label": "Chương trình",
+        "detail": "Bám sát 3 bộ sách mới. Bao gồm: Mệnh đề - Tập hợp, Bất phương trình bậc nhất 2 ẩn, Hàm số bậc hai, Hệ thức lượng trong tam giác, Vectơ và Thống kê."
+      },
+      {
+        "icon": "list",
+        "label": "Số lượng",
+        "detail": "Hơn 100 bài giảng chi tiết, hướng dẫn tỉ mỉ từng bước giải bài tập cơ bản."
+      }
+    ],
+    "learningFormat": [
+      {
+        "icon": "users",
+        "label": "Học trực tiếp tại trung tâm",
+        "detail": "Tương tác trực tiếp với giáo viên."
+      },
+      {
+        "icon": "edit",
+        "label": "Luyện tập",
+        "detail": "Hệ thống bài tập tự luyện cơ bản (File PDF và Web)."
+      },
+      {
+        "icon": "message-circle",
+        "label": "Hỗ trợ",
+        "detail": "Đội ngũ trợ giảng giải đáp thắc mắc cơ bản 24/7."
+      }
+    ],
+    "weeks": [
+      {
+        "index": 1,
+        "title": "Mệnh đề toán học và Tập hợp (Các phép toán trên tập hợp).",
+        "stats": { "lessons": 6, "documents": 2 },
+        "items": []
+      },
+      {
+        "index": 2,
+        "title": "Bất phương trình và Hệ bất phương trình bậc nhất hai ẩn.",
+        "stats": { "lessons": 5, "documents": 1 },
+        "items": []
+      },
+      {
+        "index": 3,
+        "title": "Hàm số và Đồ thị (Hàm số bậc hai).",
+        "stats": { "lessons": 7 },
+        "items": []
+      },
+      {
+        "index": 4,
+        "title": "Dấu của tam thức bậc hai và Bất phương trình bậc hai một ẩn.",
+        "stats": { "lessons": 6 },
+        "items": []
+      },
+      {
+        "index": 5,
+        "title": "Giá trị lượng giác của một góc từ 0 đến 180 độ.",
+        "stats": { "lessons": 5 },
+        "items": []
+      },
+      {
+        "index": 6,
+        "title": "Hệ thức lượng trong tam giác (Định lý Sin, Cosin và công thức diện tích).",
+        "stats": { "lessons": 8 },
+        "items": []
+      },
+      {
+        "index": 7,
+        "title": "Vectơ và các phép toán (Tổng, hiệu, tích vectơ với một số).",
+        "stats": { "lessons": 10 },
+        "items": []
+      },
+      {
+        "index": 8,
+        "title": "Tích vô hướng của hai vectơ và ứng dụng.",
+        "stats": { "lessons": 7 },
+        "items": []
+      },
+      {
+        "index": 9,
+        "title": "Thống kê: Số đặc trưng đo xu thế trung tâm và độ phân tán.",
+        "stats": { "lessons": 6 },
+        "items": []
+      },
+      {
+        "index": 10,
+        "title": "Đại số tổ hợp: Quy tắc đếm, Hoán vị, Chỉnh hợp, Tổ hợp.",
+        "stats": { "lessons": 8 },
+        "items": []
+      },
+      {
+        "index": 11,
+        "title": "Nhị thức Newton (Khai triển bậc 4 và bậc 5).",
+        "stats": { "lessons": 4 },
+        "items": []
+      },
+      {
+        "index": 12,
+        "title": "Tổng kết kiến thức Toán 10 & Kiểm tra cuối khóa.",
+        "stats": { "exams": 2 },
+        "items": []
+      }
+    ]
+  }
+}

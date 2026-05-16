@@ -1,0 +1,74 @@
+{
+  "grades": [
+    {
+      "key": "10",
+      "gradeId": 10,
+      "label": "K10",
+      "color": "#15803D"
+    },
+    {
+      "key": "11",
+      "gradeId": 11,
+      "label": "K11",
+      "color": "#FF4500"
+    },
+    {
+      "key": "12",
+      "gradeId": 12,
+      "label": "K12",
+      "color": "#0369A1"
+    }
+  ],
+  "tiers": [
+    {
+      "key": "F",
+      "letter": "F",
+      "headline": "NẮM VỮNG LÝ THUYẾT",
+      "fullName": "NỀN TẢNG (FOUNDATION)",
+      "caption": "TOÁN HỌC - CHUYÊN SÂU TRỌNG TÂM",
+      "cardTitle": "Khóa học Nền tảng (Foundation)",
+      "description": "Xây dựng kiến thức gốc vững chắc, học chậm mà chắc theo từng chương trình SGK mới."
+    },
+    {
+      "key": "A",
+      "letter": "A",
+      "headline": "LUYỆN THI CHINH PHỤC",
+      "fullName": "NÂNG CAO (ADVANCED)",
+      "caption": "BỨT PHÁ DẠNG TOÁN KHÓ",
+      "cardTitle": "Khóa học Nâng cao (Advanced)",
+      "description": "Hệ thống dạng bài, kỹ thuật xử lý nhanh và chinh phục điểm 8-9 trong các kỳ thi quan trọng."
+    },
+    {
+      "key": "S",
+      "letter": "S",
+      "headline": "LUYỆN ĐỀ ĐỈNH CAO",
+      "fullName": "CHIẾN THUẬT (STRATEGY)",
+      "caption": "THỰC CHIẾN - TỐI ƯU ĐIỂM SỐ",
+      "cardTitle": "Khóa học Chiến thuật (Strategy)",
+      "description": "Luyện đề thực chiến, xây chiến thuật làm bài và tối ưu điểm số ở giai đoạn nước rút."
+    },
+    {
+      "key": "VDC",
+      "letter": "VDC",
+      "headline": "CHINH PHỤC VẬN DỤNG CAO",
+      "fullName": "VẬN DỤNG CAO (VDC)",
+      "caption": "NÂNG TẦM TƯ DUY - BỨT PHÁ 9+",
+      "cardTitle": "Khóa Vận dụng cao (VDC)",
+      "description": "Tập trung khai thác câu hỏi vận dụng cao, rèn tư duy đột phá để chạm ngưỡng 9-10 điểm."
+    }
+  ],
+  "dgnl": {
+    "key": "DGNL",
+    "label": "ĐGNL",
+    "color": "#1152D4",
+    "tier": {
+      "key": "DGNL",
+      "letter": "ĐGNL",
+      "headline": "BỨT PHÁ TƯ DUY",
+      "fullName": "ĐÁNH GIÁ NĂNG LỰC",
+      "caption": "CHIẾN LƯỢC TỔNG ÔN ĐA MÔN",
+      "cardTitle": "Khóa Đánh giá năng lực (ĐGNL)",
+      "description": "Lộ trình luyện thi ĐGNL theo đề thi ĐHQG, rèn phản xạ giải nhanh và bao quát kiến thức."
+    }
+  }
+}
