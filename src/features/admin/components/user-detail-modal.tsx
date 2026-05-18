@@ -161,7 +161,7 @@ export default function UserDetailModal({
               ) : null}
               {detailQuery.data === null ? (
                 <p className="text-[13px] font-semibold text-rose-600">
-                  Không tìm thấy user này trên server. Đang hiển thị dữ liệu tóm tắt từ danh sách.
+                  Không tìm thấy nhân sự này trên server. Đang hiển thị dữ liệu tóm tắt từ danh sách.
                 </p>
               ) : null}
             </div>
@@ -250,7 +250,7 @@ export default function UserDetailModal({
         {confirmDelete ? (
           <div className="border-t border-rose-100 bg-rose-50 px-4 py-3">
             <p className="text-[13px] font-semibold text-rose-700">
-              Xóa user này? Thao tác này không thể hoàn tác.
+              Xóa nhân sự này? Thao tác này không thể hoàn tác.
             </p>
             <div className="mt-3 flex justify-end gap-2">
               <button

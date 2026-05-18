@@ -132,7 +132,7 @@ export default function ConsultationForm() {
                     className="w-full rounded-academic border border-on-surface/10 bg-white px-4 py-3 outline-none transition-all focus:border-indigo-deep focus:ring-1 focus:ring-indigo-deep"
                   >
                     <option value="">Chọn khối</option>
-                    {(gradesQuery.data ?? []).map((grade) => (
+                    {(gradesQuery.data?.grades ?? []).map((grade) => (
                       <option key={grade.id} value={grade.id}>
                         {grade.name}
                       </option>

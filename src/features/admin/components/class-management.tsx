@@ -1,12 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Eye, GraduationCap, Mail, User, Users, X } from 'lucide-react';
+import { useNavigate, useParams, useSearchParams } from 'react-router';
+import { ArrowLeft, Eye, GraduationCap, Mail, User, Users } from 'lucide-react';
 import {
-  useStudentByStudentIdQuery,
+  useStudentByUuidQuery,
   useStudentsQuery,
   useUpdateStudentByUuid,
   type ResStudentDTO,
 } from '@/features/admin';
+import { paths } from '@/config/paths';
 import { useGradesQuery } from '@/features/curriculum';
+import { DEFAULT_PAGE_SIZE } from '@/utils/pagination';
+import StudentPeriodsSection from './student-periods-section';
 
 const currentSchoolYear = new Date().getFullYear();
 
@@ -16,64 +20,84 @@ const fieldClass =
 const selectClass =
   'h-11 rounded-xl border border-slate-300 bg-white px-3 text-[14px] font-extrabold text-slate-950 outline-none transition focus:border-[#1870FF] focus:ring-4 focus:ring-[rgba(24,112,255,0.14)]';
 
-const UNASSIGNED_GRADE_KEY = '__unassigned__';
+const studentDetailTabs = ['Tổng quan', 'Điểm số', 'Học phí', 'Bài tập'] as const;
+
+type StudentDetailTab = (typeof studentDetailTabs)[number];
 
 type GradeGroup = {
   key: string;
   gradeId: number | null;
   label: string;
-  students: ResStudentDTO[];
+  count: number;
 };
 
 export default function ClassManagement() {
-  const [schoolYear, setSchoolYear] = useState(currentSchoolYear);
-  const [selectedGroupKey, setSelectedGroupKey] = useState<string | null>(null);
-  const [search, setSearch] = useState('');
-  const [page, setPage] = useState(1);
-  const [detailTarget, setDetailTarget] = useState<{ studentId?: string; schoolYear?: number; fallback: ResStudentDTO } | null>(null);
+  const { userUuid } = useParams();
+
+  if (userUuid) {
+    return <StudentDetailPanel userUuid={userUuid} />;
+  }
+
+  return <ClassListPanel />;
+}
+
+function ClassListPanel() {
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const schoolYear = Number(searchParams.get('year') ?? currentSchoolYear);
+  const selectedGroupKey = searchParams.get('group');
+  const search = searchParams.get('q') ?? '';
+  const page = Math.max(Number(searchParams.get('page') ?? 1), 1);
 
   const studentsQuery = useStudentsQuery({
     studentStatus: 'ACTIVE',
     schoolYear,
     page,
-    size: 100,
+    size: DEFAULT_PAGE_SIZE,
   });
   const gradesQuery = useGradesQuery();
 
-  const allStudents = studentsQuery.data?.result ?? [];
+  function updateListParams(updates: Record<string, string | number | null>) {
+    setSearchParams((current) => {
+      const next = new URLSearchParams(current);
+
+      Object.entries(updates).forEach(([key, value]) => {
+        if (value === null || value === '') {
+          next.delete(key);
+        } else {
+          next.set(key, String(value));
+        }
+      });
+
+      return next;
+    });
+  }
+
+  const currentPageStudents = studentsQuery.data?.result ?? [];
+  const studentsMeta = studentsQuery.data?.meta;
+  const totalPages = Math.max(studentsMeta?.totalPages ?? 1, 1);
 
   const groups: GradeGroup[] = useMemo(() => {
-    const map = new Map<string, GradeGroup>();
-
-    for (const student of allStudents) {
-      const primaryGrade = student.grades?.[0];
-      const key = primaryGrade?.id != null ? `g-${primaryGrade.id}` : UNASSIGNED_GRADE_KEY;
-      const label = primaryGrade?.name ?? 'Chưa xếp khối';
-      const gradeId = primaryGrade?.id ?? null;
-
-      const existing = map.get(key);
-      if (existing) {
-        existing.students.push(student);
-      } else {
-        map.set(key, { key, gradeId, label, students: [student] });
-      }
-    }
-
-    return Array.from(map.values()).sort((a, b) => {
-      if (a.key === UNASSIGNED_GRADE_KEY) {
-        return 1;
-      }
-      if (b.key === UNASSIGNED_GRADE_KEY) {
-        return -1;
-      }
-      return (a.gradeId ?? 0) - (b.gradeId ?? 0);
-    });
-  }, [allStudents]);
+    return (gradesQuery.data?.grades ?? [])
+      .map((grade) => ({
+        key: `g-${grade.id}`,
+        gradeId: grade.id ?? null,
+        label: grade.name ?? 'Khối',
+        count: grade.studentsInPeriodCount ?? 0,
+      }))
+      .sort((a, b) => (a.gradeId ?? 0) - (b.gradeId ?? 0));
+  }, [gradesQuery.data?.grades]);
 
   const normalizedSearch = search.trim().toLowerCase();
+  const selectedGroup = selectedGroupKey
+    ? groups.find((group) => group.key === selectedGroupKey)
+    : undefined;
   const displayed = selectedGroupKey
-    ? (groups.find((group) => group.key === selectedGroupKey)?.students ?? [])
-    : allStudents;
+    ? currentPageStudents.filter((student) =>
+        (student.grades ?? []).some((grade) => grade.id === selectedGroup?.gradeId),
+      )
+    : currentPageStudents;
   const filteredStudents = normalizedSearch
     ? displayed.filter((student) => {
         const haystack = [
@@ -91,7 +115,7 @@ export default function ClassManagement() {
     : displayed;
 
   const selectedGroupLabel = selectedGroupKey
-    ? (groups.find((group) => group.key === selectedGroupKey)?.label ?? '')
+    ? (selectedGroup?.label ?? '')
     : 'Tất cả các khối';
 
   return (
@@ -101,25 +125,25 @@ export default function ClassManagement() {
         <div className="border-t border-slate-100 p-5 sm:p-6">
           {groups.length === 0 ? (
             <p className="py-6 text-center text-[14px] font-semibold text-slate-500">
-              {studentsQuery.isLoading ? 'Đang tải…' : 'Chưa có học sinh đang học.'}
+              {gradesQuery.isLoading ? 'Đang tải...' : 'Chưa có dữ liệu khối.'}
             </p>
           ) : (
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
               <GradeCard
                 variant="total"
                 label="Tất cả"
-                count={allStudents.length}
+                count={gradesQuery.data?.totalActiveStudents ?? 0}
                 active={selectedGroupKey === null}
-                onClick={() => setSelectedGroupKey(null)}
+                onClick={() => updateListParams({ group: null, page: 1 })}
               />
               {groups.map((group) => (
                 <GradeCard
                   key={group.key}
                   variant="grade"
                   label={group.label}
-                  count={group.students.length}
+                  count={group.count}
                   active={selectedGroupKey === group.key}
-                  onClick={() => setSelectedGroupKey(group.key)}
+                  onClick={() => updateListParams({ group: group.key, page: 1 })}
                 />
               ))}
             </div>
@@ -135,11 +159,7 @@ export default function ClassManagement() {
               <span className="text-[13px] font-bold text-slate-600">Năm</span>
               <select
                 value={schoolYear}
-                onChange={(event) => {
-                  setSchoolYear(Number(event.target.value));
-                  setPage(1);
-                  setSelectedGroupKey(null);
-                }}
+                onChange={(event) => updateListParams({ year: Number(event.target.value), page: 1, group: null })}
                 className={`${selectClass} w-full`}
               >
                 {[currentSchoolYear - 1, currentSchoolYear, currentSchoolYear + 1].map((year) => (
@@ -156,31 +176,24 @@ export default function ClassManagement() {
                 value={
                   selectedGroupKey === null
                     ? ''
-                    : selectedGroupKey === UNASSIGNED_GRADE_KEY
-                      ? UNASSIGNED_GRADE_KEY
-                      : (groups.find((group) => group.key === selectedGroupKey)?.gradeId ?? '')
+                    : (selectedGroup?.gradeId ?? '')
                 }
                 onChange={(event) => {
                   const value = event.target.value;
                   if (value === '') {
-                    setSelectedGroupKey(null);
-                  } else if (value === UNASSIGNED_GRADE_KEY) {
-                    setSelectedGroupKey(UNASSIGNED_GRADE_KEY);
+                    updateListParams({ group: null, page: 1 });
                   } else {
-                    setSelectedGroupKey(`g-${value}`);
+                    updateListParams({ group: `g-${value}`, page: 1 });
                   }
                 }}
                 className={`${selectClass} w-full`}
               >
                 <option value="">Tất cả</option>
-                {(gradesQuery.data ?? []).map((grade) => (
+                {(gradesQuery.data?.grades ?? []).map((grade) => (
                   <option key={grade.id} value={grade.id}>
                     {grade.name}
                   </option>
                 ))}
-                {groups.some((group) => group.key === UNASSIGNED_GRADE_KEY) ? (
-                  <option value={UNASSIGNED_GRADE_KEY}>Chưa xếp khối</option>
-                ) : null}
               </select>
             </label>
 
@@ -188,12 +201,17 @@ export default function ClassManagement() {
               <span className="text-[13px] font-bold text-slate-600">Tìm theo tên / SĐT / email / lớp</span>
               <input
                 value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Nhập từ khoá…"
+                onChange={(event) => updateListParams({ q: event.target.value, page: 1 })}
+                placeholder="Nhập từ khóa..."
                 className={fieldClass}
               />
             </label>
           </div>
+          {selectedGroupKey ? (
+            <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-[13px] font-semibold text-amber-800">
+              Danh sách đang lọc theo học sinh trên trang hiện tại. Số thống kê phía trên vẫn là tổng chính thức từ hệ thống.
+            </p>
+          ) : null}
         </div>
 
         <div className="border-t border-slate-100 overflow-x-auto">
@@ -226,14 +244,14 @@ export default function ClassManagement() {
                     <div className="flex items-center justify-end gap-2">
                       <button
                         type="button"
-                        onClick={() =>
-                          setDetailTarget({
-                            studentId: student.student_id,
-                            schoolYear: student.school_year,
-                            fallback: student,
-                          })
-                        }
-                        className="flex h-9 items-center gap-1.5 rounded-xl border border-[#1870FF] px-3 text-[13px] font-extrabold text-[#1870FF] transition hover:bg-[rgba(24,112,255,0.08)]"
+                        onClick={() => {
+                          if (student.user_uuid) {
+                            const query = searchParams.toString();
+                            navigate(`${paths.adminPortalClassDetail(student.user_uuid)}${query ? `?${query}` : ''}`);
+                          }
+                        }}
+                        disabled={!student.user_uuid}
+                        className="flex h-9 items-center gap-1.5 rounded-xl border border-[#1870FF] px-3 text-[13px] font-extrabold text-[#1870FF] transition hover:bg-[rgba(24,112,255,0.08)] disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         <Eye size={15} />
                         Xem chi tiết
@@ -247,9 +265,9 @@ export default function ClassManagement() {
                 <tr>
                   <td colSpan={5} className="px-6 py-12 text-center text-[14px] font-semibold text-slate-500">
                     {studentsQuery.isLoading
-                      ? 'Đang tải…'
+                      ? 'Đang tải...'
                       : normalizedSearch
-                        ? 'Không tìm thấy học sinh khớp từ khoá.'
+                        ? 'Không tìm thấy học sinh khớp từ khóa.'
                         : 'Không có học sinh trong nhóm này.'}
                   </td>
                 </tr>
@@ -257,49 +275,55 @@ export default function ClassManagement() {
             </tbody>
           </table>
         </div>
-      </section>
 
-      {detailTarget ? (
-        <StudentDetailModal
-          studentId={detailTarget.studentId}
-          schoolYear={detailTarget.schoolYear}
-          fallback={detailTarget.fallback}
-          onClose={() => setDetailTarget(null)}
-        />
-      ) : null}
+        <div className="flex flex-col gap-4 border-t border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+          <p className="text-[14px] font-extrabold text-slate-500">
+            Trang {page}/{totalPages} · {studentsMeta?.totalItems ?? 0} HS đang học
+          </p>
+          <div className="flex items-center gap-6">
+            <button
+              type="button"
+              onClick={() => updateListParams({ page: Math.max(page - 1, 1) })}
+              disabled={page <= 1}
+              className="text-[14px] font-extrabold text-slate-950 transition hover:text-[#1870FF] disabled:cursor-not-allowed disabled:text-slate-400"
+            >
+              Trước
+            </button>
+            <button
+              type="button"
+              onClick={() => updateListParams({ page: Math.min(page + 1, totalPages) })}
+              disabled={page >= totalPages}
+              className="text-[14px] font-extrabold text-slate-950 transition hover:text-[#1870FF] disabled:cursor-not-allowed disabled:text-slate-400"
+            >
+              Sau
+            </button>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
 
-function StudentDetailModal({
-  studentId,
-  schoolYear,
-  fallback,
-  onClose,
-}: {
-  studentId?: string;
-  schoolYear?: number;
-  fallback: ResStudentDTO;
-  onClose: () => void;
-}) {
-  const detailQuery = useStudentByStudentIdQuery(studentId, schoolYear);
-  const student = detailQuery.data ?? fallback;
-  const isLoading = detailQuery.isLoading;
-  const isError = detailQuery.isError;
+function StudentDetailPanel({ userUuid }: { userUuid: string }) {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const detailQuery = useStudentByUuidQuery(userUuid);
+  const student = detailQuery.data;
   const updateStudent = useUpdateStudentByUuid();
+  const [activeTab, setActiveTab] = useState<StudentDetailTab>('Tổng quan');
 
   const originals = useMemo(
     () => ({
-      fullName: student.user_fullname ?? '',
-      studentId: student.student_id ?? '',
-      schoolYear: student.school_year != null ? String(student.school_year) : '',
-      school: student.school ?? '',
-      className: student.student_class ?? '',
-      email: student.user_email ?? '',
-      phoneNumber: student.user_phone_number ?? '',
-      fbLink: student.fb_link ?? '',
-      parentName: student.parent_name ?? '',
-      parentNumber: student.parent_number ?? '',
+      fullName: student?.user_fullname ?? '',
+      studentId: student?.student_id ?? '',
+      schoolYear: student?.school_year != null ? String(student.school_year) : '',
+      school: student?.school ?? '',
+      className: student?.student_class ?? '',
+      email: student?.user_email ?? '',
+      phoneNumber: student?.user_phone_number ?? '',
+      fbLink: student?.fb_link ?? '',
+      parentName: student?.parent_name ?? '',
+      parentNumber: student?.parent_number ?? '',
     }),
     [student],
   );
@@ -315,26 +339,17 @@ function StudentDetailModal({
     (key) => form[key] !== originals[key],
   );
 
-  const yearValue =
-    student.school_year != null
-      ? String(student.school_year)
-      : schoolYear != null
-        ? String(schoolYear)
-        : undefined;
-
-  const gradeLabel = student.grades?.map((grade) => grade.name).filter(Boolean).join(', ');
-  const classGradeValue = student.student_class && gradeLabel
-    ? `${student.student_class} (${gradeLabel})`
-    : student.student_class || gradeLabel || undefined;
-
-  const debtValue = student.debt != null ? String(student.debt) : undefined;
+  function goBackToList() {
+    const query = searchParams.toString();
+    navigate(`${paths.adminPortalClasses}${query ? `?${query}` : ''}`);
+  }
 
   function updateField<K extends keyof typeof originals>(key: K, value: string) {
     setForm((current) => ({ ...current, [key]: value }));
   }
 
   async function handleApply() {
-    if (!student.user_uuid || !isDirty) {
+    if (!student?.user_uuid || !isDirty) {
       return;
     }
     const trimmedYear = form.schoolYear.trim();
@@ -362,163 +377,284 @@ function StudentDetailModal({
       setForm(originals);
       setIsEditing(false);
     } else {
+      setActiveTab('Tổng quan');
       setIsEditing(true);
     }
   }
 
+  if (detailQuery.isLoading) {
+    return <StudentDetailSkeleton onBack={goBackToList} />;
+  }
+
+  if (detailQuery.isError || !student) {
+    return (
+      <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-[0_16px_36px_rgba(15,23,42,0.18)]">
+        <p className="text-[20px] font-extrabold text-slate-950">Không tìm thấy học sinh</p>
+        <p className="mt-2 text-[14px] font-semibold text-slate-500">
+          Dữ liệu chi tiết không sẵn sàng hoặc học sinh đã bị xóa.
+        </p>
+        <button
+          type="button"
+          onClick={goBackToList}
+          className="mt-6 inline-flex h-11 items-center gap-2 rounded-xl bg-[#1870FF] px-5 text-[14px] font-extrabold text-white transition hover:bg-[#0f62e6]"
+        >
+          <ArrowLeft size={17} />
+          Quay lại lớp học
+        </button>
+      </div>
+    );
+  }
+
+  const gradeLabel = student.grades?.map((grade) => grade.name).filter(Boolean).join(', ');
+  const classGradeValue = student.student_class && gradeLabel
+    ? `${student.student_class} (${gradeLabel})`
+    : student.student_class || gradeLabel || undefined;
+  const debtValue = student.debt != null ? String(student.debt) : undefined;
+
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/40 px-4 py-6">
-      <div className="flex w-full max-w-2xl max-h-full flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
-        <div className="flex items-start justify-between gap-4 p-6">
+    <div className="space-y-6">
+      <div className="sticky top-0 z-10 rounded-2xl border border-slate-200 bg-white/95 p-5 shadow-[0_12px_30px_rgba(15,23,42,0.16)] backdrop-blur sm:p-6">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div className="min-w-0">
-            <p className="text-[12px] font-extrabold uppercase tracking-[0.16em] text-[#1870FF]">Học sinh</p>
+            <button
+              type="button"
+              onClick={goBackToList}
+              className="mb-3 inline-flex items-center gap-2 text-[13px] font-extrabold text-slate-500 transition hover:text-[#1870FF]"
+            >
+              <ArrowLeft size={16} />
+              Quay lại lớp học
+            </button>
             {isEditing ? (
               <input
                 type="text"
                 value={form.fullName}
                 onChange={(event) => updateField('fullName', event.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-1 text-[28px] font-extrabold leading-tight text-slate-950 outline-none transition focus:border-[#1870FF] focus:ring-4 focus:ring-[rgba(24,112,255,0.14)]"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-1 text-[28px] font-extrabold leading-tight text-slate-950 outline-none transition focus:border-[#1870FF] focus:ring-4 focus:ring-[rgba(24,112,255,0.14)]"
                 placeholder="Họ và tên học sinh"
               />
             ) : (
-              <h3 className="mt-1 truncate text-[28px] font-extrabold leading-tight text-slate-950">
+              <h2 className="truncate text-[28px] font-extrabold leading-tight text-slate-950">
                 {student.user_fullname ?? '—'}
-              </h3>
+              </h2>
             )}
-            <div className="mt-3">
+            <div className="mt-3 flex flex-wrap items-center gap-3">
               <StatusBadge status={student.student_status} />
+              <span className="text-[13px] font-semibold text-slate-500">
+                {student.student_id ? `${student.student_id} · ` : ''}
+                {student.user_email ?? '—'}
+              </span>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-slate-500 transition hover:bg-slate-100"
-            aria-label="Đóng"
-          >
-            <X size={18} />
-          </button>
         </div>
+      </div>
 
-        <div className="flex-1 overflow-y-auto">
-          {isLoading || isError ? (
-            <div className="px-6 pb-2">
-              {isLoading ? (
-                <p className="text-[13px] font-semibold text-slate-500">Đang tải chi tiết học sinh…</p>
+      <div className="border-b border-slate-200">
+        <div className="flex gap-8 overflow-x-auto">
+          {studentDetailTabs.map((tab) => (
+            <button
+              key={tab}
+              type="button"
+              onClick={() => setActiveTab(tab)}
+              className={`relative h-12 whitespace-nowrap text-[14px] font-extrabold transition ${
+                activeTab === tab ? 'text-[#1870FF]' : 'text-slate-500 hover:text-slate-900'
+              }`}
+            >
+              {tab}
+              {activeTab === tab ? (
+                <span className="absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-[#1870FF]" />
               ) : null}
-              {isError ? (
-                <p className="text-[13px] font-semibold text-rose-600">
-                  Không lấy được chi tiết từ server. Đang hiển thị thông tin tóm tắt từ danh sách.
-                </p>
-              ) : null}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {activeTab === 'Tổng quan' ? (
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
+          <div className="space-y-4">
+            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+              <DetailSection icon={User} title="Thông tin học sinh">
+                <DetailGrid>
+                  <EditableRow
+                    label="Mã học sinh (SID)"
+                    value={isEditing ? form.studentId : student.student_id}
+                    editing={isEditing}
+                    onChange={(next) => updateField('studentId', next)}
+                  />
+                  <EditableRow
+                    label="Năm học"
+                    value={isEditing ? form.schoolYear : String(student.school_year ?? '')}
+                    editing={isEditing}
+                    onChange={(next) => updateField('schoolYear', next.replace(/\D/g, ''))}
+                    type="number"
+                  />
+                  <EditableRow
+                    label="Trường"
+                    value={isEditing ? form.school : student.school}
+                    editing={isEditing}
+                    onChange={(next) => updateField('school', next)}
+                  />
+                  <EditableRow
+                    label={isEditing && gradeLabel ? `Lớp (Khối ${gradeLabel})` : 'Lớp / Khối'}
+                    value={isEditing ? form.className : classGradeValue}
+                    editing={isEditing}
+                    onChange={(next) => updateField('className', next)}
+                  />
+                  <DetailRow label="Ngày nhập học" value={student.student_first_enroll_date} />
+                  <DetailRow label="Công nợ" value={debtValue} />
+                </DetailGrid>
+              </DetailSection>
+
+              <DetailSection icon={Mail} title="Liên hệ & mạng xã hội">
+                <DetailGrid>
+                  <EditableRow
+                    label="Email"
+                    value={isEditing ? form.email : student.user_email}
+                    editing={isEditing}
+                    onChange={(next) => updateField('email', next)}
+                    type="email"
+                  />
+                  <EditableRow
+                    label="Số điện thoại"
+                    value={isEditing ? form.phoneNumber : student.user_phone_number}
+                    editing={isEditing}
+                    onChange={(next) => updateField('phoneNumber', next)}
+                    type="tel"
+                  />
+                </DetailGrid>
+                <div className="mt-4">
+                  <EditableRow
+                    label="Facebook profile"
+                    value={isEditing ? form.fbLink : student.fb_link}
+                    editing={isEditing}
+                    onChange={(next) => updateField('fbLink', next)}
+                    type="url"
+                  />
+                </div>
+              </DetailSection>
+
+              <DetailSection icon={Users} title="Thông tin phụ huynh">
+                <DetailGrid>
+                  <EditableRow
+                    label="Tên phụ huynh"
+                    value={isEditing ? form.parentName : student.parent_name}
+                    editing={isEditing}
+                    onChange={(next) => updateField('parentName', next)}
+                  />
+                  <EditableRow
+                    label="SĐT phụ huynh"
+                    value={isEditing ? form.parentNumber : student.parent_number}
+                    editing={isEditing}
+                    onChange={(next) => updateField('parentNumber', next)}
+                    type="tel"
+                  />
+                </DetailGrid>
+              </DetailSection>
             </div>
-          ) : null}
 
-          <DetailSection icon={User} title="Thông tin học sinh">
-            <DetailGrid>
-              <EditableRow
-                label="Mã học sinh (SID)"
-                value={isEditing ? form.studentId : student.student_id}
-                editing={isEditing}
-                onChange={(next) => updateField('studentId', next)}
-              />
-              <EditableRow
-                label="Năm học"
-                value={isEditing ? form.schoolYear : yearValue}
-                editing={isEditing}
-                onChange={(next) => updateField('schoolYear', next.replace(/\D/g, ''))}
-                type="number"
-              />
-              <EditableRow
-                label="Trường"
-                value={isEditing ? form.school : student.school}
-                editing={isEditing}
-                onChange={(next) => updateField('school', next)}
-              />
-              <EditableRow
-                label={isEditing && gradeLabel ? `Lớp (Khối ${gradeLabel})` : 'Lớp / Khối'}
-                value={isEditing ? form.className : classGradeValue}
-                editing={isEditing}
-                onChange={(next) => updateField('className', next)}
-              />
-              <DetailRow label="Ngày nhập học" value={student.student_first_enroll_date} />
-              <DetailRow label="Công nợ" value={debtValue} />
-            </DetailGrid>
-          </DetailSection>
+            <OverviewActions
+              isDirty={isDirty}
+              isEditing={isEditing}
+              isPending={updateStudent.isPending}
+              onApply={handleApply}
+              onToggleEditing={toggleEditing}
+            />
+          </div>
 
-          <DetailSection icon={Mail} title="Liên hệ & mạng xã hội">
-            <DetailGrid>
-              <EditableRow
-                label="Email"
-                value={isEditing ? form.email : student.user_email}
-                editing={isEditing}
-                onChange={(next) => updateField('email', next)}
-                type="email"
-              />
-              <EditableRow
-                label="Số điện thoại"
-                value={isEditing ? form.phoneNumber : student.user_phone_number}
-                editing={isEditing}
-                onChange={(next) => updateField('phoneNumber', next)}
-                type="tel"
-              />
-            </DetailGrid>
-            <div className="mt-4">
-              <EditableRow
-                label="Facebook profile"
-                value={isEditing ? form.fbLink : student.fb_link}
-                editing={isEditing}
-                onChange={(next) => updateField('fbLink', next)}
-                type="url"
-              />
-            </div>
-          </DetailSection>
-
-          <div className="bg-slate-50">
-            <DetailSection icon={Users} title="Thông tin phụ huynh">
-              <DetailGrid>
-                <EditableRow
-                  label="Tên phụ huynh"
-                  value={isEditing ? form.parentName : student.parent_name}
-                  editing={isEditing}
-                  onChange={(next) => updateField('parentName', next)}
-                />
-                <EditableRow
-                  label="SĐT phụ huynh"
-                  value={isEditing ? form.parentNumber : student.parent_number}
-                  editing={isEditing}
-                  onChange={(next) => updateField('parentNumber', next)}
-                  type="tel"
-                />
-              </DetailGrid>
-            </DetailSection>
+          <div className="space-y-6">
+            {student.user_uuid ? (
+              <StudentPeriodsSection userUuid={student.user_uuid} />
+            ) : (
+              <StudentFutureSection title="Period / Học phí" />
+            )}
           </div>
         </div>
+      ) : (
+        <StudentDetailEmptyTab title={activeTab} />
+      )}
+    </div>
+  );
+}
 
-        <div className="flex items-center justify-end gap-3 border-t border-slate-100 p-4">
-          <button
-            type="button"
-            onClick={toggleEditing}
-            disabled={updateStudent.isPending}
-            className="h-11 rounded-xl bg-slate-100 px-5 text-[14px] font-extrabold text-slate-700 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {isEditing ? 'Hủy' : 'Chỉnh sửa'}
-          </button>
-          <button
-            type="button"
-            disabled={updateStudent.isPending || isEditing}
-            className="h-11 rounded-xl bg-rose-50 px-5 text-[14px] font-extrabold text-rose-600 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            Xóa
-          </button>
-          <button
-            type="button"
-            onClick={handleApply}
-            disabled={!isDirty || updateStudent.isPending}
-            className="h-11 rounded-xl bg-[#1870FF] px-5 text-[14px] font-extrabold text-white shadow-[0_12px_22px_rgba(24,112,255,0.26)] transition hover:bg-[#0f62e6] disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500 disabled:shadow-none"
-          >
-            {updateStudent.isPending ? 'Đang lưu…' : 'Áp dụng'}
-          </button>
-        </div>
+function StudentDetailSkeleton({ onBack }: { onBack: () => void }) {
+  return (
+    <div className="space-y-6">
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_12px_30px_rgba(15,23,42,0.12)]">
+        <button
+          type="button"
+          onClick={onBack}
+          className="mb-5 inline-flex items-center gap-2 text-[13px] font-extrabold text-slate-500 transition hover:text-[#1870FF]"
+        >
+          <ArrowLeft size={16} />
+          Quay lại lớp học
+        </button>
+        <div className="h-8 w-72 animate-pulse rounded-lg bg-slate-200" />
+        <div className="mt-4 h-6 w-36 animate-pulse rounded-full bg-slate-100" />
+      </div>
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
+        <div className="h-96 animate-pulse rounded-2xl bg-slate-100" />
+        <div className="h-64 animate-pulse rounded-2xl bg-slate-100" />
+      </div>
+    </div>
+  );
+}
+
+function OverviewActions({
+  isDirty,
+  isEditing,
+  isPending,
+  onApply,
+  onToggleEditing,
+}: {
+  isDirty: boolean;
+  isEditing: boolean;
+  isPending: boolean;
+  onApply: () => void;
+  onToggleEditing: () => void;
+}) {
+  return (
+    <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-start">
+      <button
+        type="button"
+        onClick={onToggleEditing}
+        disabled={isPending}
+        className="h-11 rounded-xl bg-slate-100 px-5 text-[14px] font-extrabold text-slate-700 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {isEditing ? 'Hủy' : 'Chỉnh sửa'}
+      </button>
+      <button
+        type="button"
+        disabled={isPending || isEditing}
+        className="h-11 rounded-xl bg-rose-50 px-5 text-[14px] font-extrabold text-rose-600 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        Xóa
+      </button>
+      <button
+        type="button"
+        onClick={onApply}
+        disabled={!isDirty || isPending}
+        className="h-11 rounded-xl bg-[#1870FF] px-5 text-[14px] font-extrabold text-white shadow-[0_12px_22px_rgba(24,112,255,0.26)] transition hover:bg-[#0f62e6] disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500 disabled:shadow-none"
+      >
+        {isPending ? 'Đang lưu...' : 'Áp dụng'}
+      </button>
+    </div>
+  );
+}
+
+function StudentFutureSection({ title }: { title: string }) {
+  return (
+    <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-6">
+      <p className="text-[14px] font-extrabold uppercase tracking-[0.08em] text-slate-400">{title}</p>
+      <p className="mt-3 text-[14px] font-semibold text-slate-500">Khu vực đã sẵn sàng để nối dữ liệu ở task sau.</p>
+    </div>
+  );
+}
+
+function StudentDetailEmptyTab({ title }: { title: StudentDetailTab }) {
+  return (
+    <div className="flex min-h-[360px] items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
+      <div>
+        <p className="text-[18px] font-extrabold text-slate-900">{title}</p>
+        <p className="mt-2 text-[14px] font-semibold text-slate-500">Chưa có dữ liệu để hiển thị.</p>
       </div>
     </div>
   );

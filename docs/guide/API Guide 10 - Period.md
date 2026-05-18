@@ -10,7 +10,7 @@ Theo nghiệp vụ hiện tại:
 - một học sinh có thể có nhiều `Period`
 - `Student.debt` được tính từ tổng `debt` của tất cả `Period`
 - `student_first_enroll_date` được set đúng 1 lần khi tạo `Period` đầu tiên
-
+  
 ## 2. Ghi chú nghiệp vụ quan trọng
 
 - `Period` có thể được tạo theo 2 cách:

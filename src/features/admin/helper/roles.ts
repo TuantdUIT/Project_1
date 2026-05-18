@@ -13,6 +13,10 @@ export function isStaffRoleName(value?: string | null): value is StaffRoleName {
   return STAFF_ROLE_NAMES.includes(value as StaffRoleName);
 }
 
+export function isStaffUser(user: ResUserDTO) {
+  return isStaffRoleName(user.role?.name);
+}
+
 export function buildStaffRoleOptions(users: ResUserDTO[]): StaffRoleOption[] {
   const byName = new Map<StaffRoleName, StaffRoleOption>();
 

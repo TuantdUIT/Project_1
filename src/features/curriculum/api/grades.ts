@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
-import type { Grade } from '@/features/curriculum/types';
+import type { GradesOverview } from '@/features/curriculum/types';
 
 export function getGrades() {
-  return apiClient.get<Grade[]>('/api/v1/grades');
+  return apiClient.get<GradesOverview>('/api/v1/grades');
 }
 
 export function useGradesQuery() {

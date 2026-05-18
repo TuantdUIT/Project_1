@@ -8,6 +8,11 @@ export const paths = {
   adminPortalOverview: '/admin-portal/overview',
   adminPortalRegistrations: '/admin-portal/registrations',
   adminPortalClasses: '/admin-portal/classes',
+  adminPortalClassDetail: (userUuid: string) => `/admin-portal/classes/${userUuid}`,
   adminPortalUsers: '/admin-portal/users',
+  adminPortalPeriodSettings: '/admin-portal/period-settings',
+  adminPortalTimetable: '/admin-portal/timetable',
+  adminPortalTimetableAll: '/admin-portal/timetable/all',
+  adminPortalTimetableGrade: (gradeId: string | number) => `/admin-portal/timetable/grade/${gradeId}`,
   login: '/',
 } as const;

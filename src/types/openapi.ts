@@ -596,6 +596,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/timetable-templates/student/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getCurrentTimetableTemplatesForCurrentStudent"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/timetable-templates/grade-name/{gradeName}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getCurrentTimetableTemplateByGradeName"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/timetable-templates/grade-id/{gradeId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getCurrentTimetableTemplateByGradeId"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/record-attendances/weekly-summary": {
         parameters: {
             query?: never;
@@ -700,6 +748,86 @@ export interface paths {
             cookie?: never;
         };
         get: operations["getAccount"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/attendances/weekly-summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getWeeklySummaryForAllStudents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/attendances/weekly-summary/student": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getWeeklyAttendanceSummaryByStudentUuid"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/attendances/weekly-summary/student/range": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getWeeklyAttendanceSummaryByRangeAndStudentUuid"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/attendances/weekly-summary/absent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getWeeklyAbsentOnlySummaryForAllStudents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/attendances/weekly-lesson-summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getWeeklyLessonGroupedSummary"];
         put?: never;
         post?: never;
         delete?: never;
@@ -823,6 +951,8 @@ export interface components {
             /** Format: int64 */
             id?: number;
             name?: string;
+            /** Format: int64 */
+            studentsInPeriodCount?: number;
         };
         ResTimetableTemplateDTO: {
             /** Format: uuid */
@@ -1353,7 +1483,7 @@ export interface components {
         };
         ReqCreateStudyWeekDTO: {
             /** Format: int32 */
-            weekNumber: number;
+            weekNumber?: number;
             /** Format: int32 */
             schoolYear: number;
             /** Format: date */
@@ -1567,6 +1697,14 @@ export interface components {
             meta?: components["schemas"]["Meta"];
             result?: unknown;
         };
+        ResStudentTimetableTemplateDTO: {
+            /** Format: int64 */
+            gradeId?: number;
+            gradeName?: string;
+            /** Format: date */
+            expiredDate?: string;
+            timetableTemplate?: components["schemas"]["ResTimetableTemplateDTO"];
+        };
         LessonTypeSummary: {
             /** Format: uuid */
             lesson_type_uuid?: string;
@@ -1599,9 +1737,22 @@ export interface components {
             /** Format: int32 */
             total_overtime?: number;
         };
+        ResGradeListDTO: {
+            /** Format: int64 */
+            totalActiveStudents?: number;
+            grades?: components["schemas"]["ResGradeDTO"][];
+        };
+        GradeAccess: {
+            /** Format: int64 */
+            gradeId?: number;
+            gradeName?: string;
+            /** Format: date */
+            expiredDate?: string;
+        };
         UserGetAccount: {
             user?: components["schemas"]["UserLogin"];
             role?: components["schemas"]["Role"];
+            grades?: components["schemas"]["GradeAccess"][];
         };
         ResAttendanceWeeklySummaryDTO: {
             /** Format: uuid */
@@ -1625,6 +1776,30 @@ export interface components {
             /** Format: int32 */
             absent_lesson_types?: number;
             lesson_type_summaries?: components["schemas"]["LessonTypeSummary"][];
+        };
+        LessonItem: {
+            /** Format: uuid */
+            lesson_uuid?: string;
+            /** Format: date */
+            lesson_date?: string;
+            lesson_start_time?: string;
+            /** Format: int64 */
+            student_attendance_count?: number;
+        };
+        LessonTypeGroup: {
+            /** Format: uuid */
+            lesson_type_uuid?: string;
+            lesson_type_name?: string;
+            lessons?: components["schemas"]["LessonItem"][];
+        };
+        ResAttendanceWeeklyLessonGroupedDTO: {
+            /** Format: uuid */
+            week_uuid?: string;
+            /** Format: int32 */
+            week_number?: number;
+            /** Format: int32 */
+            school_year?: number;
+            lesson_type_groups?: components["schemas"]["LessonTypeGroup"][];
         };
     };
     responses: never;
@@ -3414,7 +3589,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ResGradeDTO"][];
+                    "*/*": components["schemas"]["ResGradeListDTO"];
                 };
             };
         };
@@ -3617,6 +3792,70 @@ export interface operations {
             };
         };
     };
+    getCurrentTimetableTemplatesForCurrentStudent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ResStudentTimetableTemplateDTO"][];
+                };
+            };
+        };
+    };
+    getCurrentTimetableTemplateByGradeName: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                gradeName: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ResTimetableTemplateDTO"];
+                };
+            };
+        };
+    };
+    getCurrentTimetableTemplateByGradeId: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                gradeId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ResTimetableTemplateDTO"];
+                };
+            };
+        };
+    };
     getWeeklySummaryForAllNonStudents: {
         parameters: {
             query: {
@@ -3771,6 +4010,127 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["UserGetAccount"];
+                };
+            };
+        };
+    };
+    getWeeklySummaryForAllStudents: {
+        parameters: {
+            query: {
+                schoolYear: number;
+                weekNumber: number;
+                gradeId?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ResAttendanceWeeklySummaryDTO"][];
+                };
+            };
+        };
+    };
+    getWeeklyAttendanceSummaryByStudentUuid: {
+        parameters: {
+            query: {
+                studentUuid: string;
+                schoolYear: number;
+                weekNumber?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ResAttendanceWeeklySummaryDTO"][];
+                };
+            };
+        };
+    };
+    getWeeklyAttendanceSummaryByRangeAndStudentUuid: {
+        parameters: {
+            query: {
+                studentUuid: string;
+                schoolYear: number;
+                fromWeekNumber: number;
+                toWeekNumber: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ResAttendanceWeeklySummaryDTO"][];
+                };
+            };
+        };
+    };
+    getWeeklyAbsentOnlySummaryForAllStudents: {
+        parameters: {
+            query: {
+                schoolYear: number;
+                weekNumber: number;
+                gradeId?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ResAttendanceWeeklySummaryDTO"][];
+                };
+            };
+        };
+    };
+    getWeeklyLessonGroupedSummary: {
+        parameters: {
+            query: {
+                schoolYear: number;
+                weekNumber: number;
+                gradeId?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ResAttendanceWeeklyLessonGroupedDTO"];
                 };
             };
         };

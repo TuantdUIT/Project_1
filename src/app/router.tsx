@@ -90,6 +90,26 @@ async function loadAdminUsersRoute() {
   return { Component: module.default };
 }
 
+async function loadAdminPeriodSettingsRoute() {
+  const module = await import('./routes/admin/period-settings');
+  return { Component: module.default };
+}
+
+async function loadAdminTimetableRoute() {
+  const module = await import('./routes/admin/timetable');
+  return { Component: module.default };
+}
+
+async function loadAdminTimetableAllRoute() {
+  const module = await import('./routes/admin/timetable-all');
+  return { Component: module.default };
+}
+
+async function loadAdminTimetableByGradeRoute() {
+  const module = await import('./routes/admin/timetable-by-grade');
+  return { Component: module.default };
+}
+
 /**
  * Ý nghĩa: Lazy-load route 404 cho các URL không khớp route nào.
  * Hàm sử dụng hàm này làm đầu vào: createBrowserRouter nhận hàm này trong field lazy của wildcard route *.
@@ -158,8 +178,34 @@ export const router = createBrowserRouter([
             lazy: loadAdminClassesRoute,
           },
           {
+            path: 'classes/:userUuid',
+            lazy: loadAdminClassesRoute,
+          },
+          {
             path: 'users',
             lazy: loadAdminUsersRoute,
+          },
+          {
+            path: 'period-settings',
+            lazy: loadAdminPeriodSettingsRoute,
+          },
+          {
+            path: 'timetable',
+            lazy: loadAdminTimetableRoute,
+            children: [
+              {
+                index: true,
+                element: <Navigate to={paths.adminPortalTimetableAll} replace />,
+              },
+              {
+                path: 'all',
+                lazy: loadAdminTimetableAllRoute,
+              },
+              {
+                path: 'grade/:gradeId',
+                lazy: loadAdminTimetableByGradeRoute,
+              },
+            ],
           },
         ],
       },

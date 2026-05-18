@@ -19,3 +19,15 @@ export type StaffRoleOption = {
   name: StaffRoleName;
   description?: string;
 };
+
+export type TuitionStatus = 'PAID' | 'UNPAID' | 'PARTIAL';
+
+export type ResPeriodDTO = components['schemas']['ResPeriodDTO'];
+export type ReqCreatePeriodDTO = components['schemas']['ReqCreatePeriodDTO'];
+export type ReqUpdatePeriodDTO = components['schemas']['ReqUpdatePeriodDTO'];
+
+export type ResPeriodSettingDTO = components['schemas']['ResPeriodSettingDTO'];
+export type ResPeriodSettingLessonTypeDTO = components['schemas']['ResPeriodSettingLessonTypeDTO'];
+export type ReqCreatePeriodSettingDTO = components['schemas']['ReqCreatePeriodSettingDTO'];
+export type ReqUpdatePeriodSettingDTO = components['schemas']['ReqUpdatePeriodSettingDTO'];
+export type ReqPeriodSettingLessonTypeItemDTO = components['schemas']['ReqPeriodSettingLessonTypeItemDTO'];

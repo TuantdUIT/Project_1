@@ -55,7 +55,7 @@ export default function UserCreateModal({ roleOptions, onClose }: UserCreateModa
         <div className="mb-5 flex items-start justify-between gap-4">
           <div>
             <p className="text-[12px] font-extrabold uppercase tracking-[0.16em] text-[#1870FF]">Nhân sự</p>
-            <h3 className="mt-1 text-[22px] font-extrabold leading-tight text-slate-950">Tạo user mới</h3>
+            <h3 className="mt-1 text-[22px] font-extrabold leading-tight text-slate-950">Tạo nhân sự mới</h3>
           </div>
           <button
             type="button"
@@ -163,7 +163,7 @@ export default function UserCreateModal({ roleOptions, onClose }: UserCreateModa
             disabled={createUser.isPending}
             className="h-11 rounded-xl bg-[#1870FF] px-5 text-[14px] font-extrabold text-white shadow-[0_12px_22px_rgba(24,112,255,0.26)] transition hover:bg-[#0f62e6] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {createUser.isPending ? 'Đang tạo...' : 'Tạo user'}
+            {createUser.isPending ? 'Đang tạo...' : 'Tạo nhân sự'}
           </button>
         </div>
       </form>

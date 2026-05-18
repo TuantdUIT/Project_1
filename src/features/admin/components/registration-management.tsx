@@ -1,7 +1,20 @@
-import { type FormEvent, useState } from 'react';
-import { Edit3, Filter, Plus, UserCheck, UserX, Users, X } from 'lucide-react';
+import { type FormEvent, useEffect, useState } from 'react';
+import {
+  AlertCircle,
+  CheckCircle2,
+  ChevronDown,
+  Edit3,
+  Filter,
+  Loader2,
+  Plus,
+  UserCheck,
+  UserX,
+  Users,
+  X,
+} from 'lucide-react';
 import {
   useCreateStudent,
+  useStudentByStudentIdQuery,
   useStudentsQuery,
   useUpdateStudentByUuid,
   type ResStudentDTO,
@@ -22,6 +35,7 @@ export default function RegistrationManagement() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [acceptTarget, setAcceptTarget] = useState<ResStudentDTO | null>(null);
+  const [isQuickCreateOpen, setIsQuickCreateOpen] = useState(false);
 
   const studentsQuery = useStudentsQuery({
     studentStatus: 'WAITING',
@@ -34,7 +48,6 @@ export default function RegistrationManagement() {
   const gradesQuery = useGradesQuery();
 
   const [form, setForm] = useState({
-    studentId: '',
     fullName: '',
     phoneNumber: '',
     email: '',
@@ -49,7 +62,6 @@ export default function RegistrationManagement() {
     event.preventDefault();
 
     await createStudent.mutateAsync({
-      studentId: form.studentId || undefined,
       fullName: form.fullName,
       phoneNumber: form.phoneNumber,
       email: form.email,
@@ -63,7 +75,6 @@ export default function RegistrationManagement() {
     });
 
     setForm({
-      studentId: '',
       fullName: '',
       phoneNumber: '',
       email: '',
@@ -123,43 +134,49 @@ export default function RegistrationManagement() {
   return (
     <div className="space-y-6">
       <form onSubmit={handleCreate} className={cardClass}>
-        <SectionHeader icon={Plus} title="Tạo nhanh học sinh đăng ký" />
+        <SectionHeader
+          icon={Plus}
+          title="Tạo nhanh học sinh đăng ký"
+          isOpen={isQuickCreateOpen}
+          onToggle={() => setIsQuickCreateOpen((current) => !current)}
+        />
 
-        <div className="border-t border-slate-100 p-5 sm:p-6">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-            <Input value={form.studentId} onChange={(value) => setForm({ ...form, studentId: value })} placeholder="SID" />
-            <Input value={form.fullName} onChange={(value) => setForm({ ...form, fullName: value })} placeholder="Họ tên" required />
-            <Input value={form.phoneNumber} onChange={(value) => setForm({ ...form, phoneNumber: value })} placeholder="SĐT" required />
-            <Input value={form.email} onChange={(value) => setForm({ ...form, email: value })} placeholder="Email" type="email" required />
-            <Input value={form.parentName} onChange={(value) => setForm({ ...form, parentName: value })} placeholder="Tên phụ huynh" />
-            <Input value={form.parentNumber} onChange={(value) => setForm({ ...form, parentNumber: value })} placeholder="SĐT phụ huynh" />
-            <Input value={form.school} onChange={(value) => setForm({ ...form, school: value })} placeholder="Trường" />
-            <Input value={form.className} onChange={(value) => setForm({ ...form, className: value })} placeholder="Lớp nguyện vọng" />
-            <select
-              value={form.gradeId}
-              onChange={(event) => setForm({ ...form, gradeId: event.target.value })}
-              required
-              className={`${fieldClass} font-extrabold`}
-            >
-              <option value="">Chọn khối</option>
-              {(gradesQuery.data ?? []).map((grade) => (
-                <option key={grade.id} value={grade.id}>
-                  {grade.name}
-                </option>
-              ))}
-            </select>
-          </div>
+        {isQuickCreateOpen ? (
+          <div className="border-t border-slate-100 p-5 sm:p-6">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+              <Input value={form.fullName} onChange={(value) => setForm({ ...form, fullName: value })} placeholder="Họ tên" required />
+              <Input value={form.phoneNumber} onChange={(value) => setForm({ ...form, phoneNumber: value })} placeholder="SĐT" required />
+              <Input value={form.email} onChange={(value) => setForm({ ...form, email: value })} placeholder="Email" type="email" required />
+              <Input value={form.parentName} onChange={(value) => setForm({ ...form, parentName: value })} placeholder="Tên phụ huynh" />
+              <Input value={form.parentNumber} onChange={(value) => setForm({ ...form, parentNumber: value })} placeholder="SĐT phụ huynh" />
+              <Input value={form.school} onChange={(value) => setForm({ ...form, school: value })} placeholder="Trường" />
+              <Input value={form.className} onChange={(value) => setForm({ ...form, className: value })} placeholder="Lớp nguyện vọng" />
+              <select
+                value={form.gradeId}
+                onChange={(event) => setForm({ ...form, gradeId: event.target.value })}
+                required
+                className={`${fieldClass} font-extrabold`}
+              >
+                <option value="">Chọn khối</option>
+                {(gradesQuery.data?.grades ?? []).map((grade) => (
+                  <option key={grade.id} value={grade.id}>
+                    {grade.name}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          <div className="mt-6 flex justify-start">
-            <button
-              type="submit"
-              disabled={createStudent.isPending}
-              className="h-11 rounded-xl bg-[#1870FF] px-5 text-[15px] font-extrabold text-white shadow-[0_12px_22px_rgba(24,112,255,0.26)] transition hover:bg-[#0f62e6] disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {createStudent.isPending ? 'Đang tạo...' : 'Tạo HS chờ duyệt'}
-            </button>
+            <div className="mt-6 flex justify-start">
+              <button
+                type="submit"
+                disabled={createStudent.isPending}
+                className="h-11 rounded-xl bg-[#1870FF] px-5 text-[15px] font-extrabold text-white shadow-[0_12px_22px_rgba(24,112,255,0.26)] transition hover:bg-[#0f62e6] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {createStudent.isPending ? 'Đang tạo...' : 'Tạo HS chờ duyệt'}
+              </button>
+            </div>
           </div>
-        </div>
+        ) : null}
       </form>
 
       <section className={cardClass}>
@@ -196,7 +213,7 @@ export default function RegistrationManagement() {
                 className={`${selectClass} w-full`}
               >
                 <option value="">Tất cả</option>
-                {(gradesQuery.data ?? []).map((grade) => (
+                {(gradesQuery.data?.grades ?? []).map((grade) => (
                   <option key={grade.id} value={grade.id}>
                     {grade.name}
                   </option>
@@ -329,6 +346,7 @@ export default function RegistrationManagement() {
       {acceptTarget ? (
         <AcceptStudentModal
           student={acceptTarget}
+          schoolYear={schoolYear}
           isSubmitting={updateStudent.isPending}
           onCancel={() => setAcceptTarget(null)}
           onConfirm={confirmAccept}
@@ -340,23 +358,50 @@ export default function RegistrationManagement() {
 
 function AcceptStudentModal({
   student,
+  schoolYear,
   isSubmitting,
   onCancel,
   onConfirm,
 }: {
   student: ResStudentDTO;
+  schoolYear: number;
   isSubmitting: boolean;
   onCancel: () => void;
   onConfirm: (studentId: string) => void;
 }) {
   const [studentId, setStudentId] = useState('');
+  const [debouncedSid, setDebouncedSid] = useState('');
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    const handle = window.setTimeout(() => setDebouncedSid(studentId.trim()), 400);
+    return () => window.clearTimeout(handle);
+  }, [studentId]);
+
+  const duplicateQuery = useStudentByStudentIdQuery(debouncedSid || undefined, schoolYear);
+  const isCheckingDuplicate =
+    debouncedSid.length > 0 && (duplicateQuery.isLoading || duplicateQuery.isFetching);
+  const existingStudent =
+    !duplicateQuery.isError && duplicateQuery.data && duplicateQuery.data.user_uuid !== student.user_uuid
+      ? duplicateQuery.data
+      : null;
+  const isDuplicate = Boolean(existingStudent);
+  const isSidAvailable =
+    debouncedSid.length > 0 && !isCheckingDuplicate && !isDuplicate && duplicateQuery.isError;
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
     const trimmed = studentId.trim();
     if (!trimmed) {
       setError('Vui lòng nhập mã học sinh (SID).');
+      return;
+    }
+    if (isCheckingDuplicate) {
+      setError('Đang kiểm tra SID, vui lòng chờ...');
+      return;
+    }
+    if (isDuplicate) {
+      setError('Mã SID đã được dùng trong năm học này.');
       return;
     }
     setError('');
@@ -389,6 +434,7 @@ function AcceptStudentModal({
         <label className="block space-y-2">
           <span className="text-[13px] font-bold text-slate-600">
             Mã học sinh (SID) <span className="text-rose-500">*</span>
+            <span className="ml-1 text-slate-400 font-medium">· Năm học {schoolYear}</span>
           </span>
           <input
             type="text"
@@ -396,8 +442,31 @@ function AcceptStudentModal({
             onChange={(event) => setStudentId(event.target.value)}
             placeholder="Ví dụ: HS25-0001"
             autoFocus
-            className={fieldClass}
+            aria-invalid={isDuplicate}
+            className={`${fieldClass} ${
+              isDuplicate
+                ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-100'
+                : isSidAvailable
+                  ? 'border-emerald-400 focus:border-emerald-500 focus:ring-emerald-100'
+                  : ''
+            }`}
           />
+          {isCheckingDuplicate ? (
+            <p className="flex items-center gap-1.5 text-[12px] font-medium text-slate-500">
+              <Loader2 size={13} className="animate-spin" />
+              Đang kiểm tra SID...
+            </p>
+          ) : isDuplicate && existingStudent ? (
+            <p className="flex items-center gap-1.5 text-[12px] font-semibold text-rose-600">
+              <AlertCircle size={13} />
+              SID đã thuộc về <strong>{existingStudent.user_fullname ?? '—'}</strong> trong năm {schoolYear}.
+            </p>
+          ) : isSidAvailable ? (
+            <p className="flex items-center gap-1.5 text-[12px] font-semibold text-emerald-600">
+              <CheckCircle2 size={13} />
+              SID khả dụng.
+            </p>
+          ) : null}
           {error ? <p className="text-[13px] font-semibold text-rose-600">{error}</p> : null}
         </label>
 
@@ -415,7 +484,7 @@ function AcceptStudentModal({
           </button>
           <button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || isCheckingDuplicate || isDuplicate}
             className="h-11 rounded-xl bg-emerald-500 px-4 text-[14px] font-extrabold text-white shadow-[0_12px_22px_rgba(16,185,129,0.28)] transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isSubmitting ? 'Đang lưu…' : 'Nhận vào lớp'}
@@ -430,13 +499,17 @@ function SectionHeader({
   icon: Icon,
   title,
   trailing,
+  isOpen,
+  onToggle,
 }: {
   icon: typeof Plus;
   title: string;
   trailing?: string;
+  isOpen?: boolean;
+  onToggle?: () => void;
 }) {
-  return (
-    <div className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+  const content = (
+    <>
       <div className="flex items-center gap-3">
         <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[rgba(24,112,255,0.1)] text-[#1870FF]">
           <Icon size={19} strokeWidth={2.6} />
@@ -448,6 +521,31 @@ function SectionHeader({
           {trailing}
         </span>
       ) : null}
+      {onToggle ? (
+        <ChevronDown
+          size={20}
+          className={`text-slate-500 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+        />
+      ) : null}
+    </>
+  );
+
+  if (onToggle) {
+    return (
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={isOpen}
+        className="flex w-full flex-col gap-3 p-5 text-left transition hover:bg-slate-50/70 sm:flex-row sm:items-center sm:justify-between sm:p-6"
+      >
+        {content}
+      </button>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+      {content}
     </div>
   );
 }
@@ -476,4 +574,3 @@ function Input({
     />
   );
 }
-

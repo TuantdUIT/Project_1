@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Eye, Filter, Plus, Search, Trash2, Users } from 'lucide-react';
 import {
   useDeleteUser,
@@ -8,13 +8,14 @@ import {
 } from '@/features/admin';
 import UserCreateModal from '@/features/admin/components/user-create-modal';
 import UserDetailModal from '@/features/admin/components/user-detail-modal';
-import { buildStaffRoleOptions, isStaffRoleName } from '@/features/admin/helper/roles';
+import { buildStaffRoleOptions, isStaffUser } from '@/features/admin/helper/roles';
 
 const cardClass = 'rounded-2xl border border-slate-200/80 bg-white shadow-[0_16px_36px_rgba(15,23,42,0.24)]';
 const fieldClass =
   'h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-[14px] font-medium text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#1870FF] focus:ring-4 focus:ring-[rgba(24,112,255,0.14)]';
 const selectClass =
   'h-11 rounded-xl border border-slate-300 bg-white px-3 text-[14px] font-extrabold text-slate-950 outline-none transition focus:border-[#1870FF] focus:ring-4 focus:ring-[rgba(24,112,255,0.14)]';
+const pageSize = 10;
 
 export default function UserManagement() {
   const [page, setPage] = useState(1);
@@ -24,16 +25,15 @@ export default function UserManagement() {
   const [detailTarget, setDetailTarget] = useState<ResUserDTO | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ResUserDTO | null>(null);
 
-  const usersQuery = useUsersQuery({ page, size: 10, sort: 'createdAt,desc' });
+  const usersQuery = useUsersQuery({ page: 1, size: 1000, sort: 'createdAt,desc' });
   const deleteUser = useDeleteUser();
 
   const allUsers = usersQuery.data?.result ?? [];
-  const meta = usersQuery.data?.meta;
-  const totalPages = meta?.totalPages ?? 1;
-  const roleOptions = useMemo(() => buildStaffRoleOptions(allUsers), [allUsers]);
+  const staffUsers = useMemo(() => allUsers.filter(isStaffUser), [allUsers]);
+  const roleOptions = useMemo(() => buildStaffRoleOptions(staffUsers), [staffUsers]);
 
   const normalizedSearch = search.trim().toLowerCase();
-  const users = allUsers.filter((user) => {
+  const filteredStaffUsers = staffUsers.filter((user) => {
     const roleName = user.role?.name;
     const matchesRole = !roleFilter || roleName === roleFilter;
     const matchesSearch = !normalizedSearch || [
@@ -47,8 +47,19 @@ export default function UserManagement() {
       .toLowerCase()
       .includes(normalizedSearch);
 
-    return matchesRole && matchesSearch && (!roleName || isStaffRoleName(roleName));
+    return matchesRole && matchesSearch;
   });
+  const totalStaffItems = filteredStaffUsers.length;
+  const totalPages = Math.max(Math.ceil(totalStaffItems / pageSize), 1);
+  const users = filteredStaffUsers.slice((page - 1) * pageSize, page * pageSize);
+
+  useEffect(() => {
+    setPage(1);
+  }, [search, roleFilter]);
+
+  useEffect(() => {
+    setPage((current) => Math.min(current, totalPages));
+  }, [totalPages]);
 
   async function confirmDelete() {
     if (!deleteTarget?.id) {
@@ -80,7 +91,7 @@ export default function UserManagement() {
             className="flex h-11 w-fit items-center gap-2 rounded-xl bg-[#1870FF] px-5 text-[14px] font-extrabold text-white shadow-[0_12px_22px_rgba(24,112,255,0.26)] transition hover:bg-[#0f62e6]"
           >
             <Plus size={17} />
-            Tạo user mới
+            Tạo nhân sự mới
           </button>
         </div>
       </section>
@@ -122,7 +133,7 @@ export default function UserManagement() {
       </section>
 
       <section className={cardClass}>
-        <SectionHeader icon={Users} title="Danh sách nhân sự" trailing={`${meta?.totalItems ?? 0} user`} />
+        <SectionHeader icon={Users} title="Danh sách nhân sự" trailing={`${totalStaffItems} nhân sự`} />
         <div className="border-t border-slate-100">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[980px] text-left">
@@ -141,7 +152,6 @@ export default function UserManagement() {
                   <tr key={user.id} className="h-[76px] transition hover:bg-slate-50/70">
                     <td className="px-6 py-4">
                       <p className="text-[16px] font-extrabold text-slate-950">{user.user_fullname ?? '—'}</p>
-                      <p className="mt-1 text-[12px] font-medium text-slate-500">{user.id ?? '—'}</p>
                     </td>
                     <td className="px-6 py-4 text-[14px] font-medium text-slate-900">{user.user_email ?? '—'}</td>
                     <td className="px-6 py-4 text-[14px] font-medium text-slate-900">{user.user_phone_number ?? '—'}</td>
@@ -179,8 +189,8 @@ export default function UserManagement() {
                       {usersQuery.isLoading
                         ? 'Đang tải danh sách nhân sự...'
                         : normalizedSearch || roleFilter
-                          ? 'Không tìm thấy user khớp bộ lọc.'
-                          : 'Chưa có user nào.'}
+                          ? 'Không tìm thấy nhân sự khớp bộ lọc.'
+                          : 'Chưa có nhân sự nào.'}
                     </td>
                   </tr>
                 )}
@@ -190,7 +200,7 @@ export default function UserManagement() {
 
           <div className="flex flex-col gap-4 border-t border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
             <p className="text-[14px] font-extrabold text-slate-500">
-              Trang {meta?.page ?? page}/{totalPages} · {meta?.totalItems ?? 0} user
+              Trang {page}/{totalPages} · {totalStaffItems} nhân sự
             </p>
             <div className="flex items-center gap-6">
               <button
@@ -305,9 +315,9 @@ function DeleteConfirmModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4">
       <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
-        <p className="text-[12px] font-extrabold uppercase tracking-[0.16em] text-rose-500">Xóa user</p>
+        <p className="text-[12px] font-extrabold uppercase tracking-[0.16em] text-rose-500">Xóa nhân sự</p>
         <h3 className="mt-1 text-[22px] font-extrabold leading-tight text-slate-950">
-          {user.user_fullname ?? user.user_email ?? 'User này'}
+          {user.user_fullname ?? user.user_email ?? 'Nhân sự này'}
         </h3>
         <p className="mt-3 text-[14px] font-medium text-slate-600">
           Thao tác này sẽ xóa tài khoản nhân sự và không thể hoàn tác.

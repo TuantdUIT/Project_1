@@ -1,6 +1,6 @@
 import { type CSSProperties, useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router';
-import { ClipboardList, DoorOpen, GraduationCap, GripVertical, LayoutDashboard, School, Users } from 'lucide-react';
+import { CalendarRange, ClipboardList, DoorOpen, GraduationCap, GripVertical, Layers, LayoutDashboard, School, Users } from 'lucide-react';
 import { paths } from '@/config/paths';
 
 const minSidebarWidth = 104;
@@ -51,13 +51,19 @@ export default function AdminPortalRoute() {
   const usersLabel = isWide ? 'Quản lý nhân sự' : 'Nhân sự';
   const registrationsLabel = isWide ? 'Học sinh đăng ký' : 'Đăng ký';
   const classesLabel = isWide ? 'Lớp học (đang học)' : 'Lớp học';
+  const periodSettingsLabel = isWide ? 'Mẫu khóa học' : 'Template Period';
+  const timetableLabel = isWide ? 'Mẫu Thời Gian' : 'Timetable';
   const headerTitle = location.pathname.startsWith(paths.adminPortalOverview)
     ? 'Tổng quan'
     : location.pathname.startsWith(paths.adminPortalUsers)
       ? 'Quản lý nhân sự'
-      : location.pathname.startsWith(paths.adminPortalClasses)
-      ? 'Lớp học'
-      : 'Học sinh đăng ký';
+      : location.pathname.startsWith(paths.adminPortalPeriodSettings)
+        ? 'Mẫu khóa học'
+        : location.pathname.startsWith(paths.adminPortalTimetable)
+          ? 'Mẫu Thời Gian'
+        : location.pathname.startsWith(paths.adminPortalClasses)
+        ? 'Lớp học'
+        : 'Học sinh đăng ký';
   const mainStyle = {
     '--admin-sidebar-width': `${sidebarWidth}px`,
     '--admin-content-gap': `${contentGap}px`,
@@ -123,6 +129,22 @@ export default function AdminPortalRoute() {
           >
             <Users size={18} className="shrink-0" />
             {!isCompact ? <span className="truncate">{usersLabel}</span> : null}
+          </NavLink>
+          <NavLink
+            to={paths.adminPortalPeriodSettings}
+            title={isCompact ? periodSettingsLabel : undefined}
+            className={({ isActive }) => navItemClass(isActive)}
+          >
+            <Layers size={18} className="shrink-0" />
+            {!isCompact ? <span className="truncate">{periodSettingsLabel}</span> : null}
+          </NavLink>
+          <NavLink
+            to={paths.adminPortalTimetable}
+            title={isCompact ? timetableLabel : undefined}
+            className={({ isActive }) => navItemClass(isActive)}
+          >
+            <CalendarRange size={18} className="shrink-0" />
+            {!isCompact ? <span className="truncate">{timetableLabel}</span> : null}
           </NavLink>
         </nav>
 
