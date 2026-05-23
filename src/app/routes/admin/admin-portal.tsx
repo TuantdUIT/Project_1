@@ -1,6 +1,6 @@
 import { type CSSProperties, useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router';
-import { CalendarRange, ClipboardList, DoorOpen, GraduationCap, GripVertical, Layers, LayoutDashboard, School, Users } from 'lucide-react';
+import { CalendarDays, CalendarRange, ClipboardList, DoorOpen, GraduationCap, GripVertical, Layers, LayoutDashboard, ReceiptText, School, Users } from 'lucide-react';
 import { paths } from '@/config/paths';
 
 const minSidebarWidth = 104;
@@ -52,7 +52,9 @@ export default function AdminPortalRoute() {
   const registrationsLabel = isWide ? 'Học sinh đăng ký' : 'Đăng ký';
   const classesLabel = isWide ? 'Lớp học (đang học)' : 'Lớp học';
   const periodSettingsLabel = isWide ? 'Mẫu khóa học' : 'Template Period';
-  const timetableLabel = isWide ? 'Mẫu Thời Gian' : 'Timetable';
+  const timetableLabel = isWide ? 'Thời Khóa Biểu' : 'Timetable';
+  const studyWeeksLabel = isWide ? 'Tuần học (vận hành)' : 'Tuần học';
+  const costsLabel = 'Chi phí';
   const headerTitle = location.pathname.startsWith(paths.adminPortalOverview)
     ? 'Tổng quan'
     : location.pathname.startsWith(paths.adminPortalUsers)
@@ -60,7 +62,11 @@ export default function AdminPortalRoute() {
       : location.pathname.startsWith(paths.adminPortalPeriodSettings)
         ? 'Mẫu khóa học'
         : location.pathname.startsWith(paths.adminPortalTimetable)
-          ? 'Mẫu Thời Gian'
+          ? 'Thời Khóa Biểu'
+        : location.pathname.startsWith(paths.adminPortalCosts)
+          ? 'Chi phí'
+        : location.pathname.startsWith(paths.adminPortalStudyWeeks)
+          ? 'Tuần học'
         : location.pathname.startsWith(paths.adminPortalClasses)
         ? 'Lớp học'
         : 'Học sinh đăng ký';
@@ -91,7 +97,7 @@ export default function AdminPortalRoute() {
           </div>
           {!isCompact ? (
             <div className="min-w-0">
-              <h1 className="truncate text-[16px] font-extrabold leading-tight text-slate-950">EdTech Pro</h1>
+              <h1 className="truncate text-[16px] font-extrabold leading-tight text-slate-950">BHP Math</h1>
               <p className="truncate text-[11px] font-medium leading-tight text-slate-500">Manager</p>
             </div>
           ) : null}
@@ -145,6 +151,22 @@ export default function AdminPortalRoute() {
           >
             <CalendarRange size={18} className="shrink-0" />
             {!isCompact ? <span className="truncate">{timetableLabel}</span> : null}
+          </NavLink>
+          <NavLink
+            to={paths.adminPortalStudyWeeks}
+            title={isCompact ? studyWeeksLabel : undefined}
+            className={({ isActive }) => navItemClass(isActive)}
+          >
+            <CalendarDays size={18} className="shrink-0" />
+            {!isCompact ? <span className="truncate">{studyWeeksLabel}</span> : null}
+          </NavLink>
+          <NavLink
+            to={paths.adminPortalCosts}
+            title={isCompact ? costsLabel : undefined}
+            className={({ isActive }) => navItemClass(isActive)}
+          >
+            <ReceiptText size={18} className="shrink-0" />
+            {!isCompact ? <span className="truncate">{costsLabel}</span> : null}
           </NavLink>
         </nav>
 

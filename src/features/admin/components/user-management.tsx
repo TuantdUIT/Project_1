@@ -9,6 +9,7 @@ import {
 import UserCreateModal from '@/features/admin/components/user-create-modal';
 import UserDetailModal from '@/features/admin/components/user-detail-modal';
 import { buildStaffRoleOptions, isStaffUser } from '@/features/admin/helper/roles';
+import { formatDate } from '@/utils/date';
 
 const cardClass = 'rounded-2xl border border-slate-200/80 bg-white shadow-[0_16px_36px_rgba(15,23,42,0.24)]';
 const fieldClass =
@@ -249,23 +250,6 @@ export default function UserManagement() {
   );
 }
 
-function formatDate(value?: string | null) {
-  if (!value) {
-    return '—';
-  }
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return new Intl.DateTimeFormat('vi-VN', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  }).format(date);
-}
 
 function RolePill({ name }: { name?: string | null }) {
   return (

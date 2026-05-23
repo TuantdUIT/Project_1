@@ -20,6 +20,7 @@ import {
   type ResStudentDTO,
 } from '@/features/admin';
 import { useGradesQuery } from '@/features/curriculum';
+import { formatDate } from '@/utils/date';
 
 const currentSchoolYear = new Date().getFullYear();
 
@@ -271,7 +272,7 @@ export default function RegistrationManagement() {
                       {student.grades?.map((grade) => grade.name).join(', ') || '-'}
                     </td>
                     <td className="px-6 py-4 text-[14px] font-medium text-slate-900">
-                      {student.student_first_enroll_date ?? '—'}
+                      {formatDate(student.student_first_enroll_date)}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-end gap-2">

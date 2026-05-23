@@ -9,6 +9,9 @@ import type {
 } from '@/features/admin/types';
 import { useGradesQuery } from '@/features/curriculum';
 import { usePeriodSettingsQuery } from '@/features/period-setting';
+import { useStudyWeeksQuery } from '@/features/study-week';
+import { useTimetableTemplatesQuery } from '@/features/timetable-template';
+import { formatDate } from '@/utils/date';
 
 const fieldClass =
   'h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-[14px] font-medium text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#1870FF] focus:ring-4 focus:ring-[rgba(24,112,255,0.14)]';
@@ -101,9 +104,21 @@ export default function PeriodFormModal(props: PeriodFormModalProps) {
 
   const periodSettingsQuery = usePeriodSettingsQuery();
   const gradesQuery = useGradesQuery();
+  const studyWeeksQuery = useStudyWeeksQuery();
+  const timetableTemplatesQuery = useTimetableTemplatesQuery();
   const createPeriod = useCreatePeriod();
   const updatePeriod = useUpdatePeriod();
   const isPending = createPeriod.isPending || updatePeriod.isPending;
+
+  const studyWeeks = useMemo(
+    () =>
+      [...(studyWeeksQuery.data ?? [])].sort((a, b) => {
+        const yearDiff = (a.school_year ?? 0) - (b.school_year ?? 0);
+        if (yearDiff !== 0) return yearDiff;
+        return (a.week_number ?? 0) - (b.week_number ?? 0);
+      }),
+    [studyWeeksQuery.data],
+  );
 
   const selectedSetting = useMemo(
     () =>
@@ -112,6 +127,22 @@ export default function PeriodFormModal(props: PeriodFormModalProps) {
       ),
     [periodSettingsQuery.data, form.periodSettingId],
   );
+
+  const timetableTemplateOptions = useMemo(() => {
+    const gradeId = toNumberOrUndefined(form.gradeId);
+    const schoolYear = toNumberOrUndefined(form.schoolYear);
+
+    return [...(timetableTemplatesQuery.data ?? [])]
+      .filter((template) => {
+        if (gradeId != null && template.grade?.id !== gradeId) return false;
+        if (schoolYear != null && template.school_year !== schoolYear) return false;
+        return true;
+      })
+      .sort((a, b) => {
+        if (a.active !== b.active) return a.active ? -1 : 1;
+        return `${b.apply_from ?? ''}`.localeCompare(`${a.apply_from ?? ''}`);
+      });
+  }, [form.gradeId, form.schoolYear, timetableTemplatesQuery.data]);
 
   useEffect(() => {
     if (!isCreate || form.createMode !== 'TEMPLATE' || !selectedSetting) {
@@ -129,6 +160,50 @@ export default function PeriodFormModal(props: PeriodFormModalProps) {
       tuition: selectedSetting.tuition != null ? String(selectedSetting.tuition) : current.tuition,
     }));
   }, [selectedSetting, isCreate, form.createMode]);
+
+  useEffect(() => {
+    if (
+      !isCreate
+      || form.timetableTemplateId
+      || !form.gradeId
+      || !form.schoolYear
+      || !timetableTemplateOptions.length
+    ) {
+      return;
+    }
+
+    const activeTemplate =
+      timetableTemplateOptions.find((template) => template.active)
+      ?? timetableTemplateOptions[0];
+
+    setForm((current) => ({
+      ...current,
+      timetableTemplateId: activeTemplate.timetable_template_uuid ?? current.timetableTemplateId,
+    }));
+  }, [isCreate, form.timetableTemplateId, timetableTemplateOptions]);
+
+  useEffect(() => {
+    if (!form.timetableTemplateId) {
+      return;
+    }
+
+    const gradeId = toNumberOrUndefined(form.gradeId);
+    const schoolYear = toNumberOrUndefined(form.schoolYear);
+    const selectedTemplate = timetableTemplatesQuery.data?.find(
+      (template) => template.timetable_template_uuid === form.timetableTemplateId,
+    );
+
+    if (!selectedTemplate) {
+      return;
+    }
+
+    if (
+      (gradeId != null && selectedTemplate.grade?.id !== gradeId)
+      || (schoolYear != null && selectedTemplate.school_year !== schoolYear)
+    ) {
+      setForm((current) => ({ ...current, timetableTemplateId: '' }));
+    }
+  }, [form.gradeId, form.schoolYear, form.timetableTemplateId, timetableTemplatesQuery.data]);
 
   useEffect(() => {
     if (userTouchedDebt) {
@@ -168,8 +243,8 @@ export default function PeriodFormModal(props: PeriodFormModalProps) {
       debt: toNumberOrUndefined(form.debt),
       note: form.note.trim() || undefined,
       periodStartWeek: toNumberOrUndefined(form.periodStartWeek),
-      useStudyWeekStartDate: form.useStudyWeekStartDate,
       timetableTemplateId: form.timetableTemplateId.trim() || undefined,
+      useStudyWeekStartDate: form.useStudyWeekStartDate,
     };
 
     if (form.createMode === 'TEMPLATE') {
@@ -373,7 +448,7 @@ export default function PeriodFormModal(props: PeriodFormModalProps) {
               value={form.numberOfWeek}
               onChange={(event) => updateField('numberOfWeek', event.target.value)}
               required={isCreate && form.createMode === 'MANUAL'}
-              disabled={isCreate && form.createMode === 'TEMPLATE'}
+              // disabled={isCreate && form.createMode === 'TEMPLATE'}
               className={`${fieldClass} disabled:bg-slate-50 disabled:text-slate-500`}
             />
           </Field>
@@ -396,7 +471,7 @@ export default function PeriodFormModal(props: PeriodFormModalProps) {
               value={form.tuition}
               onChange={(event) => updateField('tuition', event.target.value)}
               required={isCreate && form.createMode === 'MANUAL'}
-              disabled={isCreate && form.createMode === 'TEMPLATE'}
+              // disabled={isCreate && form.createMode === 'TEMPLATE'}
               className={`${fieldClass} disabled:bg-slate-50 disabled:text-slate-500`}
             />
           </Field>
@@ -465,23 +540,45 @@ export default function PeriodFormModal(props: PeriodFormModalProps) {
           </Field>
 
           <Field label="Tuần bắt đầu (periodStartWeek)">
-            <input
-              type="number"
-              min={1}
+            <select
               value={form.periodStartWeek}
               onChange={(event) => updateField('periodStartWeek', event.target.value)}
               className={fieldClass}
-              placeholder="Tự dò từ StudyWeek nếu bỏ trống"
-            />
+            >
+              <option value="">
+                {studyWeeksQuery.isLoading ? 'Đang tải StudyWeek...' : 'Chọn tuần bắt đầu'}
+              </option>
+              {studyWeeks.map((week) => (
+                <option
+                  key={week.week_uuid ?? `${week.school_year}-${week.week_number}`}
+                  value={week.week_number ?? ''}
+                >
+                  {formatStudyWeekOption(week)}
+                </option>
+              ))}
+            </select>
           </Field>
 
-          <Field label="Timetable template (UUID)">
-            <input
+          <Field label="Timetable template">
+            <select
               value={form.timetableTemplateId}
               onChange={(event) => updateField('timetableTemplateId', event.target.value)}
-              className={fieldClass}
-              placeholder="UUID (tuỳ chọn)"
-            />
+              className={`${fieldClass} font-extrabold`}
+            >
+              <option value="">
+                {timetableTemplatesQuery.isLoading ? 'Đang tải timetable...' : 'Chọn timetable template'}
+              </option>
+              {timetableTemplateOptions.map((template) => (
+                <option
+                  key={template.timetable_template_uuid}
+                  value={template.timetable_template_uuid ?? ''}
+                >
+                  {template.timetable_template_name ?? 'Timetable'} · {template.grade?.name ?? '—'} ·{' '}
+                  {template.school_year ?? '—'} · {template.apply_from ?? '—'}
+                  {template.active ? ' · active' : ''}
+                </option>
+              ))}
+            </select>
           </Field>
 
           <label className="sm:col-span-2 space-y-2">
@@ -554,4 +651,15 @@ function Field({
 function formatTuition(value: number | undefined) {
   if (value == null) return '—';
   return value.toLocaleString('vi-VN') + 'đ';
+}
+
+function formatStudyWeekOption(week: {
+  week_number?: number;
+  week_start_date?: string;
+  week_end_date?: string;
+  school_year?: number;
+}) {
+  return `Week ${week.week_number ?? '?'} - (${formatDate(week.week_start_date)} -> ${
+    formatDate(week.week_end_date)
+  }) - ${week.school_year ?? '—'}`;
 }

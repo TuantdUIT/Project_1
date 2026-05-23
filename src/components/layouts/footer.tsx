@@ -11,7 +11,7 @@ export default function Footer() {
               <div className="w-8 h-8 bg-indigo-deep rounded-academic-sm flex items-center justify-center text-white">
                 <GraduationCap size={20} />
               </div>
-              <span className="font-bold text-xl tracking-tight">EdTech Pro</span>
+              <span className="font-bold text-xl tracking-tight">BHP Math</span>
             </div>
             <p className="text-slate-400 text-sm leading-relaxed">
               Nền tảng học tập trực tuyến hàng đầu Việt Nam, cung cấp lộ trình học tập tối ưu cho học sinh THPT chuẩn bị cho các kỳ thi quan trọng.
@@ -71,7 +71,7 @@ export default function Footer() {
         </div>
 
         <div className="pt-8 border-t border-slate-800 text-center text-xs text-slate-500">
-          © 2024 EdTech Pro. All rights reserved. Designed for excellence.
+          © 2024 BHP Math. All rights reserved. Designed for excellence.
         </div>
       </div>
     </footer>

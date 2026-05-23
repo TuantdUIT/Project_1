@@ -14,5 +14,12 @@ export const paths = {
   adminPortalTimetable: '/admin-portal/timetable',
   adminPortalTimetableAll: '/admin-portal/timetable/all',
   adminPortalTimetableGrade: (gradeId: string | number) => `/admin-portal/timetable/grade/${gradeId}`,
+  adminPortalStudyWeeks: '/admin-portal/study-weeks',
+  adminPortalStudyWeekDetail: (weekUuid: string) => `/admin-portal/study-weeks/${weekUuid}`,
+  adminPortalStudyWeekByGrade: (weekUuid: string, gradeId: string | number) =>
+    `/admin-portal/study-weeks/${weekUuid}/grade/${gradeId}`,
+  adminPortalStudyWeekLesson: (weekUuid: string, gradeId: string | number, lessonUuid: string) =>
+    `/admin-portal/study-weeks/${weekUuid}/grade/${gradeId}/lessons/${lessonUuid}`,
+  adminPortalCosts: '/admin-portal/costs',
   login: '/',
 } as const;

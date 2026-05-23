@@ -123,7 +123,7 @@ function TierCard({ tier, gradeLabel, color, onClick }: TierCardProps) {
         className="relative flex aspect-square flex-col items-center justify-center overflow-hidden p-6 text-center text-white"
         style={{ backgroundColor: color }}
       >
-        <div className="absolute left-4 top-3 text-[10px] font-bold uppercase tracking-wider opacity-80">EdTech Pro</div>
+        <div className="absolute left-4 top-3 text-[10px] font-bold uppercase tracking-wider opacity-80">BHP Math</div>
         <div className="absolute right-4 top-4 h-5 w-5 rounded-full bg-white/25 blur-[2px]" />
         <div className="mb-1 text-sm font-bold opacity-90">{gradeLabel}</div>
         <div className="mb-1 text-base font-extrabold tracking-tight">{tier.headline}</div>

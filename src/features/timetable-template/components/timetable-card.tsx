@@ -4,11 +4,9 @@ import type { TimetableCardLayout } from '@/features/timetable-template/types';
 
 export default function TimetableCard({
   card,
-  hideBadge = false,
   compact = false,
 }: {
   card: TimetableCardLayout;
-  hideBadge?: boolean;
   compact?: boolean;
 }) {
   const style = getLessonTypeStyle(card.item.lesson_type_name);
@@ -29,22 +27,13 @@ export default function TimetableCard({
         width: `calc(${card.widthPercent}% - 6px)`,
         height: card.heightPx,
       }}
-      title={`${card.startLabel} - ${card.endLabel} · ${card.item.lesson_type_name ?? '—'} · ${card.item._source_grade_name}`}
+      title={`${card.startLabel} - ${card.endLabel} - ${card.item.lesson_type_name ?? '-'}`}
     >
-      {!hideBadge ? (
-        <span
-          className={`absolute right-2 top-2 rounded-full bg-white/20 font-black text-white transition-colors group-hover:bg-slate-50 group-hover:text-[var(--lesson-outlined)] ${
-            compact ? 'px-1.5 py-0.5 text-[9px]' : 'px-2 py-0.5 text-[10px]'
-          }`}
-        >
-          {card.item._source_grade_name}
-        </span>
-      ) : null}
       <p className={`font-black opacity-85 ${compact ? 'text-[9px]' : 'text-[11px]'}`}>
         {card.startLabel} - {card.endLabel}
       </p>
-      <p className={`mt-1 pr-10 font-black leading-tight ${compact ? 'text-[11px]' : 'text-[13px]'}`}>
-        {card.item.lesson_type_name || '—'}
+      <p className={`mt-1 font-black leading-tight ${compact ? 'text-[11px]' : 'text-[13px]'}`}>
+        {card.item.lesson_type_name || '-'}
       </p>
     </article>
   );

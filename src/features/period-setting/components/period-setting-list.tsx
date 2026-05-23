@@ -6,6 +6,7 @@ import {
 } from '@/features/period-setting';
 import type { ResPeriodSettingDTO } from '@/features/period-setting/types';
 import { useGradesQuery } from '@/features/curriculum';
+import { formatDate } from '@/utils/date';
 import PeriodSettingFormModal from './period-setting-form-modal';
 
 const fieldClass =
@@ -249,10 +250,3 @@ function formatVND(value: number | undefined | null) {
   return value.toLocaleString('vi-VN') + 'đ';
 }
 
-function formatDate(value?: string | null) {
-  if (!value) return '—';
-  const parts = value.slice(0, 10).split('-');
-  if (parts.length !== 3) return value;
-  const [year, month, day] = parts;
-  return `${day}/${month}/${year}`;
-}

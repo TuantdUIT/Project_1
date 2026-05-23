@@ -42,7 +42,7 @@ export default function LoginModal() {
             <div className="p-8">
               <div className="mb-8 flex items-center justify-between">
                 <h2 className="text-2xl font-bold text-indigo-deep">
-                  Edtech Pro
+                  BHP Math
                 </h2>
                 <button
                   onClick={handleClose}

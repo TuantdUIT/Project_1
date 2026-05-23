@@ -2,11 +2,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { Calendar, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useStudentByUuidQuery } from '@/features/admin';
+import { useStudyWeeksQuery } from '@/features/study-week';
 import {
   composeSchedule,
-  useStudyWeeksQuery,
   useTimetableTemplatesQuery,
 } from '@/features/schedule';
+import { formatDate } from '@/utils/date';
 
 const currentSchoolYear = new Date().getFullYear();
 
@@ -111,7 +112,7 @@ export default function ScheduleRoute() {
                   </span>
                   <span className="flex items-center gap-1 text-xs font-bold text-slate-500">
                     <Calendar size={14} />
-                    {event.date}
+                    {formatDate(event.date)}
                   </span>
                 </div>
                 <h2 className="text-lg font-black text-slate-900">{event.lessonTypeName}</h2>

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { CalendarRange, Pencil, Plus, Trash2, Wallet } from 'lucide-react';
 import { useDeletePeriod, usePeriodsByUserQuery } from '@/features/admin';
 import type { ResPeriodDTO, TuitionStatus } from '@/features/admin/types';
+import { formatDate } from '@/utils/date';
 import PeriodFormModal from './period-form-modal';
 
 type EditingState =
@@ -304,10 +305,3 @@ function formatVND(value: number | undefined | null) {
   return value.toLocaleString('vi-VN') + 'đ';
 }
 
-function formatDate(value?: string | null) {
-  if (!value) return '—';
-  const parts = value.slice(0, 10).split('-');
-  if (parts.length !== 3) return value;
-  const [year, month, day] = parts;
-  return `${day}/${month}/${year}`;
-}

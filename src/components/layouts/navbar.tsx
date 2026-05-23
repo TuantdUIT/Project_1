@@ -54,7 +54,7 @@ export default function Navbar() {
               <GraduationCap size={20} />
             </div>
             <span className="text-xl font-bold tracking-tight text-indigo-deep">
-              EdTech Pro
+              BHP Math
             </span>
           </NavLink>
 

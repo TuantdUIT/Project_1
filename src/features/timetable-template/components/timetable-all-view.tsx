@@ -8,7 +8,6 @@ import {
 } from '@/features/timetable-template/lib/merge-supplement';
 import {
   PRIMARY_GRADE_IDS,
-  SUPPLEMENT_GRADE_IDS_BY_PRIMARY_ID,
   primaryGradeTitle,
 } from '@/features/timetable-template/lib/supplement-grades';
 import TimetableFilterChips from './timetable-filter-chips';
@@ -37,7 +36,7 @@ export default function TimetableAllView() {
       <div className="space-y-5">
         <TimetableFilterChips />
         <div className="flex flex-col gap-3 rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-rose-700 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-[14px] font-bold">Không tải được danh sách mẫu thời gian.</p>
+          <p className="text-[14px] font-bold">Không tải được danh sách Thời Khóa Biểu.</p>
           <button
             type="button"
             onClick={() => {
@@ -60,7 +59,6 @@ export default function TimetableAllView() {
 
       {PRIMARY_GRADE_IDS.map((primaryId) => {
         const items = mergeItemsForPrimary(primaryId, templatesByGradeId);
-        const hasSupplement = SUPPLEMENT_GRADE_IDS_BY_PRIMARY_ID[primaryId].length > 0;
         const template = templatesByGradeId.get(primaryId);
 
         return (
@@ -89,10 +87,9 @@ export default function TimetableAllView() {
             </div>
             <div className="p-4">
               <TimetableGrid
-                hideBadges={!hasSupplement}
                 items={items}
                 lessonTypes={lessonTypesQuery.data ?? []}
-                emptyMessage={`${primaryGradeTitle(primaryId)} chưa có mẫu thời gian.`}
+                emptyMessage={`${primaryGradeTitle(primaryId)} chưa có Thời Khóa Biểu.`}
               />
             </div>
           </section>
@@ -101,4 +98,3 @@ export default function TimetableAllView() {
     </div>
   );
 }
-

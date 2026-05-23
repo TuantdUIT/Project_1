@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import type { StudyWeek } from '@/features/schedule/api/study-weeks';
+import type { StudyWeek } from '@/features/study-week';
 import type { TimetableTemplate } from '@/features/schedule/api/timetable-templates';
 
 const dayOffsets = {

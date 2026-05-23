@@ -79,7 +79,7 @@ export default function HomeHero() {
           transition={{ delay: 0.5 }}
           className="mt-12 text-lg text-on-surface-variant font-medium max-w-2xl mx-auto"
         >
-          Edtech Pro is where learning math becomes easier
+          BHP Math is where learning math becomes easier
         </motion.p>
       </div>
     </section>

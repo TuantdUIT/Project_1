@@ -110,6 +110,31 @@ async function loadAdminTimetableByGradeRoute() {
   return { Component: module.default };
 }
 
+async function loadAdminStudyWeeksRoute() {
+  const module = await import('./routes/admin/study-weeks');
+  return { Component: module.default };
+}
+
+async function loadAdminStudyWeekDetailRoute() {
+  const module = await import('./routes/admin/study-week-detail');
+  return { Component: module.default };
+}
+
+async function loadAdminStudyWeekByGradeRoute() {
+  const module = await import('./routes/admin/study-week-by-grade');
+  return { Component: module.default };
+}
+
+async function loadAdminStudyWeekLessonDetailRoute() {
+  const module = await import('./routes/admin/study-week-lesson-detail');
+  return { Component: module.default };
+}
+
+async function loadAdminCostsRoute() {
+  const module = await import('./routes/admin/costs');
+  return { Component: module.default };
+}
+
 /**
  * Ý nghĩa: Lazy-load route 404 cho các URL không khớp route nào.
  * Hàm sử dụng hàm này làm đầu vào: createBrowserRouter nhận hàm này trong field lazy của wildcard route *.
@@ -206,6 +231,32 @@ export const router = createBrowserRouter([
                 lazy: loadAdminTimetableByGradeRoute,
               },
             ],
+          },
+          {
+            path: 'study-weeks',
+            lazy: loadAdminStudyWeeksRoute,
+          },
+          {
+            path: 'study-weeks/:weekUuid',
+            lazy: loadAdminStudyWeekDetailRoute,
+            children: [
+              {
+                index: true,
+                element: <Navigate to="grade/1" replace />,
+              },
+              {
+                path: 'grade/:gradeId',
+                lazy: loadAdminStudyWeekByGradeRoute,
+              },
+              {
+                path: 'grade/:gradeId/lessons/:lessonUuid',
+                lazy: loadAdminStudyWeekLessonDetailRoute,
+              },
+            ],
+          },
+          {
+            path: 'costs',
+            lazy: loadAdminCostsRoute,
           },
         ],
       },

@@ -1,7 +1,6 @@
 import { CalendarRange } from 'lucide-react';
 import { useTimetableViewQuery } from '@/features/timetable-template/hooks/use-timetable-view-query';
 import {
-  SUPPLEMENT_GRADE_IDS_BY_PRIMARY_ID,
   primaryGradeTitle,
   type PrimaryGradeId,
 } from '@/features/timetable-template/lib/supplement-grades';
@@ -12,7 +11,6 @@ import TimetableGrid from './timetable-grid';
 export default function TimetableView({ primaryGradeId }: { primaryGradeId: PrimaryGradeId }) {
   const viewQuery = useTimetableViewQuery(primaryGradeId);
   const title = primaryGradeTitle(primaryGradeId);
-  const hasSupplement = SUPPLEMENT_GRADE_IDS_BY_PRIMARY_ID[primaryGradeId].length > 0;
 
   if (viewQuery.isLoading) {
     return (
@@ -28,7 +26,7 @@ export default function TimetableView({ primaryGradeId }: { primaryGradeId: Prim
     return (
       <div className="space-y-5">
         <TimetableFilterChips />
-        <TimetableTitle title={title} subtitle="Mẫu thời gian tuần" />
+        <TimetableTitle title={title} subtitle="Thời Khóa Biểu tuần" />
         <PartialErrorBanner
           failedNames={viewQuery.failedLabels}
           tone="danger"
@@ -41,7 +39,7 @@ export default function TimetableView({ primaryGradeId }: { primaryGradeId: Prim
   return (
     <div className="space-y-5">
       <TimetableFilterChips />
-      <TimetableTitle title={title} subtitle="Mẫu thời gian tuần" />
+      <TimetableTitle title={title} subtitle="Thời Khóa Biểu tuần" />
 
       {viewQuery.hasPartialError ? (
         <PartialErrorBanner
@@ -51,10 +49,9 @@ export default function TimetableView({ primaryGradeId }: { primaryGradeId: Prim
       ) : null}
 
       <TimetableGrid
-        hideBadges={!hasSupplement}
         items={viewQuery.items}
         lessonTypes={viewQuery.lessonTypes}
-        emptyMessage={`${title} chưa có mẫu thời gian.`}
+        emptyMessage={`${title} chưa có Thời Khóa Biểu.`}
       />
     </div>
   );
@@ -70,7 +67,7 @@ function TimetableTitle({ title, subtitle }: { title: string; subtitle: string }
           </span>
           <div>
             <p className="text-[12px] font-black uppercase tracking-[0.16em] text-slate-400">
-              Mẫu thời gian
+              Thời Khóa Biểu
             </p>
             <h2 className="mt-1 text-[22px] font-black leading-tight text-slate-950">{title}</h2>
           </div>

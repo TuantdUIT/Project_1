@@ -8,6 +8,7 @@ import {
   type StaffRoleOption,
   type UserUpdatePayload,
 } from '@/features/admin';
+import { formatDateTime } from '@/utils/date';
 
 const fieldClass =
   'h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-[14px] font-extrabold text-slate-950 outline-none transition focus:border-[#1870FF] focus:ring-4 focus:ring-[rgba(24,112,255,0.14)]';
@@ -303,25 +304,6 @@ export default function UserDetailModal({
   );
 }
 
-function formatDateTime(value?: string | null) {
-  if (!value) {
-    return undefined;
-  }
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return new Intl.DateTimeFormat('vi-VN', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(date);
-}
 
 function RoleBadge({ name }: { name: string }) {
   return (

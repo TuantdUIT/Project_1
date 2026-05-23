@@ -9,6 +9,7 @@ import {
 } from '@/features/admin';
 import { paths } from '@/config/paths';
 import { useGradesQuery } from '@/features/curriculum';
+import { formatDate } from '@/utils/date';
 import { DEFAULT_PAGE_SIZE } from '@/utils/pagination';
 import StudentPeriodsSection from './student-periods-section';
 
@@ -207,11 +208,6 @@ function ClassListPanel() {
               />
             </label>
           </div>
-          {selectedGroupKey ? (
-            <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-[13px] font-semibold text-amber-800">
-              Danh sách đang lọc theo học sinh trên trang hiện tại. Số thống kê phía trên vẫn là tổng chính thức từ hệ thống.
-            </p>
-          ) : null}
         </div>
 
         <div className="border-t border-slate-100 overflow-x-auto">
@@ -499,7 +495,7 @@ function StudentDetailPanel({ userUuid }: { userUuid: string }) {
                     editing={isEditing}
                     onChange={(next) => updateField('className', next)}
                   />
-                  <DetailRow label="Ngày nhập học" value={student.student_first_enroll_date} />
+                  <DetailRow label="Ngày nhập học" value={formatDate(student.student_first_enroll_date)} />
                   <DetailRow label="Công nợ" value={debtValue} />
                 </DetailGrid>
               </DetailSection>

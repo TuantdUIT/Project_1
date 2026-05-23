@@ -14,13 +14,11 @@ export default function TimetableGrid({
   items,
   lessonTypes,
   compact = false,
-  hideBadges = false,
   emptyMessage = 'Chưa có buổi học nào.',
 }: {
   items: MergedTimetableItem[];
   lessonTypes: LessonType[];
   compact?: boolean;
-  hideBadges?: boolean;
   emptyMessage?: string;
 }) {
   const hourHeightPx = compact ? COMPACT_HOUR_HEIGHT_PX : HOUR_HEIGHT_PX;
@@ -73,7 +71,6 @@ export default function TimetableGrid({
                 key={card.id}
                 card={card}
                 compact={compact}
-                hideBadge={hideBadges}
               />
             ))}
             {!layout.cards.length ? (
