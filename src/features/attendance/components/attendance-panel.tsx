@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 import {
   AlertCircle,
@@ -13,6 +14,7 @@ import { createAttendance, deleteAttendance, useAttendancesQuery } from '@/featu
 import type { Attendance } from '@/features/attendance/types';
 import { useStudentsQuery } from '@/features/admin/api/students';
 import type { ResStudentDTO } from '@/features/admin/types';
+import { lessonsKey } from '@/features/study-week/api/lessons';
 import type { Lesson } from '@/features/study-week/types';
 import { formatDate, formatDateTime, formatTime } from '@/utils/date';
 import { parseApiError } from '@/utils/api-errors';
@@ -63,7 +65,7 @@ function isDuplicateAttendanceError(message: string) {
 function getStudentPeriodErrorMessage(message: string) {
   const normalized = message.toLowerCase();
   if (normalized.includes('period')) {
-    return 'Học sinh này chưa đăng ký Period phù hợp cho buổi học này. Liên hệ quản lý.';
+    return 'Hoc sinh nay chua dang ky Period phu hop cho buoi hoc nay. Lien he quan ly.';
   }
 
   return message;
@@ -149,6 +151,7 @@ function StatBlock({
 }
 
 export default function AttendancePanel({ lesson }: { lesson: Lesson }) {
+  const queryClient = useQueryClient();
   const lessonUuid = lesson.lesson_uuid ?? '';
   const gradeId = getGradeId(lesson.grade as GradeLike);
   const schoolYear = lesson.study_week?.school_year;
@@ -313,7 +316,7 @@ export default function AttendancePanel({ lesson }: { lesson: Lesson }) {
     }, []);
 
     if (!operations.length) {
-      setSaveMessage('Không có thay đổi cần lưu.');
+      setSaveMessage('Khong co thay doi can luu.');
       return;
     }
 
@@ -405,17 +408,18 @@ export default function AttendancePanel({ lesson }: { lesson: Lesson }) {
 
     if (shouldRefresh) {
       await attendancesQuery.refetch();
+      await queryClient.invalidateQueries({ queryKey: lessonsKey });
     }
 
     if (createSuccessCount) {
-      showAttendanceToast(`Điểm danh ${createSuccessCount} học sinh`, 'success');
+      showAttendanceToast(`Diem danh ${createSuccessCount} hoc sinh`, 'success');
     }
     if (deleteSuccessCount) {
-      showAttendanceToast(`Bỏ điểm danh ${deleteSuccessCount} học sinh`, 'warning');
+      showAttendanceToast(`Bo diem danh ${deleteSuccessCount} hoc sinh`, 'warning');
     }
 
     if (failureCount) {
-      setSaveMessage(`Đã lưu ${successCount + duplicateCount}/${operations.length} thay đổi. Kiểm tra các dòng báo lỗi.`);
+      setSaveMessage(`Da luu ${successCount + duplicateCount}/${operations.length} thay doi. Kiem tra cac dong bao loi.`);
     } else {
       setSaveMessage(null);
     }
@@ -429,8 +433,8 @@ export default function AttendancePanel({ lesson }: { lesson: Lesson }) {
 
       <div className="flex flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-5 xl:flex-row xl:items-center xl:justify-between">
         <div className="grid gap-4 md:grid-cols-2">
-          <StatBlock icon={<UsersRound size={24} />} label="Học sinh" value={eligibleStudents.length} />
-          <StatBlock icon={<CheckCircle2 size={24} />} label="Đã điểm danh" value={selectedCount} tone="green" />
+          <StatBlock icon={<UsersRound size={24} />} label="Hoc sinh" value={eligibleStudents.length} />
+          <StatBlock icon={<CheckCircle2 size={24} />} label="Da diem danh" value={selectedCount} tone="green" />
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
@@ -441,7 +445,7 @@ export default function AttendancePanel({ lesson }: { lesson: Lesson }) {
             className="inline-flex h-12 items-center gap-3 rounded-xl border border-slate-200 bg-white px-5 text-[15px] font-extrabold text-slate-700 transition hover:border-[#1870FF] hover:text-[#1870FF] disabled:cursor-not-allowed disabled:opacity-50"
           >
             <RotateCcw size={20} />
-            Hoàn tác
+            Hoan tac
           </button>
           <button
             type="button"
@@ -450,7 +454,7 @@ export default function AttendancePanel({ lesson }: { lesson: Lesson }) {
             className="inline-flex h-12 items-center gap-3 rounded-xl bg-[#1870FF] px-6 text-[15px] font-extrabold text-white shadow-[0_14px_26px_rgba(24,112,255,0.28)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isSaving ? <RefreshCw size={20} className="animate-spin" /> : <Save size={20} />}
-            Lưu thay đổi
+            Luu thay doi
           </button>
         </div>
       </div>
@@ -464,7 +468,7 @@ export default function AttendancePanel({ lesson }: { lesson: Lesson }) {
       {isError ? (
         <div className="flex items-start gap-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-rose-700">
           <AlertCircle size={18} className="mt-0.5 shrink-0" />
-          <p className="text-[13px] font-bold">Không tải được dữ liệu điểm danh. Vui lòng thử lại.</p>
+          <p className="text-[13px] font-bold">Khong tai duoc du lieu diem danh. Vui long thu lai.</p>
         </div>
       ) : null}
 
@@ -475,7 +479,7 @@ export default function AttendancePanel({ lesson }: { lesson: Lesson }) {
             value={searchTerm}
             onChange={(event) => setSearchTerm(event.target.value)}
             className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-12 pr-4 text-[15px] font-semibold text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#1870FF] focus:ring-4 focus:ring-[rgba(24,112,255,0.12)]"
-            placeholder="Tìm học sinh..."
+            placeholder="Tim hoc sinh..."
           />
         </label>
         <label className="relative block w-full sm:max-w-[220px]">
@@ -485,9 +489,9 @@ export default function AttendancePanel({ lesson }: { lesson: Lesson }) {
             onChange={(event) => setStatusFilter(event.target.value as StatusFilter)}
             className="h-12 w-full appearance-none rounded-xl border border-slate-200 bg-white pl-12 pr-4 text-[15px] font-extrabold text-slate-700 outline-none transition focus:border-[#1870FF] focus:ring-4 focus:ring-[rgba(24,112,255,0.12)]"
           >
-            <option value="ALL">Trạng thái</option>
-            <option value="ATTENDED">Có mặt</option>
-            <option value="NOT_ATTENDED">Chưa điểm danh</option>
+            <option value="ALL">Trang thai</option>
+            <option value="ATTENDED">Co mat</option>
+            <option value="NOT_ATTENDED">Chua diem danh</option>
           </select>
         </label>
       </div>
@@ -515,14 +519,14 @@ export default function AttendancePanel({ lesson }: { lesson: Lesson }) {
                       setSaveMessage(null);
                     }}
                     className="h-5 w-5 rounded border-slate-300 accent-[#1870FF]"
-                    aria-label="Chọn tất cả học sinh đang hiển thị"
+                    aria-label="Chon tat ca hoc sinh dang hien thi"
                   />
                 </th>
-                <th className="px-5 py-4">Mã HS</th>
-                <th className="px-5 py-4">Học sinh</th>
-                <th className="px-5 py-4">Khối</th>
-                <th className="px-5 py-4">Thời gian điểm danh</th>
-                <th className="px-5 py-4">Trạng thái</th>
+                <th className="px-5 py-4">Ma HS</th>
+                <th className="px-5 py-4">Hoc sinh</th>
+                <th className="px-5 py-4">Khoi</th>
+                <th className="px-5 py-4">Thoi gian diem danh</th>
+                <th className="px-5 py-4">Trang thai</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white">
@@ -545,7 +549,7 @@ export default function AttendancePanel({ lesson }: { lesson: Lesson }) {
                           setSaveMessage(null);
                         }}
                         className="h-5 w-5 rounded border-slate-300 accent-[#1870FF]"
-                        aria-label={`Điểm danh ${student.user_fullname ?? student.student_id ?? 'học sinh'}`}
+                        aria-label={`Diem danh ${student.user_fullname ?? student.student_id ?? 'hoc sinh'}`}
                       />
                     </td>
                     <td className="px-5 py-4 text-[16px] font-black text-slate-800">{student.student_id ?? '-'}</td>
@@ -564,11 +568,11 @@ export default function AttendancePanel({ lesson }: { lesson: Lesson }) {
                         <p className="max-w-[300px] text-[13px] font-bold text-rose-600">{row.error}</p>
                       ) : isTicked ? (
                         <span className="inline-flex rounded-full bg-emerald-50 px-4 py-1.5 text-[13px] font-black text-emerald-700">
-                          Có mặt
+                          Co mat
                         </span>
                       ) : (
                         <span className="inline-flex rounded-full bg-slate-100 px-4 py-1.5 text-[13px] font-black text-slate-600">
-                          Chưa điểm danh
+                          Chua diem danh
                         </span>
                       )}
                     </td>
@@ -581,13 +585,13 @@ export default function AttendancePanel({ lesson }: { lesson: Lesson }) {
 
         {isLoading ? (
           <p className="px-5 py-6 text-center text-[14px] font-semibold text-slate-500">
-            Đang tải học sinh và dữ liệu điểm danh...
+            Dang tai hoc sinh va du lieu diem danh...
           </p>
         ) : null}
 
         {!isLoading && !isError && !filteredStudents.length ? (
           <p className="px-5 py-6 text-center text-[14px] font-semibold text-slate-500">
-            Không có học sinh phù hợp với bộ lọc hiện tại.
+            Khong co hoc sinh phu hop voi bo loc hien tai.
           </p>
         ) : null}
       </div>

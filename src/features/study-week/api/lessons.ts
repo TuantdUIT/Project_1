@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
-import type { Lesson, ReqUpdateLessonDTO } from '@/features/study-week/types';
+import type { Lesson, ReqUpdateLessonDTO, ReqUpdateLessonStatusDTO } from '@/features/study-week/types';
 
 const LESSONS_BASE = '/api/v1/lessons';
-const lessonsKey = ['schedule', 'lessons'] as const;
+export const lessonsKey = ['schedule', 'lessons'] as const;
 
 export function getLessons() {
   return apiClient.get<Lesson[]>(LESSONS_BASE);
@@ -45,3 +45,19 @@ export function useUpdateLesson() {
   });
 }
 
+export function updateLessonStatus(lessonUuid: string, body: ReqUpdateLessonStatusDTO) {
+  return apiClient.put<Lesson>(`${LESSONS_BASE}/${lessonUuid}/status`, body);
+}
+
+export function useUpdateLessonStatus() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ lessonUuid, body }: { lessonUuid: string; body: ReqUpdateLessonStatusDTO }) =>
+      updateLessonStatus(lessonUuid, body),
+    onSuccess: (data, variables) => {
+      queryClient.setQueryData([...lessonsKey, variables.lessonUuid], data);
+      queryClient.invalidateQueries({ queryKey: lessonsKey });
+    },
+  });
+}

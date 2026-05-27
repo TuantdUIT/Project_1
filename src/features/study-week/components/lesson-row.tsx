@@ -1,10 +1,21 @@
-import { type KeyboardEvent, useState } from 'react';
+import { type KeyboardEvent, useEffect, useState } from 'react';
 import { Edit3, UsersRound } from 'lucide-react';
 import { paths } from '@/config/paths';
 import type { EmployeeRATemplateItem } from '@/features/employee-ra-template/types';
 import { useUpdateLesson } from '@/features/study-week/api/lessons';
-import { formatLessonDate, formatLessonTime } from '@/features/study-week/lib/format-week';
+import {
+  formatLessonDate,
+  formatLessonTime,
+  getLessonEndTime,
+  getLessonLengthFromEndTime,
+  normalizeTwentyFourHourInput,
+} from '@/features/study-week/lib/format-week';
 import { UNASSIGNED_PERSONNEL_MESSAGE } from '@/features/study-week/lib/lesson-personnel';
+import {
+  getEffectiveLessonStatus,
+  getLessonStatusClass,
+  getLessonStatusLabel,
+} from '@/features/study-week/lib/lesson-status';
 import type { Lesson } from '@/features/study-week/types';
 import { formatWeekday } from '@/utils/date';
 
@@ -33,14 +44,23 @@ export default function LessonRow({
 }) {
   const updateLesson = useUpdateLesson();
   const [isEditing, setIsEditing] = useState(false);
-  const [lengthValue, setLengthValue] = useState(
-    lesson.real_lesson_length != null ? String(lesson.real_lesson_length) : '',
+  const [endTimeValue, setEndTimeValue] = useState(
+    getLessonEndTime(lesson.lesson_start_time, lesson.real_lesson_length),
   );
   const lessonUuid = lesson.lesson_uuid ?? '';
+  const lessonStatus = getEffectiveLessonStatus(lesson);
 
-  async function saveLength() {
-    const realLessonLength = Number(lengthValue);
-    if (!lessonUuid || !Number.isFinite(realLessonLength) || realLessonLength < 0) return;
+  useEffect(() => {
+    setEndTimeValue(getLessonEndTime(lesson.lesson_start_time, lesson.real_lesson_length));
+  }, [lesson.lesson_start_time, lesson.real_lesson_length]);
+
+  async function saveEndTime() {
+    const realLessonLength = getLessonLengthFromEndTime(lesson.lesson_start_time, endTimeValue);
+    if (!lessonUuid || realLessonLength == null) {
+      setEndTimeValue(getLessonEndTime(lesson.lesson_start_time, lesson.real_lesson_length));
+      setIsEditing(false);
+      return;
+    }
 
     await updateLesson.mutateAsync({
       lessonUuid,
@@ -52,11 +72,12 @@ export default function LessonRow({
   function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key === 'Enter') {
       event.preventDefault();
-      saveLength();
+      saveEndTime();
     }
+
     if (event.key === 'Escape') {
       setIsEditing(false);
-      setLengthValue(lesson.real_lesson_length != null ? String(lesson.real_lesson_length) : '');
+      setEndTimeValue(getLessonEndTime(lesson.lesson_start_time, lesson.real_lesson_length));
     }
   }
 
@@ -91,14 +112,16 @@ export default function LessonRow({
       <td className="px-5 py-4 text-[14px] font-bold text-slate-700">
         {isEditing ? (
           <input
-            type="number"
-            min={0}
-            value={lengthValue}
+            type="text"
+            inputMode="numeric"
+            placeholder="HH:mm"
+            maxLength={5}
+            value={endTimeValue}
             onClick={(event) => event.stopPropagation()}
-            onChange={(event) => setLengthValue(event.target.value)}
-            onBlur={saveLength}
+            onChange={(event) => setEndTimeValue(normalizeTwentyFourHourInput(event.target.value))}
+            onBlur={saveEndTime}
             onKeyDown={handleKeyDown}
-            className="h-9 w-24 rounded-lg border border-slate-300 px-3 text-[14px] font-bold outline-none focus:border-[#1870FF] focus:ring-4 focus:ring-[rgba(24,112,255,0.14)]"
+            className="h-9 w-32 rounded-lg border border-slate-300 px-3 text-[14px] font-bold outline-none focus:border-[#1870FF] focus:ring-4 focus:ring-[rgba(24,112,255,0.14)]"
             autoFocus
           />
         ) : (
@@ -110,10 +133,15 @@ export default function LessonRow({
             }}
             className="inline-flex items-center gap-2 rounded-lg px-2 py-1 text-slate-700 transition hover:bg-slate-100"
           >
-            {lesson.real_lesson_length ? `${lesson.real_lesson_length}'` : 'Chưa diễn ra'}
+            {getLessonEndTime(lesson.lesson_start_time, lesson.real_lesson_length) || '--:--'}
             <Edit3 size={14} />
           </button>
         )}
+      </td>
+      <td className="px-5 py-4">
+        <span className={`inline-flex rounded-full px-4 py-1.5 text-[13px] font-black ${getLessonStatusClass(lessonStatus)}`}>
+          {getLessonStatusLabel(lessonStatus)}
+        </span>
       </td>
     </tr>
   );
@@ -129,7 +157,7 @@ function LessonPersonnelCell({
   isError: boolean;
 }) {
   if (isLoading) {
-    return <span className="text-[13px] font-bold text-slate-500">Đang tải nhân sự...</span>;
+    return <span className="text-[13px] font-bold text-slate-500">Dang tai nhan su...</span>;
   }
 
   if (isError || !personnel.length) {
@@ -144,7 +172,7 @@ function LessonPersonnelCell({
           className="flex max-w-full items-center gap-1.5 rounded-lg bg-blue-50 px-2.5 py-1.5 text-[12px] font-black text-[#1870FF]"
         >
           <UsersRound size={13} strokeWidth={2.5} className="shrink-0" />
-          <span className="truncate">{item.full_name || item.email || 'Nhân sự'}</span>
+          <span className="truncate">{item.full_name || item.email || 'Nhan su'}</span>
           {item.role_name ? (
             <span className="shrink-0 text-[10px] uppercase text-blue-500/80">· {item.role_name}</span>
           ) : null}

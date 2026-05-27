@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
 import { attendancesKey } from '@/features/attendance/api/attendances';
+import { lessonsKey } from '@/features/study-week/api/lessons';
 import type {
   RecordAttendance,
   ReqCreateRecordAttendanceDTO,
@@ -23,6 +24,7 @@ export function useToggleRecordAttendance() {
     mutationFn: createRecordAttendance,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: attendancesKey });
+      queryClient.invalidateQueries({ queryKey: lessonsKey });
     },
   });
 
@@ -30,6 +32,7 @@ export function useToggleRecordAttendance() {
     mutationFn: deleteRecordAttendance,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: attendancesKey });
+      queryClient.invalidateQueries({ queryKey: lessonsKey });
     },
   });
 
