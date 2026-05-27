@@ -405,7 +405,6 @@ function StudentDetailPanel({ userUuid }: { userUuid: string }) {
   const classGradeValue = student.student_class && gradeLabel
     ? `${student.student_class} (${gradeLabel})`
     : student.student_class || gradeLabel || undefined;
-  const debtValue = student.debt != null ? String(student.debt) : undefined;
 
   return (
     <div className="space-y-6">
@@ -465,105 +464,100 @@ function StudentDetailPanel({ userUuid }: { userUuid: string }) {
       </div>
 
       {activeTab === 'Tổng quan' ? (
-        <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
-          <div className="space-y-4">
-            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-              <DetailSection icon={User} title="Thông tin học sinh">
-                <DetailGrid>
-                  <EditableRow
-                    label="Mã học sinh (SID)"
-                    value={isEditing ? form.studentId : student.student_id}
-                    editing={isEditing}
-                    onChange={(next) => updateField('studentId', next)}
-                  />
-                  <EditableRow
-                    label="Năm học"
-                    value={isEditing ? form.schoolYear : String(student.school_year ?? '')}
-                    editing={isEditing}
-                    onChange={(next) => updateField('schoolYear', next.replace(/\D/g, ''))}
-                    type="number"
-                  />
-                  <EditableRow
-                    label="Trường"
-                    value={isEditing ? form.school : student.school}
-                    editing={isEditing}
-                    onChange={(next) => updateField('school', next)}
-                  />
-                  <EditableRow
-                    label={isEditing && gradeLabel ? `Lớp (Khối ${gradeLabel})` : 'Lớp / Khối'}
-                    value={isEditing ? form.className : classGradeValue}
-                    editing={isEditing}
-                    onChange={(next) => updateField('className', next)}
-                  />
-                  <DetailRow label="Ngày nhập học" value={formatDate(student.student_first_enroll_date)} />
-                  <DetailRow label="Công nợ" value={debtValue} />
-                </DetailGrid>
-              </DetailSection>
+        <div className="space-y-4">
+          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <DetailSection icon={User} title="Thông tin học sinh">
+              <DetailGrid>
+                <EditableRow
+                  label="Mã học sinh (SID)"
+                  value={isEditing ? form.studentId : student.student_id}
+                  editing={isEditing}
+                  onChange={(next) => updateField('studentId', next)}
+                />
+                <EditableRow
+                  label="Năm học"
+                  value={isEditing ? form.schoolYear : String(student.school_year ?? '')}
+                  editing={isEditing}
+                  onChange={(next) => updateField('schoolYear', next.replace(/\D/g, ''))}
+                  type="number"
+                />
+                <EditableRow
+                  label="Trường"
+                  value={isEditing ? form.school : student.school}
+                  editing={isEditing}
+                  onChange={(next) => updateField('school', next)}
+                />
+                <EditableRow
+                  label={isEditing && gradeLabel ? `Lớp (Khối ${gradeLabel})` : 'Lớp / Khối'}
+                  value={isEditing ? form.className : classGradeValue}
+                  editing={isEditing}
+                  onChange={(next) => updateField('className', next)}
+                />
+                <DetailRow label="Ngày nhập học" value={formatDate(student.student_first_enroll_date)} />
+              </DetailGrid>
+            </DetailSection>
 
-              <DetailSection icon={Mail} title="Liên hệ & mạng xã hội">
-                <DetailGrid>
-                  <EditableRow
-                    label="Email"
-                    value={isEditing ? form.email : student.user_email}
-                    editing={isEditing}
-                    onChange={(next) => updateField('email', next)}
-                    type="email"
-                  />
-                  <EditableRow
-                    label="Số điện thoại"
-                    value={isEditing ? form.phoneNumber : student.user_phone_number}
-                    editing={isEditing}
-                    onChange={(next) => updateField('phoneNumber', next)}
-                    type="tel"
-                  />
-                </DetailGrid>
-                <div className="mt-4">
-                  <EditableRow
-                    label="Facebook profile"
-                    value={isEditing ? form.fbLink : student.fb_link}
-                    editing={isEditing}
-                    onChange={(next) => updateField('fbLink', next)}
-                    type="url"
-                  />
-                </div>
-              </DetailSection>
+            <DetailSection icon={Mail} title="Liên hệ & mạng xã hội">
+              <DetailGrid>
+                <EditableRow
+                  label="Email"
+                  value={isEditing ? form.email : student.user_email}
+                  editing={isEditing}
+                  onChange={(next) => updateField('email', next)}
+                  type="email"
+                />
+                <EditableRow
+                  label="Số điện thoại"
+                  value={isEditing ? form.phoneNumber : student.user_phone_number}
+                  editing={isEditing}
+                  onChange={(next) => updateField('phoneNumber', next)}
+                  type="tel"
+                />
+              </DetailGrid>
+              <div className="mt-4">
+                <EditableRow
+                  label="Facebook profile"
+                  value={isEditing ? form.fbLink : student.fb_link}
+                  editing={isEditing}
+                  onChange={(next) => updateField('fbLink', next)}
+                  type="url"
+                />
+              </div>
+            </DetailSection>
 
-              <DetailSection icon={Users} title="Thông tin phụ huynh">
-                <DetailGrid>
-                  <EditableRow
-                    label="Tên phụ huynh"
-                    value={isEditing ? form.parentName : student.parent_name}
-                    editing={isEditing}
-                    onChange={(next) => updateField('parentName', next)}
-                  />
-                  <EditableRow
-                    label="SĐT phụ huynh"
-                    value={isEditing ? form.parentNumber : student.parent_number}
-                    editing={isEditing}
-                    onChange={(next) => updateField('parentNumber', next)}
-                    type="tel"
-                  />
-                </DetailGrid>
-              </DetailSection>
-            </div>
-
-            <OverviewActions
-              isDirty={isDirty}
-              isEditing={isEditing}
-              isPending={updateStudent.isPending}
-              onApply={handleApply}
-              onToggleEditing={toggleEditing}
-            />
+            <DetailSection icon={Users} title="Thông tin phụ huynh">
+              <DetailGrid>
+                <EditableRow
+                  label="Tên phụ huynh"
+                  value={isEditing ? form.parentName : student.parent_name}
+                  editing={isEditing}
+                  onChange={(next) => updateField('parentName', next)}
+                />
+                <EditableRow
+                  label="SĐT phụ huynh"
+                  value={isEditing ? form.parentNumber : student.parent_number}
+                  editing={isEditing}
+                  onChange={(next) => updateField('parentNumber', next)}
+                  type="tel"
+                />
+              </DetailGrid>
+            </DetailSection>
           </div>
 
-          <div className="space-y-6">
-            {student.user_uuid ? (
-              <StudentPeriodsSection userUuid={student.user_uuid} />
-            ) : (
-              <StudentFutureSection title="Period / Học phí" />
-            )}
-          </div>
+          <OverviewActions
+            isDirty={isDirty}
+            isEditing={isEditing}
+            isPending={updateStudent.isPending}
+            onApply={handleApply}
+            onToggleEditing={toggleEditing}
+          />
         </div>
+      ) : activeTab === 'Học phí' ? (
+        student.user_uuid ? (
+          <StudentPeriodsSection userUuid={student.user_uuid} />
+        ) : (
+          <StudentFutureSection title="Học phí / Period" />
+        )
       ) : (
         <StudentDetailEmptyTab title={activeTab} />
       )}

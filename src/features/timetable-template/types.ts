@@ -1,4 +1,5 @@
 import type { components } from '@/types/openapi';
+import type { EmployeeRATemplateItem } from '@/features/employee-ra-template/types';
 
 export type TimetableTemplate = components['schemas']['ResTimetableTemplateDTO'];
 export type TimetableTemplateItem = components['schemas']['ResTimetableTemplateItemDTO'];
@@ -17,6 +18,7 @@ export type MergedTimetableItem = TimetableTemplateItem & {
   _source_grade_id: number;
   _source_grade_name: string;
   _template_uuid?: string;
+  _personnel?: EmployeeRATemplateItem[];
 };
 
 export type TimetableCardLayout = {

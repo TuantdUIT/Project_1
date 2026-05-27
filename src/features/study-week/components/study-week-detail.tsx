@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router';
+import { useLessonPersonnelByGrade } from '@/features/study-week/hooks/use-lesson-personnel-by-grade';
 import { useLessonsByWeekAndGrade } from '@/features/study-week/hooks/use-lessons-by-week-and-grade';
 import {
   STUDY_WEEK_GRADE_LABEL,
@@ -17,6 +18,7 @@ export default function StudyWeekDetail({
   const navigate = useNavigate();
   const resolvedGradeId = isStudyWeekGradeId(gradeId) ? gradeId : 1;
   const lessonsQuery = useLessonsByWeekAndGrade(weekUuid, resolvedGradeId);
+  const personnelQuery = useLessonPersonnelByGrade(lessonsQuery.lessons, resolvedGradeId);
   const gradeLabel = STUDY_WEEK_GRADE_LABEL[resolvedGradeId];
 
   return (
@@ -27,10 +29,12 @@ export default function StudyWeekDetail({
         <table className="w-full text-left">
           <thead className="bg-slate-50 text-[12px] font-black uppercase tracking-[0.08em] text-slate-500">
             <tr>
+              <th className="px-5 py-3">Thứ</th>
               <th className="px-5 py-3">Ngày</th>
               <th className="px-5 py-3">Giờ</th>
               <th className="px-5 py-3">Loại buổi</th>
-              <th className="px-5 py-3">Thời lượng</th>
+              <th className="px-5 py-3">Nhân sự</th>
+              <th className="px-5 py-3">Thời lượng dự kiến</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -40,6 +44,13 @@ export default function StudyWeekDetail({
                 lesson={lesson}
                 weekUuid={weekUuid}
                 gradeId={resolvedGradeId}
+                personnel={
+                  lesson.lesson_uuid
+                    ? personnelQuery.personnelByLessonUuid.get(lesson.lesson_uuid) ?? []
+                    : []
+                }
+                isPersonnelLoading={personnelQuery.isLoading}
+                isPersonnelError={personnelQuery.isError}
                 onOpen={navigate}
               />
             ))}

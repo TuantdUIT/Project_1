@@ -1,6 +1,12 @@
 import { useMemo } from 'react';
 import { useQueries } from '@tanstack/react-query';
 import { useLessonTypesQuery } from '@/features/curriculum';
+import {
+  employeeRATemplateByTimetableTemplateKey,
+  type EmployeeRATemplate,
+  getEmployeeRATemplateByTimetableTemplateId,
+} from '@/features/employee-ra-template';
+import { attachPersonnelToTimetableItems } from '@/features/employee-ra-template/lib/personnel-by-slot';
 import { getTemplateByGradeId } from '@/features/timetable-template/api/templates';
 import {
   mergeItemsForPrimary,
@@ -40,9 +46,41 @@ export function useTimetableViewQuery(primaryGradeId: PrimaryGradeId) {
     return map;
   }, [gradeIds, templateQueries]);
 
+  const timetableTemplateUuids = useMemo(
+    () =>
+      Array.from(templatesByGradeId.values())
+        .map((template) => template?.timetable_template_uuid)
+        .filter((uuid): uuid is string => Boolean(uuid)),
+    [templatesByGradeId],
+  );
+
+  const personnelQueries = useQueries({
+    queries: timetableTemplateUuids.map((ttUuid) => ({
+      queryKey: employeeRATemplateByTimetableTemplateKey(ttUuid),
+      queryFn: () => getEmployeeRATemplateByTimetableTemplateId(ttUuid),
+      enabled: Boolean(ttUuid),
+      retry: false,
+    })),
+  });
+
+  const personnelTemplatesByUuid = useMemo(() => {
+    const map = new Map<string, EmployeeRATemplate | undefined>();
+    personnelQueries.forEach((query, index) => {
+      const ttUuid = timetableTemplateUuids[index];
+      if (ttUuid) {
+        map.set(ttUuid, query.data);
+      }
+    });
+    return map;
+  }, [personnelQueries, timetableTemplateUuids]);
+
   const items = useMemo(
-    () => mergeItemsForPrimary(primaryGradeId, templatesByGradeId),
-    [primaryGradeId, templatesByGradeId],
+    () =>
+      attachPersonnelToTimetableItems(
+        mergeItemsForPrimary(primaryGradeId, templatesByGradeId),
+        personnelTemplatesByUuid,
+      ),
+    [personnelTemplatesByUuid, primaryGradeId, templatesByGradeId],
   );
 
   const failedGradeIds = templateQueries.flatMap((query, index) => {
@@ -52,13 +90,18 @@ export function useTimetableViewQuery(primaryGradeId: PrimaryGradeId) {
   const failedLabels = failedGradeIds.map(
     (id) => GRADE_BADGE_BY_ID[id] ?? `#${id}`,
   );
-
   const isTemplateLoading = templateQueries.some((query) => query.isPending || query.isFetching);
+  const isPersonnelLoading = personnelQueries.some((query) => query.isPending || query.isFetching);
   const allTemplateQueriesFailed =
     templateQueries.length > 0 && templateQueries.every((query) => query.isError);
 
   function refetchFailed() {
     templateQueries.forEach((query) => {
+      if (query.isError) {
+        query.refetch();
+      }
+    });
+    personnelQueries.forEach((query) => {
       if (query.isError) {
         query.refetch();
       }
@@ -70,7 +113,7 @@ export function useTimetableViewQuery(primaryGradeId: PrimaryGradeId) {
     failedLabels,
     items,
     lessonTypes: lessonTypesQuery.data ?? [],
-    isLoading: lessonTypesQuery.isLoading || isTemplateLoading,
+    isLoading: lessonTypesQuery.isLoading || isTemplateLoading || isPersonnelLoading,
     isError: lessonTypesQuery.isError || allTemplateQueriesFailed,
     hasPartialError: failedGradeIds.length > 0 && !allTemplateQueriesFailed,
     allTemplateQueriesFailed,
@@ -78,6 +121,7 @@ export function useTimetableViewQuery(primaryGradeId: PrimaryGradeId) {
     refetchAll: () => {
       lessonTypesQuery.refetch();
       templateQueries.forEach((query) => query.refetch());
+      personnelQueries.forEach((query) => query.refetch());
     },
   };
 }

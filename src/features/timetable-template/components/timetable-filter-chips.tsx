@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router';
+import { NavLink, useSearchParams } from 'react-router';
 import { paths } from '@/config/paths';
 import {
   PRIMARY_GRADE_IDS,
@@ -6,11 +6,16 @@ import {
 } from '@/features/timetable-template/lib/supplement-grades';
 
 export default function TimetableFilterChips() {
+  const [searchParams] = useSearchParams();
+  const currentSearch = searchParams.toString();
+  const withCurrentSearch = (path: string) =>
+    currentSearch ? `${path}?${currentSearch}` : path;
+
   return (
     <div className="sticky top-0 z-20 -mx-1 flex flex-wrap items-center gap-3 bg-[#f4f7fb]/95 px-1 py-2 backdrop-blur">
-      <FilterChip to={paths.adminPortalTimetableAll}>Tất cả</FilterChip>
+      <FilterChip to={withCurrentSearch(paths.adminPortalTimetableAll)}>Tất cả</FilterChip>
       {PRIMARY_GRADE_IDS.map((gradeId) => (
-        <FilterChip key={gradeId} to={paths.adminPortalTimetableGrade(gradeId)}>
+        <FilterChip key={gradeId} to={withCurrentSearch(paths.adminPortalTimetableGrade(gradeId))}>
           {primaryGradeTitle(gradeId)}
         </FilterChip>
       ))}

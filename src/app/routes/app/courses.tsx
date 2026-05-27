@@ -17,9 +17,7 @@ export default function CoursesRoute() {
         <h1 className="mt-2 text-4xl font-black tracking-tight text-on-surface md:text-5xl">
           Khóa học
         </h1>
-        <p className="mt-3 max-w-2xl text-base text-on-surface-variant">
-          Chọn khối lớp để khám phá 4 tuyến khóa học: Foundation, Advance, Strategy và VDC.
-        </p>
+       
       </header>
 
       <FeaturedCourses onCourseClick={handleOpenDetail} />

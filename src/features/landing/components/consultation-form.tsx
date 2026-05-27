@@ -5,30 +5,66 @@ import { useStudentRegister } from '@/features/landing/api/student-register';
 
 const currentSchoolYear = new Date().getFullYear();
 
+type FormState = {
+  fullName: string;
+  phoneNumber: string;
+  parentName: string;
+  parentNumber: string;
+  fbLink: string;
+  email: string;
+  school: string;
+  className: string;
+  gradeIds: number[];
+};
+
+const INITIAL_FORM: FormState = {
+  fullName: '',
+  phoneNumber: '',
+  parentName: '',
+  parentNumber: '',
+  fbLink: '',
+  email: '',
+  school: '',
+  className: '',
+  gradeIds: [],
+};
+
 export default function ConsultationForm() {
   const gradesQuery = useGradesQuery();
   const registerMutation = useStudentRegister();
-  const [form, setForm] = useState({
-    fullName: '',
-    phoneNumber: '',
-    parentName: '',
-    parentNumber: '',
-    fbLink: '',
-    email: '',
-    school: '',
-    className: '',
-    gradeId: '',
-  });
+  const [form, setForm] = useState<FormState>(INITIAL_FORM);
+  const [gradeError, setGradeError] = useState('');
 
-  function updateField(field: keyof typeof form, value: string) {
+  function updateField<K extends Exclude<keyof FormState, 'gradeIds'>>(
+    field: K,
+    value: FormState[K],
+  ) {
     setForm((current) => ({
       ...current,
       [field]: value,
     }));
   }
 
+  function toggleGrade(gradeId: number) {
+    setGradeError('');
+    setForm((current) => {
+      const exists = current.gradeIds.includes(gradeId);
+      return {
+        ...current,
+        gradeIds: exists
+          ? current.gradeIds.filter((id) => id !== gradeId)
+          : [...current.gradeIds, gradeId],
+      };
+    });
+  }
+
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
+
+    if (form.gradeIds.length === 0) {
+      setGradeError('Vui lòng chọn ít nhất một khối học.');
+      return;
+    }
 
     await registerMutation.mutateAsync({
       fullName: form.fullName,
@@ -40,20 +76,10 @@ export default function ConsultationForm() {
       school: form.school || undefined,
       className: form.className || undefined,
       schoolYear: currentSchoolYear,
-      gradeIds: [Number(form.gradeId)],
+      gradeIds: form.gradeIds,
     });
 
-    setForm({
-      fullName: '',
-      phoneNumber: '',
-      parentName: '',
-      parentNumber: '',
-      fbLink: '',
-      email: '',
-      school: '',
-      className: '',
-      gradeId: '',
-    });
+    setForm(INITIAL_FORM);
   }
 
   return (
@@ -114,32 +140,50 @@ export default function ConsultationForm() {
                 </Field>
               </div>
 
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                <Field label="Email">
-                  <input
-                    type="email"
-                    value={form.email}
-                    onChange={(event) => updateField('email', event.target.value)}
-                    required
-                    className="w-full rounded-academic border border-on-surface/10 px-4 py-3 outline-none transition-all focus:border-indigo-deep focus:ring-1 focus:ring-indigo-deep"
-                  />
-                </Field>
-                <Field label="Khối học">
-                  <select
-                    value={form.gradeId}
-                    onChange={(event) => updateField('gradeId', event.target.value)}
-                    required
-                    className="w-full rounded-academic border border-on-surface/10 bg-white px-4 py-3 outline-none transition-all focus:border-indigo-deep focus:ring-1 focus:ring-indigo-deep"
-                  >
-                    <option value="">Chọn khối</option>
-                    {(gradesQuery.data?.grades ?? []).map((grade) => (
-                      <option key={grade.id} value={grade.id}>
-                        {grade.name}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-              </div>
+              <Field label="Email">
+                <input
+                  type="email"
+                  value={form.email}
+                  onChange={(event) => updateField('email', event.target.value)}
+                  required
+                  className="w-full rounded-academic border border-on-surface/10 px-4 py-3 outline-none transition-all focus:border-indigo-deep focus:ring-1 focus:ring-indigo-deep"
+                />
+              </Field>
+
+              <Field label="Khối học (có thể chọn nhiều)">
+                {gradesQuery.isLoading ? (
+                  <p className="text-sm font-medium text-on-surface-variant">Đang tải danh sách khối...</p>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {(gradesQuery.data?.grades ?? []).map((grade) => {
+                      const gradeId = grade.id;
+                      if (gradeId == null) return null;
+                      const isSelected = form.gradeIds.includes(gradeId);
+                      return (
+                        <label
+                          key={gradeId}
+                          className={`inline-flex cursor-pointer items-center gap-2 rounded-academic border px-4 py-2 text-sm font-bold transition-all ${
+                            isSelected
+                              ? 'border-indigo-deep bg-indigo-deep text-white shadow-sm'
+                              : 'border-on-surface/10 bg-white text-on-surface hover:border-indigo-deep'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => toggleGrade(gradeId)}
+                            className="sr-only"
+                          />
+                          <span>{grade.name}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
+                {gradeError ? (
+                  <p className="text-sm font-bold text-red-600">{gradeError}</p>
+                ) : null}
+              </Field>
 
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <Field label="Tên phụ huynh">

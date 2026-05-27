@@ -20,6 +20,7 @@ export const paths = {
     `/admin-portal/study-weeks/${weekUuid}/grade/${gradeId}`,
   adminPortalStudyWeekLesson: (weekUuid: string, gradeId: string | number, lessonUuid: string) =>
     `/admin-portal/study-weeks/${weekUuid}/grade/${gradeId}/lessons/${lessonUuid}`,
+  adminPortalLearningResources: '/admin-portal/learning-resources',
   adminPortalCosts: '/admin-portal/costs',
   login: '/',
 } as const;

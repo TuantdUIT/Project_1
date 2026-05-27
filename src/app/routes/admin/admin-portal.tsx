@@ -1,6 +1,6 @@
 import { type CSSProperties, useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router';
-import { CalendarDays, CalendarRange, ClipboardList, DoorOpen, GraduationCap, GripVertical, Layers, LayoutDashboard, ReceiptText, School, Users } from 'lucide-react';
+import { BookOpen, CalendarDays, CalendarRange, ClipboardList, DoorOpen, GraduationCap, GripVertical, Layers, LayoutDashboard, ReceiptText, School, Users } from 'lucide-react';
 import { paths } from '@/config/paths';
 
 const minSidebarWidth = 104;
@@ -54,6 +54,7 @@ export default function AdminPortalRoute() {
   const periodSettingsLabel = isWide ? 'Mẫu khóa học' : 'Template Period';
   const timetableLabel = isWide ? 'Thời Khóa Biểu' : 'Timetable';
   const studyWeeksLabel = isWide ? 'Tuần học (vận hành)' : 'Tuần học';
+  const learningResourcesLabel = isWide ? 'Tài liệu học tập' : 'Học liệu';
   const costsLabel = 'Chi phí';
   const headerTitle = location.pathname.startsWith(paths.adminPortalOverview)
     ? 'Tổng quan'
@@ -63,13 +64,15 @@ export default function AdminPortalRoute() {
         ? 'Mẫu khóa học'
         : location.pathname.startsWith(paths.adminPortalTimetable)
           ? 'Thời Khóa Biểu'
-        : location.pathname.startsWith(paths.adminPortalCosts)
-          ? 'Chi phí'
-        : location.pathname.startsWith(paths.adminPortalStudyWeeks)
-          ? 'Tuần học'
-        : location.pathname.startsWith(paths.adminPortalClasses)
-        ? 'Lớp học'
-        : 'Học sinh đăng ký';
+          : location.pathname.startsWith(paths.adminPortalLearningResources)
+            ? 'Tài liệu học tập'
+          : location.pathname.startsWith(paths.adminPortalCosts)
+            ? 'Chi phí'
+            : location.pathname.startsWith(paths.adminPortalStudyWeeks)
+              ? 'Tuần học'
+              : location.pathname.startsWith(paths.adminPortalClasses)
+                ? 'Lớp học'
+                : 'Học sinh đăng ký';
   const mainStyle = {
     '--admin-sidebar-width': `${sidebarWidth}px`,
     '--admin-content-gap': `${contentGap}px`,
@@ -159,6 +162,14 @@ export default function AdminPortalRoute() {
           >
             <CalendarDays size={18} className="shrink-0" />
             {!isCompact ? <span className="truncate">{studyWeeksLabel}</span> : null}
+          </NavLink>
+          <NavLink
+            to={paths.adminPortalLearningResources}
+            title={isCompact ? learningResourcesLabel : undefined}
+            className={({ isActive }) => navItemClass(isActive)}
+          >
+            <BookOpen size={18} className="shrink-0" />
+            {!isCompact ? <span className="truncate">{learningResourcesLabel}</span> : null}
           </NavLink>
           <NavLink
             to={paths.adminPortalCosts}

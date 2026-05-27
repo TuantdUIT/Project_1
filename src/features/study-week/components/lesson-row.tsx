@@ -1,19 +1,34 @@
 import { type KeyboardEvent, useState } from 'react';
-import { Edit3 } from 'lucide-react';
+import { Edit3, UsersRound } from 'lucide-react';
 import { paths } from '@/config/paths';
+import type { EmployeeRATemplateItem } from '@/features/employee-ra-template/types';
 import { useUpdateLesson } from '@/features/study-week/api/lessons';
 import { formatLessonDate, formatLessonTime } from '@/features/study-week/lib/format-week';
+import { UNASSIGNED_PERSONNEL_MESSAGE } from '@/features/study-week/lib/lesson-personnel';
 import type { Lesson } from '@/features/study-week/types';
+import { formatWeekday } from '@/utils/date';
+
+function formatLessonWeekday(lesson: Lesson) {
+  const weekday = formatWeekday(lesson.lesson_date);
+  if (weekday === '-') return weekday;
+  return weekday.charAt(0).toUpperCase() + weekday.slice(1);
+}
 
 export default function LessonRow({
   lesson,
   weekUuid,
   gradeId,
+  personnel = [],
+  isPersonnelLoading = false,
+  isPersonnelError = false,
   onOpen,
 }: {
   lesson: Lesson;
   weekUuid: string;
   gradeId: number;
+  personnel?: EmployeeRATemplateItem[];
+  isPersonnelLoading?: boolean;
+  isPersonnelError?: boolean;
   onOpen: (url: string) => void;
 }) {
   const updateLesson = useUpdateLesson();
@@ -54,6 +69,9 @@ export default function LessonRow({
         }
       }}
     >
+      <td className="px-5 py-4 text-[14px] font-black text-slate-800">
+        {formatLessonWeekday(lesson)}
+      </td>
       <td className="px-5 py-4 text-[14px] font-bold text-slate-900">
         {formatLessonDate(lesson)}
       </td>
@@ -62,6 +80,13 @@ export default function LessonRow({
       </td>
       <td className="px-5 py-4 text-[14px] font-bold text-slate-700">
         {lesson.lesson_type?.lesson_type_name ?? '-'}
+      </td>
+      <td className="px-5 py-4">
+        <LessonPersonnelCell
+          personnel={personnel}
+          isLoading={isPersonnelLoading}
+          isError={isPersonnelError}
+        />
       </td>
       <td className="px-5 py-4 text-[14px] font-bold text-slate-700">
         {isEditing ? (
@@ -91,5 +116,40 @@ export default function LessonRow({
         )}
       </td>
     </tr>
+  );
+}
+
+function LessonPersonnelCell({
+  personnel,
+  isLoading,
+  isError,
+}: {
+  personnel: EmployeeRATemplateItem[];
+  isLoading: boolean;
+  isError: boolean;
+}) {
+  if (isLoading) {
+    return <span className="text-[13px] font-bold text-slate-500">Đang tải nhân sự...</span>;
+  }
+
+  if (isError || !personnel.length) {
+    return <span className="text-[13px] font-bold text-amber-700">{UNASSIGNED_PERSONNEL_MESSAGE}</span>;
+  }
+
+  return (
+    <div className="max-w-[360px] space-y-1.5">
+      {personnel.map((item, index) => (
+        <div
+          key={item.employee_ra_template_item_uuid ?? `${item.user_uuid ?? 'person'}-${index}`}
+          className="flex max-w-full items-center gap-1.5 rounded-lg bg-blue-50 px-2.5 py-1.5 text-[12px] font-black text-[#1870FF]"
+        >
+          <UsersRound size={13} strokeWidth={2.5} className="shrink-0" />
+          <span className="truncate">{item.full_name || item.email || 'Nhân sự'}</span>
+          {item.role_name ? (
+            <span className="shrink-0 text-[10px] uppercase text-blue-500/80">· {item.role_name}</span>
+          ) : null}
+        </div>
+      ))}
+    </div>
   );
 }

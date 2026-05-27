@@ -441,7 +441,7 @@ function AcceptStudentModal({
             type="text"
             value={studentId}
             onChange={(event) => setStudentId(event.target.value)}
-            placeholder="Ví dụ: HS25-0001"
+            placeholder="Ví dụ: 00010"
             autoFocus
             aria-invalid={isDuplicate}
             className={`${fieldClass} ${

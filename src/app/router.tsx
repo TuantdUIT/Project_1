@@ -135,6 +135,11 @@ async function loadAdminCostsRoute() {
   return { Component: module.default };
 }
 
+async function loadAdminLearningResourcesRoute() {
+  const module = await import('./routes/admin/learning-resources');
+  return { Component: module.default };
+}
+
 /**
  * Ý nghĩa: Lazy-load route 404 cho các URL không khớp route nào.
  * Hàm sử dụng hàm này làm đầu vào: createBrowserRouter nhận hàm này trong field lazy của wildcard route *.
@@ -253,6 +258,10 @@ export const router = createBrowserRouter([
                 lazy: loadAdminStudyWeekLessonDetailRoute,
               },
             ],
+          },
+          {
+            path: 'learning-resources',
+            lazy: loadAdminLearningResourcesRoute,
           },
           {
             path: 'costs',

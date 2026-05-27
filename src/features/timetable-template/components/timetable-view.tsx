@@ -7,6 +7,7 @@ import {
 import PartialErrorBanner from './partial-error-banner';
 import TimetableFilterChips from './timetable-filter-chips';
 import TimetableGrid from './timetable-grid';
+import WeekSpinner from './week-spinner';
 
 export default function TimetableView({ primaryGradeId }: { primaryGradeId: PrimaryGradeId }) {
   const viewQuery = useTimetableViewQuery(primaryGradeId);
@@ -15,6 +16,7 @@ export default function TimetableView({ primaryGradeId }: { primaryGradeId: Prim
   if (viewQuery.isLoading) {
     return (
       <div className="space-y-5">
+        <WeekSpinner />
         <TimetableFilterChips />
         <TimetableTitle title={title} subtitle="Đang tải dữ liệu" />
         <div className="h-[560px] animate-pulse rounded-2xl bg-slate-100" />
@@ -22,9 +24,10 @@ export default function TimetableView({ primaryGradeId }: { primaryGradeId: Prim
     );
   }
 
-  if (viewQuery.isError && viewQuery.allTemplateQueriesFailed) {
+  if (viewQuery.isError) {
     return (
       <div className="space-y-5">
+        <WeekSpinner />
         <TimetableFilterChips />
         <TimetableTitle title={title} subtitle="Thời Khóa Biểu tuần" />
         <PartialErrorBanner
@@ -38,6 +41,7 @@ export default function TimetableView({ primaryGradeId }: { primaryGradeId: Prim
 
   return (
     <div className="space-y-5">
+      <WeekSpinner />
       <TimetableFilterChips />
       <TimetableTitle title={title} subtitle="Thời Khóa Biểu tuần" />
 

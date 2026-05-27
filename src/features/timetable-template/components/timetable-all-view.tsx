@@ -1,6 +1,13 @@
 import { useMemo } from 'react';
+import { useQueries } from '@tanstack/react-query';
 import { RefreshCw } from 'lucide-react';
 import { useLessonTypesQuery } from '@/features/curriculum';
+import {
+  employeeRATemplateByTimetableTemplateKey,
+  type EmployeeRATemplate,
+  getEmployeeRATemplateByTimetableTemplateId,
+} from '@/features/employee-ra-template';
+import { attachPersonnelToTimetableItems } from '@/features/employee-ra-template/lib/personnel-by-slot';
 import { useTimetableTemplatesQuery } from '@/features/timetable-template/api/templates';
 import {
   buildTemplatesByGradeId,
@@ -12,6 +19,7 @@ import {
 } from '@/features/timetable-template/lib/supplement-grades';
 import TimetableFilterChips from './timetable-filter-chips';
 import TimetableGrid from './timetable-grid';
+import WeekSpinner from './week-spinner';
 
 export default function TimetableAllView() {
   const templatesQuery = useTimetableTemplatesQuery();
@@ -22,9 +30,40 @@ export default function TimetableAllView() {
     [templatesQuery.data],
   );
 
-  if (templatesQuery.isLoading || lessonTypesQuery.isLoading) {
+  const timetableTemplateUuids = useMemo(
+    () =>
+      Array.from(templatesByGradeId.values())
+        .map((template) => template?.timetable_template_uuid)
+        .filter((uuid): uuid is string => Boolean(uuid)),
+    [templatesByGradeId],
+  );
+
+  const personnelQueries = useQueries({
+    queries: timetableTemplateUuids.map((ttUuid) => ({
+      queryKey: employeeRATemplateByTimetableTemplateKey(ttUuid),
+      queryFn: () => getEmployeeRATemplateByTimetableTemplateId(ttUuid),
+      enabled: Boolean(ttUuid),
+      retry: false,
+    })),
+  });
+
+  const personnelTemplatesByUuid = useMemo(() => {
+    const map = new Map<string, EmployeeRATemplate | undefined>();
+    personnelQueries.forEach((query, index) => {
+      const ttUuid = timetableTemplateUuids[index];
+      if (ttUuid) {
+        map.set(ttUuid, query.data);
+      }
+    });
+    return map;
+  }, [personnelQueries, timetableTemplateUuids]);
+
+  const isPersonnelLoading = personnelQueries.some((query) => query.isPending || query.isFetching);
+
+  if (templatesQuery.isLoading || lessonTypesQuery.isLoading || isPersonnelLoading) {
     return (
       <div className="space-y-5">
+        <WeekSpinner />
         <TimetableFilterChips />
         <div className="h-[420px] animate-pulse rounded-2xl bg-slate-100" />
       </div>
@@ -34,6 +73,7 @@ export default function TimetableAllView() {
   if (templatesQuery.isError || lessonTypesQuery.isError) {
     return (
       <div className="space-y-5">
+        <WeekSpinner />
         <TimetableFilterChips />
         <div className="flex flex-col gap-3 rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-rose-700 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-[14px] font-bold">Không tải được danh sách Thời Khóa Biểu.</p>
@@ -42,6 +82,7 @@ export default function TimetableAllView() {
             onClick={() => {
               templatesQuery.refetch();
               lessonTypesQuery.refetch();
+              personnelQueries.forEach((query) => query.refetch());
             }}
             className="inline-flex h-9 items-center justify-center gap-2 rounded-xl bg-rose-600 px-3 text-[13px] font-black text-white transition hover:bg-rose-700"
           >
@@ -55,10 +96,14 @@ export default function TimetableAllView() {
 
   return (
     <div className="space-y-5">
+      <WeekSpinner />
       <TimetableFilterChips />
 
       {PRIMARY_GRADE_IDS.map((primaryId) => {
-        const items = mergeItemsForPrimary(primaryId, templatesByGradeId);
+        const items = attachPersonnelToTimetableItems(
+          mergeItemsForPrimary(primaryId, templatesByGradeId),
+          personnelTemplatesByUuid,
+        );
         const template = templatesByGradeId.get(primaryId);
 
         return (

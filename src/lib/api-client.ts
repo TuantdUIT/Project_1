@@ -91,11 +91,13 @@ axiosInstance.interceptors.response.use(
     if (status && status >= 400) {
       const parsedError = parseApiError(error);
 
-      window.dispatchEvent(
-        new CustomEvent('api:error', {
-          detail: parsedError,
-        }),
-      );
+      // Tạm tắt toast lỗi global (ApiErrorToast trong src/app/provider.tsx).
+      // Bỏ comment khối dưới để khôi phục.
+      // window.dispatchEvent(
+      //   new CustomEvent('api:error', {
+      //     detail: parsedError,
+      //   }),
+      // );
 
       console.error(parsedError.message);
     }

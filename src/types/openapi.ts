@@ -196,6 +196,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/lessons/{id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["updateLessonStatus"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/lesson-types/{id}": {
         parameters: {
             query?: never;
@@ -239,6 +255,22 @@ export interface paths {
         put: operations["updateGrade"];
         post?: never;
         delete: operations["deleteGrade"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/employee-ra-templates/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getEmployeeRATemplateById"];
+        put: operations["updateEmployeeRATemplate"];
+        post?: never;
+        delete: operations["deleteEmployeeRATemplate"];
         options?: never;
         head?: never;
         patch?: never;
@@ -516,6 +548,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/employee-ra-templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getAllEmployeeRATemplates"];
+        put?: never;
+        post: operations["createEmployeeRATemplate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/costs": {
         parameters: {
             query?: never;
@@ -596,6 +644,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/attendances/bulk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["createBulkAttendance"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/users/non-students": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getAllNonStudentUsers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/timetable-templates/student/me": {
         parameters: {
             query?: never;
@@ -644,6 +724,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/tham-sos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getAllThamSo"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tham-sos/by-school-year": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getAllThamSoBySchoolYear"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/record-attendances/weekly-summary": {
         parameters: {
             query?: never;
@@ -652,6 +764,22 @@ export interface paths {
             cookie?: never;
         };
         get: operations["getWeeklySummaryForAllNonStudents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/record-attendances/weekly-summary/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["exportWeeklySummaryForAllNonStudents"];
         put?: never;
         post?: never;
         delete?: never;
@@ -716,6 +844,22 @@ export interface paths {
             cookie?: never;
         };
         get: operations["getAvailableLearningFilesForStudent"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/employee-ra-templates/timetable-template/{timetableTemplateId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getEmployeeRATemplateByTimetableTemplateId"];
         put?: never;
         post?: never;
         delete?: never;
@@ -820,6 +964,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/attendances/weekly-summary/absent/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["exportWeeklyAbsentOnlySummaryForAllStudents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/attendances/weekly-lesson-summary": {
         parameters: {
             query?: never;
@@ -860,6 +1020,22 @@ export interface paths {
             cookie?: never;
         };
         get: operations["getWeeklyAttendanceSummaryByRange"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/attendances/lesson/{lessonUuid}/attendance-candidates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getAttendanceCandidatesByLesson"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1316,6 +1492,27 @@ export interface components {
             lesson_start_time?: string;
             /** Format: int32 */
             real_lesson_length?: number;
+            has_occurred?: boolean;
+            /** @enum {string} */
+            lesson_status?: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED";
+            /** @enum {string} */
+            manual_lesson_status?: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED";
+            employee_assignments?: components["schemas"]["ResLessonEmployeeAssignmentDTO"][];
+            /** Format: date-time */
+            created_at?: string;
+            /** Format: date-time */
+            updated_at?: string;
+            created_by?: string;
+            updated_by?: string;
+        };
+        ResLessonEmployeeAssignmentDTO: {
+            /** Format: uuid */
+            lesson_employee_assignment_uuid?: string;
+            /** Format: uuid */
+            user_uuid?: string;
+            full_name?: string;
+            email?: string;
+            role_name?: string;
             /** Format: date-time */
             created_at?: string;
             /** Format: date-time */
@@ -1335,6 +1532,10 @@ export interface components {
             updated_at?: string;
             created_by?: string;
             updated_by?: string;
+        };
+        ReqUpdateLessonStatusDTO: {
+            /** @enum {string} */
+            lessonStatus: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED";
         };
         ReqUpdateLessonTypeDTO: {
             name: string;
@@ -1374,6 +1575,55 @@ export interface components {
         };
         ReqUpdateGradeDTO: {
             name: string;
+        };
+        ReqEmployeeRATemplateItemDTO: {
+            /** Format: uuid */
+            lessonTypeId: string;
+            /** Format: uuid */
+            userUuid: string;
+            /** @enum {string} */
+            dayOfWeek: "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY" | "SUNDAY";
+            startTime: string;
+            /** Format: int32 */
+            sortOrder: number;
+        };
+        ReqUpdateEmployeeRATemplateDTO: {
+            name?: string;
+            /** Format: uuid */
+            timetableTemplateId?: string;
+            items?: components["schemas"]["ReqEmployeeRATemplateItemDTO"][];
+        };
+        ResEmployeeRATemplateDTO: {
+            /** Format: uuid */
+            employee_ra_template_uuid?: string;
+            employee_ra_template_name?: string;
+            /** Format: uuid */
+            timetable_template_uuid?: string;
+            timetable_template_name?: string;
+            items?: components["schemas"]["ResEmployeeRATemplateItemDTO"][];
+            /** Format: date-time */
+            created_at?: string;
+            /** Format: date-time */
+            updated_at?: string;
+            created_by?: string;
+            updated_by?: string;
+        };
+        ResEmployeeRATemplateItemDTO: {
+            /** Format: uuid */
+            employee_ra_template_item_uuid?: string;
+            /** Format: uuid */
+            lesson_type_uuid?: string;
+            lesson_type_name?: string;
+            /** Format: uuid */
+            user_uuid?: string;
+            full_name?: string;
+            email?: string;
+            role_name?: string;
+            /** @enum {string} */
+            day_of_week?: "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY" | "SUNDAY";
+            start_time?: string;
+            /** Format: int32 */
+            sort_order?: number;
         };
         ReqUpdateCostDTO: {
             name?: string;
@@ -1513,7 +1763,7 @@ export interface components {
             /** Format: date-time */
             recordAttendanceTime?: string;
             /** Format: int32 */
-            lessonTime: number;
+            lessonTime?: number;
             /** Format: int32 */
             overtime: number;
         };
@@ -1631,6 +1881,12 @@ export interface components {
         ReqCreateGradeDTO: {
             name: string;
         };
+        ReqCreateEmployeeRATemplateDTO: {
+            name: string;
+            /** Format: uuid */
+            timetableTemplateId: string;
+            items?: components["schemas"]["ReqEmployeeRATemplateItemDTO"][];
+        };
         ReqCreateCostDTO: {
             name: string;
             /** Format: uuid */
@@ -1676,6 +1932,32 @@ export interface components {
             /** Format: date-time */
             attendanceTime?: string;
         };
+        ReqBulkCreateAttendanceDTO: {
+            /** Format: uuid */
+            lessonUuid: string;
+            studentIds: string;
+            /** Format: date-time */
+            attendanceTime?: string;
+        };
+        FailureItem: {
+            student_id?: string;
+            message?: string;
+        };
+        ResBulkAttendanceDTO: {
+            /** Format: uuid */
+            lesson_uuid?: string;
+            /** Format: int32 */
+            school_year?: number;
+            /** Format: int32 */
+            week_number?: number;
+            requested_student_ids?: string[];
+            /** Format: int32 */
+            success_count?: number;
+            /** Format: int32 */
+            failure_count?: number;
+            successes?: components["schemas"]["ResAttendanceDTO"][];
+            failures?: components["schemas"]["FailureItem"][];
+        };
         Pageable: {
             /** Format: int32 */
             page?: number;
@@ -1704,6 +1986,16 @@ export interface components {
             /** Format: date */
             expiredDate?: string;
             timetableTemplate?: components["schemas"]["ResTimetableTemplateDTO"];
+        };
+        ResThamSoDTO: {
+            configKey?: string;
+            configValue?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+            createdBy?: string;
+            updatedBy?: string;
         };
         LessonTypeSummary: {
             /** Format: uuid */
@@ -1800,6 +2092,15 @@ export interface components {
             /** Format: int32 */
             school_year?: number;
             lesson_type_groups?: components["schemas"]["LessonTypeGroup"][];
+        };
+        ResLessonAttendanceCandidateDTO: {
+            /** Format: uuid */
+            user_uuid?: string;
+            student_id?: string;
+            user_fullname?: string;
+            /** Format: int32 */
+            week_left?: number;
+            previous_same_week_lesson_type_attendance?: components["schemas"]["PreviousAttendanceInfo"];
         };
     };
     responses: never;
@@ -2612,6 +2913,32 @@ export interface operations {
             };
         };
     };
+    updateLessonStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReqUpdateLessonStatusDTO"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ResLessonDTO"];
+                };
+            };
+        };
+    };
     getLessonTypeById: {
         parameters: {
             query?: never;
@@ -2802,6 +3129,74 @@ export interface operations {
             header?: never;
             path: {
                 id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getEmployeeRATemplateById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ResEmployeeRATemplateDTO"];
+                };
+            };
+        };
+    };
+    updateEmployeeRATemplate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReqUpdateEmployeeRATemplateDTO"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ResEmployeeRATemplateDTO"];
+                };
+            };
+        };
+    };
+    deleteEmployeeRATemplate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
             };
             cookie?: never;
         };
@@ -3618,6 +4013,50 @@ export interface operations {
             };
         };
     };
+    getAllEmployeeRATemplates: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ResEmployeeRATemplateDTO"][];
+                };
+            };
+        };
+    };
+    createEmployeeRATemplate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReqCreateEmployeeRATemplateDTO"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ResEmployeeRATemplateDTO"];
+                };
+            };
+        };
+    };
     getAllCosts: {
         parameters: {
             query?: never;
@@ -3792,6 +4231,50 @@ export interface operations {
             };
         };
     };
+    createBulkAttendance: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReqBulkCreateAttendanceDTO"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ResBulkAttendanceDTO"];
+                };
+            };
+        };
+    };
+    getAllNonStudentUsers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ResUserDTO"][];
+                };
+            };
+        };
+    };
     getCurrentTimetableTemplatesForCurrentStudent: {
         parameters: {
             query?: never;
@@ -3856,6 +4339,48 @@ export interface operations {
             };
         };
     };
+    getAllThamSo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ResThamSoDTO"][];
+                };
+            };
+        };
+    };
+    getAllThamSoBySchoolYear: {
+        parameters: {
+            query: {
+                schoolYear: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ResThamSoDTO"][];
+                };
+            };
+        };
+    };
     getWeeklySummaryForAllNonStudents: {
         parameters: {
             query: {
@@ -3875,6 +4400,29 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ResRecordAttendanceWeeklySummaryDTO"][];
+                };
+            };
+        };
+    };
+    exportWeeklySummaryForAllNonStudents: {
+        parameters: {
+            query: {
+                schoolYear: number;
+                weekNumber: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": string;
                 };
             };
         };
@@ -3968,6 +4516,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ResLearningFileDTO"][];
+                };
+            };
+        };
+    };
+    getEmployeeRATemplateByTimetableTemplateId: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                timetableTemplateId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ResEmployeeRATemplateDTO"];
                 };
             };
         };
@@ -4111,6 +4681,30 @@ export interface operations {
             };
         };
     };
+    exportWeeklyAbsentOnlySummaryForAllStudents: {
+        parameters: {
+            query: {
+                schoolYear: number;
+                weekNumber: number;
+                gradeId?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": string;
+                };
+            };
+        };
+    };
     getWeeklyLessonGroupedSummary: {
         parameters: {
             query: {
@@ -4182,6 +4776,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ResAttendanceWeeklySummaryDTO"][];
+                };
+            };
+        };
+    };
+    getAttendanceCandidatesByLesson: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lessonUuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ResLessonAttendanceCandidateDTO"][];
                 };
             };
         };

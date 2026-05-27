@@ -1,11 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   AlertCircle,
-  BookOpen,
-  CalendarDays,
   CheckCircle2,
-  Clock3,
-  Edit3,
   Filter,
   RefreshCw,
   RotateCcw,
@@ -18,8 +14,9 @@ import type { Attendance } from '@/features/attendance/types';
 import { useStudentsQuery } from '@/features/admin/api/students';
 import type { ResStudentDTO } from '@/features/admin/types';
 import type { Lesson } from '@/features/study-week/types';
-import { formatDate, formatDateTime, formatTime, formatWeekday } from '@/utils/date';
+import { formatDate, formatDateTime, formatTime } from '@/utils/date';
 import { parseApiError } from '@/utils/api-errors';
+import AttendanceToast, { type AttendanceToastState } from './attendance-toast';
 
 type GradeLike = {
   id?: number;
@@ -151,28 +148,6 @@ function StatBlock({
   );
 }
 
-function LessonInfoBlock({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="flex min-w-0 items-center gap-4 border-slate-200 px-5 py-2 first:pl-0 md:border-r md:last:border-r-0">
-      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-50 text-[#1870FF]">
-        {icon}
-      </span>
-      <span className="min-w-0">
-        <span className="block text-[12px] font-black uppercase tracking-[0.16em] text-slate-400">{label}</span>
-        <span className="mt-1 block truncate text-[16px] font-black text-slate-950">{value}</span>
-      </span>
-    </div>
-  );
-}
-
 export default function AttendancePanel({ lesson }: { lesson: Lesson }) {
   const lessonUuid = lesson.lesson_uuid ?? '';
   const gradeId = getGradeId(lesson.grade as GradeLike);
@@ -186,8 +161,10 @@ export default function AttendancePanel({ lesson }: { lesson: Lesson }) {
   });
   const attendancesQuery = useAttendancesQuery();
   const [rows, setRows] = useState<Record<string, AttendanceRowState>>({});
+  const [pendingTicks, setPendingTicks] = useState<Record<string, boolean>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [toast, setToast] = useState<AttendanceToastState | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL');
 
@@ -240,6 +217,7 @@ export default function AttendancePanel({ lesson }: { lesson: Lesson }) {
     });
 
     setRows(nextRows);
+    setPendingTicks({});
     setSaveMessage(null);
   }, [attendanceByStudentUuid, eligibleStudents]);
 
@@ -248,7 +226,7 @@ export default function AttendancePanel({ lesson }: { lesson: Lesson }) {
 
     return eligibleStudents.filter((student) => {
       const userUuid = student.user_uuid ?? '';
-      const isTicked = Boolean(rows[userUuid]?.currentlyTicked);
+      const isTicked = pendingTicks[userUuid] ?? Boolean(rows[userUuid]?.currentlyTicked);
       const matchesSearch = !normalizedSearch || getSearchText(student).includes(normalizedSearch);
       const matchesStatus =
         statusFilter === 'ALL'
@@ -257,37 +235,34 @@ export default function AttendancePanel({ lesson }: { lesson: Lesson }) {
 
       return matchesSearch && matchesStatus;
     });
-  }, [eligibleStudents, rows, searchTerm, statusFilter]);
+  }, [eligibleStudents, rows, pendingTicks, searchTerm, statusFilter]);
 
   const selectedCount = useMemo(
     () => Object.values(rows).filter((row) => row.currentlyTicked).length,
     [rows],
   );
-  const pendingCount = Math.max(eligibleStudents.length - selectedCount, 0);
   const dirtyCount = useMemo(
-    () => Object.values(rows).filter((row) => row.initiallyTicked !== row.currentlyTicked).length,
-    [rows],
+    () =>
+      Object.entries(pendingTicks).filter(
+        ([uuid, next]) => next !== Boolean(rows[uuid]?.initiallyTicked),
+      ).length,
+    [pendingTicks, rows],
   );
   const isLoading = studentsQuery.isLoading || attendancesQuery.isLoading;
   const isError = studentsQuery.isError || attendancesQuery.isError;
   const isAllFilteredSelected =
     filteredStudents.length > 0
-    && filteredStudents.every((student) => rows[student.user_uuid ?? '']?.currentlyTicked);
+    && filteredStudents.every((student) => {
+      const uuid = student.user_uuid ?? '';
+      return pendingTicks[uuid] ?? Boolean(rows[uuid]?.currentlyTicked);
+    });
 
-  function updateStudents(students: ResStudentDTO[], currentlyTicked: boolean) {
-    setRows((currentRows) =>
-      Object.fromEntries(
-        Object.entries(currentRows).map(([userUuid, row]) => [
-          userUuid,
-          students.some((student) => student.user_uuid === userUuid)
-            ? { ...row, currentlyTicked, error: undefined }
-            : row,
-        ]),
-      ),
-    );
+  function showAttendanceToast(message: string, tone: AttendanceToastState['tone']) {
+    setToast({ id: Date.now(), message, tone });
   }
 
   function resetChanges() {
+    setPendingTicks({});
     setRows((currentRows) =>
       Object.fromEntries(
         Object.entries(currentRows).map(([userUuid, row]) => [
@@ -299,22 +274,22 @@ export default function AttendancePanel({ lesson }: { lesson: Lesson }) {
     setSaveMessage(null);
   }
 
-  function toggleStudent(userUuid: string, checked: boolean) {
-    setRows((currentRows) => ({
-      ...currentRows,
-      [userUuid]: {
-        ...currentRows[userUuid],
-        currentlyTicked: checked,
-        error: undefined,
-      },
-    }));
-    setSaveMessage(null);
-  }
-
   async function saveAttendance() {
     if (!lessonUuid || isSaving) return;
 
-    const operations = Object.entries(rows).reduce<SaveOperation[]>((acc, [userUuid, row]) => {
+    const mergedRows: Record<string, AttendanceRowState> = Object.fromEntries(
+      Object.entries(rows).map(([uuid, row]) => [
+        uuid,
+        uuid in pendingTicks
+          ? { ...row, currentlyTicked: pendingTicks[uuid], error: undefined }
+          : row,
+      ]),
+    );
+
+    setRows(mergedRows);
+    setPendingTicks({});
+
+    const operations = Object.entries(mergedRows).reduce<SaveOperation[]>((acc, [userUuid, row]) => {
       if (!row.initiallyTicked && row.currentlyTicked) {
         acc.push({
           type: 'create',
@@ -329,7 +304,7 @@ export default function AttendancePanel({ lesson }: { lesson: Lesson }) {
           type: 'delete',
           userUuid,
           attendanceUuid: row.attendanceUuid,
-          run: () => deleteAttendance(row.attendanceUuid),
+          run: () => deleteAttendance(String(row.attendanceUuid)),
         });
         return acc;
       }
@@ -365,6 +340,8 @@ export default function AttendancePanel({ lesson }: { lesson: Lesson }) {
     );
 
     let successCount = 0;
+    let createSuccessCount = 0;
+    let deleteSuccessCount = 0;
     let duplicateCount = 0;
     let failureCount = 0;
     let shouldRefresh = false;
@@ -376,6 +353,7 @@ export default function AttendancePanel({ lesson }: { lesson: Lesson }) {
         shouldRefresh = true;
 
         if (operation.type === 'create') {
+          createSuccessCount += 1;
           rowPatches[operation.userUuid] = {
             initiallyTicked: true,
             currentlyTicked: true,
@@ -383,6 +361,7 @@ export default function AttendancePanel({ lesson }: { lesson: Lesson }) {
             error: undefined,
           };
         } else {
+          deleteSuccessCount += 1;
           rowPatches[operation.userUuid] = {
             initiallyTicked: false,
             currentlyTicked: false,
@@ -396,6 +375,7 @@ export default function AttendancePanel({ lesson }: { lesson: Lesson }) {
       const parsedError = parseApiError(error);
       if (operation.type === 'create' && isDuplicateAttendanceError(parsedError.message)) {
         duplicateCount += 1;
+        createSuccessCount += 1;
         shouldRefresh = true;
         rowPatches[operation.userUuid] = {
           currentlyTicked: true,
@@ -427,10 +407,17 @@ export default function AttendancePanel({ lesson }: { lesson: Lesson }) {
       await attendancesQuery.refetch();
     }
 
+    if (createSuccessCount) {
+      showAttendanceToast(`Điểm danh ${createSuccessCount} học sinh`, 'success');
+    }
+    if (deleteSuccessCount) {
+      showAttendanceToast(`Bỏ điểm danh ${deleteSuccessCount} học sinh`, 'warning');
+    }
+
     if (failureCount) {
       setSaveMessage(`Đã lưu ${successCount + duplicateCount}/${operations.length} thay đổi. Kiểm tra các dòng báo lỗi.`);
     } else {
-      setSaveMessage(`Đã lưu ${operations.length} thay đổi điểm danh.`);
+      setSaveMessage(null);
     }
 
     setIsSaving(false);
@@ -438,34 +425,12 @@ export default function AttendancePanel({ lesson }: { lesson: Lesson }) {
 
   return (
     <div className="space-y-5">
-      <div className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-5 md:grid-cols-4">
-        <LessonInfoBlock
-          icon={<CalendarDays size={22} />}
-          label="Tuần"
-          value={`${lesson.study_week?.week_number ?? '-'} / ${lesson.study_week?.school_year ?? '-'}`}
-        />
-        <LessonInfoBlock
-          icon={<CalendarDays size={22} />}
-          label="Ngày học"
-          value={`${formatWeekday(lesson.lesson_date)} · ${formatDate(lesson.lesson_date)}`}
-        />
-        <LessonInfoBlock
-          icon={<Clock3 size={22} />}
-          label="Bắt đầu"
-          value={normalizeLessonStartTime(lesson.lesson_start_time) ?? '-'}
-        />
-        <LessonInfoBlock
-          icon={<BookOpen size={22} />}
-          label="Loại buổi"
-          value={lesson.lesson_type?.lesson_type_name ?? '-'}
-        />
-      </div>
+      <AttendanceToast toast={toast} onClose={() => setToast(null)} />
 
       <div className="flex flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-5 xl:flex-row xl:items-center xl:justify-between">
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2">
           <StatBlock icon={<UsersRound size={24} />} label="Học sinh" value={eligibleStudents.length} />
           <StatBlock icon={<CheckCircle2 size={24} />} label="Đã điểm danh" value={selectedCount} tone="green" />
-          <StatBlock icon={<Edit3 size={24} />} label="Chưa điểm danh" value={pendingCount} tone="orange" />
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
@@ -537,7 +502,18 @@ export default function AttendancePanel({ lesson }: { lesson: Lesson }) {
                     type="checkbox"
                     checked={isAllFilteredSelected}
                     disabled={isLoading || isSaving || !filteredStudents.length}
-                    onChange={(event) => updateStudents(filteredStudents, event.target.checked)}
+                    onChange={(event) => {
+                      const next = event.target.checked;
+                      setPendingTicks((prev) => {
+                        const draft = { ...prev };
+                        filteredStudents.forEach((student) => {
+                          const uuid = student.user_uuid ?? '';
+                          if (uuid) draft[uuid] = next;
+                        });
+                        return draft;
+                      });
+                      setSaveMessage(null);
+                    }}
                     className="h-5 w-5 rounded border-slate-300 accent-[#1870FF]"
                     aria-label="Chọn tất cả học sinh đang hiển thị"
                   />
@@ -554,7 +530,7 @@ export default function AttendancePanel({ lesson }: { lesson: Lesson }) {
                 const userUuid = student.user_uuid ?? '';
                 const row = rows[userUuid];
                 const attendance = attendanceByStudentUuid.get(userUuid);
-                const isTicked = Boolean(row?.currentlyTicked);
+                const isTicked = pendingTicks[userUuid] ?? Boolean(row?.currentlyTicked);
 
                 return (
                   <tr key={userUuid || student.student_id} className="transition hover:bg-slate-50">
@@ -563,7 +539,11 @@ export default function AttendancePanel({ lesson }: { lesson: Lesson }) {
                         type="checkbox"
                         checked={isTicked}
                         disabled={!userUuid || isLoading || isSaving}
-                        onChange={(event) => toggleStudent(userUuid, event.target.checked)}
+                        onChange={(event) => {
+                          const next = event.target.checked;
+                          setPendingTicks((prev) => ({ ...prev, [userUuid]: next }));
+                          setSaveMessage(null);
+                        }}
                         className="h-5 w-5 rounded border-slate-300 accent-[#1870FF]"
                         aria-label={`Điểm danh ${student.user_fullname ?? student.student_id ?? 'học sinh'}`}
                       />
@@ -614,4 +594,3 @@ export default function AttendancePanel({ lesson }: { lesson: Lesson }) {
     </div>
   );
 }
-

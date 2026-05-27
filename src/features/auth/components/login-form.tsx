@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Lock, User } from 'lucide-react';
+import { Eye, EyeOff, Lock, User } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { useAuth } from '@/lib/auth/auth-context';
@@ -18,6 +18,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function LoginForm({ onSuccess }: LoginFormProps) {
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuth();
   const {
     formState: { errors, isSubmitting },
@@ -85,11 +86,19 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
             size={18}
           />
           <input
-            type="password"
+            type={showPassword ? 'text' : 'password'}
             {...register('password')}
-            className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3 pl-10 pr-4 outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-indigo-deep"
+            className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3 pl-10 pr-11 outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-indigo-deep"
             placeholder="••••••"
           />
+          <button
+            type="button"
+            onClick={() => setShowPassword((prev) => !prev)}
+            aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 transition-colors hover:text-gray-600"
+          >
+            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
         </div>
         {errors.password && (
           <p className="mt-2 text-sm font-medium text-red-500">
