@@ -1,7 +1,7 @@
-import { Navigate, useParams } from 'react-router';
+﻿import { Navigate, useParams } from 'react-router';
 import { paths } from '@/config/paths';
-import TimetableView from '@/features/timetable-template/components/timetable-view';
-import { isPrimaryGradeId } from '@/features/timetable-template/lib/supplement-grades';
+import TimetableView from '@/features/Management_Services/timetable-template/components/timetable-view';
+import { isPrimaryGradeId } from '@/features/Management_Services/timetable-template/lib/supplement-grades';
 
 export default function AdminTimetableByGradeRoute() {
   const { gradeId } = useParams();

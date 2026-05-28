@@ -1,12 +1,12 @@
-import { useEffect, useMemo, useState } from 'react';
+﻿import { useEffect, useMemo, useState } from 'react';
 import { Calendar, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
 import { useAuth } from '@/lib/auth/auth-context';
-import { useStudentByUuidQuery } from '@/features/admin';
-import { useStudyWeeksQuery } from '@/features/study-week';
+import { useStudentByUuidQuery } from '@/features/Management_Services/admin';
+import { useStudyWeeksQuery } from '@/features/Management_Services/study-week';
 import {
   composeSchedule,
   useTimetableTemplatesQuery,
-} from '@/features/schedule';
+} from '@/features/Management_Services/schedule';
 import { formatDate } from '@/utils/date';
 
 const currentSchoolYear = new Date().getFullYear();

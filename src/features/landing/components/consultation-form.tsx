@@ -1,6 +1,6 @@
-import { type FormEvent, type ReactNode, useState } from 'react';
+﻿import { type FormEvent, type ReactNode, useState } from 'react';
 import { Mail, Phone } from 'lucide-react';
-import { useGradesQuery } from '@/features/curriculum';
+import { useGradesQuery } from '@/features/Management_Services/curriculum';
 import { useStudentRegister } from '@/features/landing/api/student-register';
 
 const currentSchoolYear = new Date().getFullYear();

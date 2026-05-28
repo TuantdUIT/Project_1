@@ -1,4 +1,4 @@
-import UserManagement from '@/features/admin/components/user-management';
+﻿import UserManagement from '@/features/Management_Services/admin/components/user-management';
 
 export default function AdminUsersRoute() {
   return <UserManagement />;

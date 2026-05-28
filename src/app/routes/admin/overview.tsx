@@ -1,6 +1,6 @@
-import StatsCards from '@/features/admin/components/stats-cards';
-import { useStudentsQuery } from '@/features/admin';
-import { useGradesQuery, useLessonTypesQuery } from '@/features/curriculum';
+﻿import StatsCards from '@/features/Management_Services/admin/components/stats-cards';
+import { useStudentsQuery } from '@/features/Management_Services/admin';
+import { useGradesQuery, useLessonTypesQuery } from '@/features/Management_Services/curriculum';
 
 export default function AdminOverviewRoute() {
   const currentYear = new Date().getFullYear();

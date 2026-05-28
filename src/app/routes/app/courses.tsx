@@ -1,5 +1,5 @@
-import { useNavigate } from 'react-router';
-import FeaturedCourses from '@/features/curriculum/components/featured-courses';
+﻿import { useNavigate } from 'react-router';
+import FeaturedCourses from '@/features/Management_Services/curriculum/components/featured-courses';
 import { paths } from '@/config/paths';
 
 export default function CoursesRoute() {

@@ -1,8 +1,8 @@
-import { useNavigate } from 'react-router';
+﻿import { useNavigate } from 'react-router';
 import ConsultationForm from '@/features/landing/components/consultation-form';
 import HomeHero from '@/features/landing/components/home-hero';
 import TeacherSection from '@/features/landing/components/teacher-section';
-import FeaturedCourses from '@/features/curriculum/components/featured-courses';
+import FeaturedCourses from '@/features/Management_Services/curriculum/components/featured-courses';
 import { paths } from '@/config/paths';
 
 /**
