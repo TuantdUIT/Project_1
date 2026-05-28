@@ -18,7 +18,7 @@ async function loadLandingRoute() {
  * Hàm sử dụng hàm này làm đầu vào: createBrowserRouter nhận hàm này trong field lazy của route /courses.
  */
 async function loadCoursesRoute() {
-  const module = await import('./routes/app/courses');
+  const module = await import('./routes/app/Management_Services/app/courses');
   return { Component: module.default };
 }
 
@@ -27,7 +27,7 @@ async function loadCoursesRoute() {
  * Hàm sử dụng hàm này làm đầu vào: createBrowserRouter nhận hàm này trong field lazy của route /courses/:id.
  */
 async function loadCourseDetailRoute() {
-  const module = await import('./routes/app/course-detail');
+  const module = await import('./routes/app/Management_Services/app/course-detail');
   return { Component: module.default };
 }
 
@@ -36,7 +36,7 @@ async function loadCourseDetailRoute() {
  * Hàm sử dụng hàm này làm đầu vào: createBrowserRouter nhận hàm này trong field lazy của route /schedule.
  */
 async function loadScheduleRoute() {
-  const module = await import('./routes/app/schedule');
+  const module = await import('./routes/app/Management_Services/app/schedule');
   return { Component: module.default };
 }
 
@@ -45,7 +45,7 @@ async function loadScheduleRoute() {
  * Hàm sử dụng hàm này làm đầu vào: createBrowserRouter nhận hàm này trong field lazy của route /exam.
  */
 async function loadExamRoute() {
-  const module = await import('./routes/app/exam');
+  const module = await import('./routes/app/Exam_Services/exam');
   return { Component: module.default };
 }
 
@@ -54,7 +54,7 @@ async function loadExamRoute() {
  * Hàm sử dụng hàm này làm đầu vào: createBrowserRouter nhận hàm này trong field lazy của route /admin-portal.
  */
 async function loadAdminPortalRoute() {
-  const module = await import('./routes/admin/admin-portal');
+  const module = await import('./routes/app/Management_Services/admin/admin-portal');
   return { Component: module.default };
 }
 
@@ -63,7 +63,7 @@ async function loadAdminPortalRoute() {
  * Hàm sử dụng hàm này làm đầu vào: createBrowserRouter nhận hàm này trong field lazy của route /admin-portal/overview.
  */
 async function loadAdminOverviewRoute() {
-  const module = await import('./routes/admin/overview');
+  const module = await import('./routes/app/Management_Services/admin/overview');
   return { Component: module.default };
 }
 
@@ -72,7 +72,7 @@ async function loadAdminOverviewRoute() {
  * Hàm sử dụng hàm này làm đầu vào: createBrowserRouter nhận hàm này trong field lazy của route /admin-portal/registrations.
  */
 async function loadAdminRegistrationsRoute() {
-  const module = await import('./routes/admin/registrations');
+  const module = await import('./routes/app/Management_Services/admin/registrations');
   return { Component: module.default };
 }
 
@@ -81,62 +81,67 @@ async function loadAdminRegistrationsRoute() {
  * Hàm sử dụng hàm này làm đầu vào: createBrowserRouter nhận hàm này trong field lazy của route /admin-portal/classes.
  */
 async function loadAdminClassesRoute() {
-  const module = await import('./routes/admin/classes');
+  const module = await import('./routes/app/Management_Services/admin/classes');
   return { Component: module.default };
 }
 
 async function loadAdminUsersRoute() {
-  const module = await import('./routes/admin/users');
+  const module = await import('./routes/app/Management_Services/admin/users');
   return { Component: module.default };
 }
 
 async function loadAdminPeriodSettingsRoute() {
-  const module = await import('./routes/admin/period-settings');
+  const module = await import('./routes/app/Management_Services/admin/period-settings');
   return { Component: module.default };
 }
 
 async function loadAdminTimetableRoute() {
-  const module = await import('./routes/admin/timetable');
+  const module = await import('./routes/app/Management_Services/admin/timetable');
   return { Component: module.default };
 }
 
 async function loadAdminTimetableAllRoute() {
-  const module = await import('./routes/admin/timetable-all');
+  const module = await import('./routes/app/Management_Services/admin/timetable-all');
   return { Component: module.default };
 }
 
 async function loadAdminTimetableByGradeRoute() {
-  const module = await import('./routes/admin/timetable-by-grade');
+  const module = await import('./routes/app/Management_Services/admin/timetable-by-grade');
   return { Component: module.default };
 }
 
 async function loadAdminStudyWeeksRoute() {
-  const module = await import('./routes/admin/study-weeks');
+  const module = await import('./routes/app/Management_Services/admin/study-weeks');
   return { Component: module.default };
 }
 
 async function loadAdminStudyWeekDetailRoute() {
-  const module = await import('./routes/admin/study-week-detail');
+  const module = await import('./routes/app/Management_Services/admin/study-week-detail');
   return { Component: module.default };
 }
 
 async function loadAdminStudyWeekByGradeRoute() {
-  const module = await import('./routes/admin/study-week-by-grade');
+  const module = await import('./routes/app/Management_Services/admin/study-week-by-grade');
   return { Component: module.default };
 }
 
 async function loadAdminStudyWeekLessonDetailRoute() {
-  const module = await import('./routes/admin/study-week-lesson-detail');
+  const module = await import('./routes/app/Management_Services/admin/study-week-lesson-detail');
   return { Component: module.default };
 }
 
 async function loadAdminCostsRoute() {
-  const module = await import('./routes/admin/costs');
+  const module = await import('./routes/app/Management_Services/admin/costs');
   return { Component: module.default };
 }
 
 async function loadAdminLearningResourcesRoute() {
-  const module = await import('./routes/admin/learning-resources');
+  const module = await import('./routes/app/Management_Services/admin/learning-resources');
+  return { Component: module.default };
+}
+
+async function loadAdminQuestionsRoute() {
+  const module = await import('./routes/app/Exam_Services/admin/questions');
   return { Component: module.default };
 }
 
@@ -266,6 +271,10 @@ export const router = createBrowserRouter([
           {
             path: 'costs',
             lazy: loadAdminCostsRoute,
+          },
+          {
+            path: 'exam/questions',
+            lazy: loadAdminQuestionsRoute,
           },
         ],
       },

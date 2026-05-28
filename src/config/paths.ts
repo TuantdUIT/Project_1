@@ -22,5 +22,6 @@ export const paths = {
     `/admin-portal/study-weeks/${weekUuid}/grade/${gradeId}/lessons/${lessonUuid}`,
   adminPortalLearningResources: '/admin-portal/learning-resources',
   adminPortalCosts: '/admin-portal/costs',
+  adminPortalExamQuestions: '/admin-portal/exam/questions',
   login: '/',
 } as const;

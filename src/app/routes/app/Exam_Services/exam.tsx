@@ -1,63 +1,34 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { 
-  FileText, 
-  Clock, 
-  ChevronLeft, 
-  ChevronRight, 
-  Flag, 
-  CheckCircle2, 
+import { motion } from 'motion/react';
+import {
+  FileText,
+  Clock,
+  ChevronLeft,
+  ChevronRight,
+  Flag,
+  CheckCircle2,
   User as UserIcon,
   AlertCircle,
-  Sigma,
-  Calculator,
-  BarChart3,
-  Compass
+  BookOpen,
+  Loader2,
 } from 'lucide-react';
+import { useExamsQuery } from '@/features/Exam_Services/exam/api/exams';
+import type { Exam } from '@/features/Exam_Services/exam/types';
+import { useAuth } from '@/lib/auth/auth-context';
 
-interface Exam {
-  id: string;
-  title: string;
-  status: 'ready' | 'locked';
-  icon: React.ReactNode;
-  color: string;
-  duration: number; // in minutes
-}
+const EXAM_TYPE_LABEL: Record<string, string> = {
+  QUIZ: 'Kiểm tra',
+  HOMEWORK: 'Bài tập',
+  MOCK_TEST: 'Thi thử',
+  OFFICIAL_TEST: 'Thi chính thức',
+};
 
-const exams: Exam[] = [
-  {
-    id: '1',
-    title: 'Toán học 12 - Nâng cao A',
-    status: 'ready',
-    icon: <Sigma className="text-blue-600" />,
-    color: 'bg-blue-50',
-    duration: 45
-  },
-  {
-    id: '2',
-    title: 'Toán học 11 - Chiến thuật S',
-    status: 'ready',
-    icon: <Calculator className="text-green-600" />,
-    color: 'bg-green-50',
-    duration: 45
-  },
-  {
-    id: '3',
-    title: 'Toán học 10 - Nền tảng F',
-    status: 'ready',
-    icon: <BarChart3 className="text-orange-600" />,
-    color: 'bg-orange-50',
-    duration: 45
-  },
-  {
-    id: '4',
-    title: 'Toán học 12 - Chiến thuật S',
-    status: 'locked',
-    icon: <Compass className="text-purple-600" />,
-    color: 'bg-purple-50',
-    duration: 45
-  }
-];
+const EXAM_TYPE_STYLE: Record<string, { color: string; textColor: string }> = {
+  QUIZ:          { color: 'bg-blue-50',   textColor: 'text-blue-600' },
+  HOMEWORK:      { color: 'bg-green-50',  textColor: 'text-green-600' },
+  MOCK_TEST:     { color: 'bg-orange-50', textColor: 'text-orange-600' },
+  OFFICIAL_TEST: { color: 'bg-purple-50', textColor: 'text-purple-600' },
+};
 
 /**
  * Ý nghĩa: Render phòng thi cho user đã đăng nhập, gồm danh sách bài thi và giao diện làm bài.
@@ -68,6 +39,9 @@ export default function ExamRoute() {
   const [selectedExam, setSelectedExam] = useState<Exam | null>(null);
   const [timeLeft, setTimeLeft] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(1);
+  const { user } = useAuth();
+  const { data: pageData, isLoading, isError } = useExamsQuery();
+  const exams = pageData?.content ?? [];
 
   // Timer logic
   useEffect(() => {
@@ -90,14 +64,10 @@ export default function ExamRoute() {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   }
 
-  /**
-   * Ý nghĩa: Khởi tạo trạng thái làm bài cho một đề thi được chọn.
-   * Hàm sử dụng hàm này làm đầu vào: nút trạng thái của từng exam card gọi hàm này để mở phòng thi và đặt thời gian đếm ngược.
-   */
   function startExam(exam: Exam) {
-    if (exam.status === 'locked') return;
+    if (exam.status !== 'PUBLISHED') return;
     setSelectedExam(exam);
-    setTimeLeft(exam.duration * 60);
+    setTimeLeft((exam.durationMinutes ?? 45) * 60);
     setView('room');
   }
 
@@ -112,7 +82,7 @@ export default function ExamRoute() {
             className="bg-white rounded-3xl p-12 border border-slate-200 shadow-sm mb-12"
           >
             <h1 className="text-5xl font-black text-slate-900 mb-4 tracking-tight">
-              Hi Tuấn Trần Dương,
+              Hi {user?.fullName},
             </h1>
             <p className="text-slate-500 text-xl font-medium">
               Continue learning with passion tonight!
@@ -125,34 +95,66 @@ export default function ExamRoute() {
             <button className="text-indigo-600 font-bold hover:underline">Xem tất cả</button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {exams.map((exam) => (
-              <motion.div
-                key={exam.id}
-                whileHover={{ y: -5 }}
-                className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col h-full"
-              >
-                <div className={`w-12 h-12 ${exam.color} rounded-xl flex items-center justify-center mb-6`}>
-                  {exam.icon}
-                </div>
-                <h3 className="text-lg font-black text-slate-900 mb-auto leading-tight">
-                  {exam.title}
-                </h3>
-                <div className="mt-8">
-                  <button
-                    onClick={() => startExam(exam)}
-                    className={`px-4 py-1.5 rounded-full text-xs font-bold ${
-                      exam.status === 'ready' 
-                        ? 'bg-blue-50 text-blue-600 hover:bg-blue-100' 
-                        : 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                    }`}
+          {isLoading && (
+            <div className="flex items-center justify-center py-20 text-slate-400 gap-3">
+              <Loader2 className="animate-spin" size={24} />
+              <span className="font-bold">Đang tải danh sách bài thi...</span>
+            </div>
+          )}
+
+          {isError && (
+            <div className="flex items-center justify-center py-20 text-red-400 gap-3">
+              <AlertCircle size={24} />
+              <span className="font-bold">Không thể tải danh sách bài thi. Vui lòng thử lại.</span>
+            </div>
+          )}
+
+          {!isLoading && !isError && exams.length === 0 && (
+            <div className="flex items-center justify-center py-20 text-slate-400 gap-3">
+              <BookOpen size={24} />
+              <span className="font-bold">Chưa có bài thi nào.</span>
+            </div>
+          )}
+
+          {!isLoading && !isError && exams.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {exams.map((exam) => {
+                const type = exam.examType ?? 'QUIZ';
+                const style = EXAM_TYPE_STYLE[type] ?? EXAM_TYPE_STYLE['QUIZ'];
+                const isPublished = exam.status === 'PUBLISHED';
+                return (
+                  <motion.div
+                    key={exam.examUuid}
+                    whileHover={{ y: -5 }}
+                    className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col h-full"
                   >
-                    {exam.status === 'ready' ? 'Sẵn sàng' : 'Chưa mở'}
-                  </button>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+                    <div className={`w-12 h-12 ${style.color} rounded-xl flex items-center justify-center mb-6`}>
+                      <BookOpen className={style.textColor} />
+                    </div>
+                    <h3 className="text-lg font-black text-slate-900 mb-1 leading-tight">
+                      {exam.examName}
+                    </h3>
+                    <p className="text-xs font-bold text-slate-400 mb-auto">
+                      {EXAM_TYPE_LABEL[type]} · {exam.durationMinutes ?? 45} phút
+                    </p>
+                    <div className="mt-8">
+                      <button
+                        onClick={() => startExam(exam)}
+                        disabled={!isPublished}
+                        className={`px-4 py-1.5 rounded-full text-xs font-bold transition-colors ${
+                          isPublished
+                            ? 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+                            : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                        }`}
+                      >
+                        {isPublished ? 'Sẵn sàng' : 'Chưa mở'}
+                      </button>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
     );
@@ -166,7 +168,7 @@ export default function ExamRoute() {
           <div className="flex items-center gap-3">
             <FileText className="text-indigo-600" size={24} />
             <h2 className="text-lg font-black text-slate-900 uppercase tracking-tight">
-              Kỳ thi cuối kỳ - Môn {selectedExam?.title}
+              {selectedExam?.examName}
             </h2>
           </div>
           <div className="bg-indigo-600 text-white px-6 py-2 rounded-xl flex items-center gap-3 shadow-lg shadow-indigo-200">

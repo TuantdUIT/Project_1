@@ -1,6 +1,6 @@
 import { type CSSProperties, useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router';
-import { BookOpen, CalendarDays, CalendarRange, ClipboardList, DoorOpen, GraduationCap, GripVertical, Layers, LayoutDashboard, ReceiptText, School, Users } from 'lucide-react';
+import { BookOpen, CalendarDays, CalendarRange, ChevronDown, ClipboardList, DoorOpen, FileText, GraduationCap, GripVertical, Layers, LayoutDashboard, ReceiptText, School, Users } from 'lucide-react';
 import { paths } from '@/config/paths';
 
 const minSidebarWidth = 104;
@@ -15,6 +15,8 @@ function clampSidebarWidth(value: number) {
 export default function AdminPortalRoute() {
   const [sidebarWidth, setSidebarWidth] = useState(defaultSidebarWidth);
   const [isResizing, setIsResizing] = useState(false);
+  const [isMsOpen, setIsMsOpen] = useState(true);
+  const [isEsOpen, setIsEsOpen] = useState(true);
   const location = useLocation();
 
   useEffect(() => {
@@ -72,7 +74,9 @@ export default function AdminPortalRoute() {
               ? 'Tuần học'
               : location.pathname.startsWith(paths.adminPortalClasses)
                 ? 'Lớp học'
-                : 'Học sinh đăng ký';
+                : location.pathname.startsWith(paths.adminPortalExamQuestions)
+                  ? 'Ngân hàng câu hỏi'
+                  : 'Học sinh đăng ký';
   const mainStyle = {
     '--admin-sidebar-width': `${sidebarWidth}px`,
     '--admin-content-gap': `${contentGap}px`,
@@ -106,79 +110,144 @@ export default function AdminPortalRoute() {
           ) : null}
         </div>
 
-        <nav className={`mt-7 flex-1 space-y-2 ${isCompact ? 'px-3' : 'px-3'}`}>
-          <NavLink
-            to={paths.adminPortalOverview}
-            title={isCompact ? 'Tổng quan' : undefined}
-            className={({ isActive }) => navItemClass(isActive)}
-          >
-            <LayoutDashboard size={18} className="shrink-0" />
-            {!isCompact ? <span className="truncate">Tổng quan</span> : null}
-          </NavLink>
-          <NavLink
-            to={paths.adminPortalRegistrations}
-            title={isCompact ? registrationsLabel : undefined}
-            className={({ isActive }) => navItemClass(isActive)}
-          >
-            <ClipboardList size={18} className="shrink-0" />
-            {!isCompact ? <span className="truncate">{registrationsLabel}</span> : null}
-          </NavLink>
-          <NavLink
-            to={paths.adminPortalClasses}
-            title={isCompact ? classesLabel : undefined}
-            className={({ isActive }) => navItemClass(isActive)}
-          >
-            <School size={18} className="shrink-0" />
-            {!isCompact ? <span className="truncate">{classesLabel}</span> : null}
-          </NavLink>
-          <NavLink
-            to={paths.adminPortalUsers}
-            title={isCompact ? usersLabel : undefined}
-            className={({ isActive }) => navItemClass(isActive)}
-          >
-            <Users size={18} className="shrink-0" />
-            {!isCompact ? <span className="truncate">{usersLabel}</span> : null}
-          </NavLink>
-          <NavLink
-            to={paths.adminPortalPeriodSettings}
-            title={isCompact ? periodSettingsLabel : undefined}
-            className={({ isActive }) => navItemClass(isActive)}
-          >
-            <Layers size={18} className="shrink-0" />
-            {!isCompact ? <span className="truncate">{periodSettingsLabel}</span> : null}
-          </NavLink>
-          <NavLink
-            to={paths.adminPortalTimetable}
-            title={isCompact ? timetableLabel : undefined}
-            className={({ isActive }) => navItemClass(isActive)}
-          >
-            <CalendarRange size={18} className="shrink-0" />
-            {!isCompact ? <span className="truncate">{timetableLabel}</span> : null}
-          </NavLink>
-          <NavLink
-            to={paths.adminPortalStudyWeeks}
-            title={isCompact ? studyWeeksLabel : undefined}
-            className={({ isActive }) => navItemClass(isActive)}
-          >
-            <CalendarDays size={18} className="shrink-0" />
-            {!isCompact ? <span className="truncate">{studyWeeksLabel}</span> : null}
-          </NavLink>
-          <NavLink
-            to={paths.adminPortalLearningResources}
-            title={isCompact ? learningResourcesLabel : undefined}
-            className={({ isActive }) => navItemClass(isActive)}
-          >
-            <BookOpen size={18} className="shrink-0" />
-            {!isCompact ? <span className="truncate">{learningResourcesLabel}</span> : null}
-          </NavLink>
-          <NavLink
-            to={paths.adminPortalCosts}
-            title={isCompact ? costsLabel : undefined}
-            className={({ isActive }) => navItemClass(isActive)}
-          >
-            <ReceiptText size={18} className="shrink-0" />
-            {!isCompact ? <span className="truncate">{costsLabel}</span> : null}
-          </NavLink>
+        <nav className="mt-7 flex-1 px-3">
+          {/* Management Services dropdown group */}
+          <div>
+            <button
+              type="button"
+              onClick={() => setIsMsOpen((v) => !v)}
+              title={isCompact ? 'Management Services' : undefined}
+              className={`flex w-full items-center rounded-xl text-[13px] font-black uppercase tracking-wider transition-colors text-slate-400 hover:text-slate-700 hover:bg-slate-100 ${
+                isCompact ? 'h-10 justify-center px-0' : 'h-9 gap-2 px-3'
+              }`}
+            >
+              {!isCompact ? (
+                <>
+                  <span className="truncate">Management Services</span>
+                  <ChevronDown
+                    size={14}
+                    className={`ml-auto shrink-0 transition-transform duration-200 ${isMsOpen ? 'rotate-0' : '-rotate-90'}`}
+                  />
+                </>
+              ) : (
+                <span className="font-black">MS</span>
+              )}
+            </button>
+
+            {isMsOpen && (
+              <div className={`mt-1 space-y-1 ${!isCompact ? 'border-l-2 border-slate-100 ml-3 pl-2' : ''}`}>
+                <NavLink
+                  to={paths.adminPortalOverview}
+                  title={isCompact ? 'Tổng quan' : undefined}
+                  className={({ isActive }) => navItemClass(isActive)}
+                >
+                  <LayoutDashboard size={18} className="shrink-0" />
+                  {!isCompact ? <span className="truncate">Tổng quan</span> : null}
+                </NavLink>
+                <NavLink
+                  to={paths.adminPortalRegistrations}
+                  title={isCompact ? registrationsLabel : undefined}
+                  className={({ isActive }) => navItemClass(isActive)}
+                >
+                  <ClipboardList size={18} className="shrink-0" />
+                  {!isCompact ? <span className="truncate">{registrationsLabel}</span> : null}
+                </NavLink>
+                <NavLink
+                  to={paths.adminPortalClasses}
+                  title={isCompact ? classesLabel : undefined}
+                  className={({ isActive }) => navItemClass(isActive)}
+                >
+                  <School size={18} className="shrink-0" />
+                  {!isCompact ? <span className="truncate">{classesLabel}</span> : null}
+                </NavLink>
+                <NavLink
+                  to={paths.adminPortalUsers}
+                  title={isCompact ? usersLabel : undefined}
+                  className={({ isActive }) => navItemClass(isActive)}
+                >
+                  <Users size={18} className="shrink-0" />
+                  {!isCompact ? <span className="truncate">{usersLabel}</span> : null}
+                </NavLink>
+                <NavLink
+                  to={paths.adminPortalPeriodSettings}
+                  title={isCompact ? periodSettingsLabel : undefined}
+                  className={({ isActive }) => navItemClass(isActive)}
+                >
+                  <Layers size={18} className="shrink-0" />
+                  {!isCompact ? <span className="truncate">{periodSettingsLabel}</span> : null}
+                </NavLink>
+                <NavLink
+                  to={paths.adminPortalTimetable}
+                  title={isCompact ? timetableLabel : undefined}
+                  className={({ isActive }) => navItemClass(isActive)}
+                >
+                  <CalendarRange size={18} className="shrink-0" />
+                  {!isCompact ? <span className="truncate">{timetableLabel}</span> : null}
+                </NavLink>
+                <NavLink
+                  to={paths.adminPortalStudyWeeks}
+                  title={isCompact ? studyWeeksLabel : undefined}
+                  className={({ isActive }) => navItemClass(isActive)}
+                >
+                  <CalendarDays size={18} className="shrink-0" />
+                  {!isCompact ? <span className="truncate">{studyWeeksLabel}</span> : null}
+                </NavLink>
+                <NavLink
+                  to={paths.adminPortalLearningResources}
+                  title={isCompact ? learningResourcesLabel : undefined}
+                  className={({ isActive }) => navItemClass(isActive)}
+                >
+                  <BookOpen size={18} className="shrink-0" />
+                  {!isCompact ? <span className="truncate">{learningResourcesLabel}</span> : null}
+                </NavLink>
+                <NavLink
+                  to={paths.adminPortalCosts}
+                  title={isCompact ? costsLabel : undefined}
+                  className={({ isActive }) => navItemClass(isActive)}
+                >
+                  <ReceiptText size={18} className="shrink-0" />
+                  {!isCompact ? <span className="truncate">{costsLabel}</span> : null}
+                </NavLink>
+              </div>
+            )}
+          </div>
+
+          {/* Exam Services dropdown group */}
+          <div className="mt-4">
+            <button
+              type="button"
+              onClick={() => setIsEsOpen((v) => !v)}
+              title={isCompact ? 'Exam Services' : undefined}
+              className={`flex w-full items-center rounded-xl text-[13px] font-black uppercase tracking-wider transition-colors text-slate-400 hover:text-slate-700 hover:bg-slate-100 ${
+                isCompact ? 'h-10 justify-center px-0' : 'h-9 gap-2 px-3'
+              }`}
+            >
+              {!isCompact ? (
+                <>
+                  <span className="truncate">Exam Services</span>
+                  <ChevronDown
+                    size={14}
+                    className={`ml-auto shrink-0 transition-transform duration-200 ${isEsOpen ? 'rotate-0' : '-rotate-90'}`}
+                  />
+                </>
+              ) : (
+                <span className="font-black">ES</span>
+              )}
+            </button>
+
+            {isEsOpen && (
+              <div className={`mt-1 space-y-1 ${!isCompact ? 'border-l-2 border-slate-100 ml-3 pl-2' : ''}`}>
+                <NavLink
+                  to={paths.adminPortalExamQuestions}
+                  title={isCompact ? 'Ngân hàng câu hỏi' : undefined}
+                  className={({ isActive }) => navItemClass(isActive)}
+                >
+                  <FileText size={18} className="shrink-0" />
+                  {!isCompact ? <span className="truncate">Ngân hàng câu hỏi</span> : null}
+                </NavLink>
+              </div>
+            )}
+          </div>
         </nav>
 
         <div className={`mb-5 mt-4 border-t border-slate-200/80 pt-4 ${isCompact ? 'px-3' : 'px-3'}`}>

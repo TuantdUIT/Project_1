@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
-import mockCourses from '@/app/routes/app/mock_data_courses.json';
+import mockCourses from '@/app/routes/Management_Services/app/mock_data_courses.json';
 
 type FeaturedCoursesProps = {
   onCourseClick: (gradeId: number, lessonTypeId: string) => void;
