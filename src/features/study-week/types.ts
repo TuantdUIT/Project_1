@@ -1,4 +1,4 @@
-import type { components } from '@/types/openapi';
+import type { components } from '@/types/openapi_MS';
 
 export type StudyWeek = components['schemas']['ResStudyWeekDTO'];
 export type ReqCreateStudyWeekDTO = components['schemas']['ReqCreateStudyWeekDTO'];

@@ -1,4 +1,4 @@
-import type { components } from '@/types/openapi';
+import type { components } from '@/types/openapi_MS';
 
 export type StudentStatus = 'WAITING' | 'ACTIVE' | 'INACTIVE';
 export type ResStudentDTO = components['schemas']['ResStudentDTO'];

@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
-import type { components } from '@/types/openapi';
+import type { components } from '@/types/openapi_MS';
 
 export type StudentRegisterRequest = components['schemas']['ReqStudentRegisterDTO'];
 export type StudentRegisterResponse = components['schemas']['ResStudentDTO'];

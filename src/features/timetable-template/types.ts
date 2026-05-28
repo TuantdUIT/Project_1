@@ -1,4 +1,4 @@
-import type { components } from '@/types/openapi';
+import type { components } from '@/types/openapi_MS';
 import type { EmployeeRATemplateItem } from '@/features/employee-ra-template/types';
 
 export type TimetableTemplate = components['schemas']['ResTimetableTemplateDTO'];

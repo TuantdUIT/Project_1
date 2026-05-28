@@ -23,8 +23,8 @@ function isFormatRestResponse<T>(payload: unknown): payload is FormatRestRespons
   );
 }
 
-const axiosInstance = axios.create({
-  baseURL: env.VITE_APP_API_URL_MS,
+const axiosInstanceES = axios.create({
+  baseURL: env.VITE_APP_API_URL_ES,
   withCredentials: true,
   headers: {
     Accept: 'application/json',
@@ -32,7 +32,7 @@ const axiosInstance = axios.create({
   },
 });
 
-axiosInstance.interceptors.request.use((config) => {
+axiosInstanceES.interceptors.request.use((config) => {
   const token = tokenStorage.getAccessToken();
 
   if (token) {
@@ -42,7 +42,7 @@ axiosInstance.interceptors.request.use((config) => {
   return config;
 });
 
-axiosInstance.interceptors.response.use(
+axiosInstanceES.interceptors.response.use(
   (response) => {
     if (isFormatRestResponse(response.data)) {
       return response.data.data;
@@ -63,7 +63,7 @@ axiosInstance.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const refreshResponse = await axiosInstance.get<
+        const refreshResponse = await axiosInstanceES.get<
           unknown,
           { access_token?: string; accessToken?: string }
         >('/api/v1/auth/refresh');
@@ -81,7 +81,7 @@ axiosInstance.interceptors.response.use(
           Authorization: `Bearer ${accessToken}`,
         };
 
-        return axiosInstance(originalRequest);
+        return axiosInstanceES(originalRequest);
       } catch (refreshError) {
         tokenStorage.clear();
         return Promise.reject(refreshError);
@@ -90,15 +90,6 @@ axiosInstance.interceptors.response.use(
 
     if (status && status >= 400) {
       const parsedError = parseApiError(error);
-
-      // Tạm tắt toast lỗi global (ApiErrorToast trong src/app/provider.tsx).
-      // Bỏ comment khối dưới để khôi phục.
-      // window.dispatchEvent(
-      //   new CustomEvent('api:error', {
-      //     detail: parsedError,
-      //   }),
-      // );
-
       console.error(parsedError.message);
     }
 
@@ -106,39 +97,23 @@ axiosInstance.interceptors.response.use(
   },
 );
 
-/**
- * Ý nghĩa: Gửi request GET và trả về trực tiếp phần data đã được unwrap từ Axios response.
- * Hàm sử dụng hàm này làm đầu vào: auth-api.getAccount dùng để lấy hồ sơ user; các feature P1/P2 sẽ dùng để đọc dữ liệu backend.
- */
 function get<T>(url: string, config?: AxiosRequestConfig) {
-  return axiosInstance.get<unknown, T>(url, config);
+  return axiosInstanceES.get<unknown, T>(url, config);
 }
 
-/**
- * Ý nghĩa: Gửi request POST và trả về trực tiếp phần data đã được unwrap từ Axios response.
- * Hàm sử dụng hàm này làm đầu vào: auth-api.login/logout dùng để gửi thông tin auth lên backend.
- */
 function post<T>(url: string, data?: unknown, config?: AxiosRequestConfig) {
-  return axiosInstance.post<unknown, T>(url, data, config);
+  return axiosInstanceES.post<unknown, T>(url, data, config);
 }
 
-/**
- * Ý nghĩa: Gửi request PUT và trả về trực tiếp phần data đã được unwrap từ Axios response.
- * Hàm sử dụng hàm này làm đầu vào: các feature P1/P2 dùng để cập nhật tài nguyên backend khi cần.
- */
 function put<T>(url: string, data?: unknown, config?: AxiosRequestConfig) {
-  return axiosInstance.put<unknown, T>(url, data, config);
+  return axiosInstanceES.put<unknown, T>(url, data, config);
 }
 
-/**
- * Ý nghĩa: Gửi request DELETE và trả về trực tiếp phần data đã được unwrap từ Axios response.
- * Hàm sử dụng hàm này làm đầu vào: các feature P1/P2 dùng để xóa tài nguyên backend khi cần.
- */
 function remove<T>(url: string, config?: AxiosRequestConfig) {
-  return axiosInstance.delete<unknown, T>(url, config);
+  return axiosInstanceES.delete<unknown, T>(url, config);
 }
 
-export const apiClient = {
+export const apiClientES = {
   get,
   post,
   put,

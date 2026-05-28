@@ -1,4 +1,4 @@
-import type { components } from '@/types/openapi';
+import type { components } from '@/types/openapi_MS';
 
 export type OnlineLecture = components['schemas']['ResOnlineLectureDTO'];
 export type LearningFile = components['schemas']['ResLearningFileDTO'];

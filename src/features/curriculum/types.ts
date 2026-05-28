@@ -1,4 +1,4 @@
-import type { components, paths } from '@/types/openapi';
+import type { components, paths } from '@/types/openapi_MS';
 
 export type Grade = components['schemas']['ResGradeDTO'];
 export type GradesOverview =

@@ -1,4 +1,4 @@
-import type { components } from '@/types/openapi';
+import type { components } from '@/types/openapi_MS';
 
 export type Attendance = components['schemas']['ResAttendanceDTO'];
 export type ReqCreateAttendanceDTO = components['schemas']['ReqCreateAttendanceDTO'];

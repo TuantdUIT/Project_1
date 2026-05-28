@@ -1,4 +1,4 @@
-import type { components } from '@/types/openapi';
+import type { components } from '@/types/openapi_MS';
 
 export type Cost = components['schemas']['ResCostDTO'];
 export type CostTag = components['schemas']['ResCostTagDTO'];
