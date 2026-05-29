@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
-import mockCourses from '@/app/routes/Management_Services/app/mock_data_courses.json';
+import mockCourses from './featured-courses.data';
 
 type FeaturedCoursesProps = {
   onCourseClick: (gradeId: number, lessonTypeId: string) => void;
@@ -16,15 +16,8 @@ type Tier = {
   description: string;
 };
 
-type GradeOption = {
-  key: string;
-  gradeId: number;
-  label: string;
-  color: string;
-};
 
-const GRADE_OPTIONS: GradeOption[] = mockCourses.grades;
-const GRADE_TIERS: Tier[] = mockCourses.tiers;
+const GRADE_OPTIONS = mockCourses.grades;
 const DGNL = mockCourses.dgnl;
 const DGNL_FILTER = DGNL.key;
 
@@ -91,7 +84,7 @@ export default function FeaturedCourses({ onCourseClick }: FeaturedCoursesProps)
           </div>
         ) : activeGrade ? (
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
-            {GRADE_TIERS.map((tier) => (
+            {activeGrade.tiers.map((tier: Tier) => (
               <TierCard
                 key={tier.key}
                 tier={tier}

@@ -1,6 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClientES } from '@/lib/api-client-es';
-import type { PageQuestion, QuestionFilter, QuestionType } from '../types';
+import type { PageQuestion, Question, QuestionFilter, QuestionType, ReqCreateQuestion } from '../types';
 
 function buildParams(filter: Omit<QuestionFilter, 'page' | 'size'>, page: number, size: number) {
   return {
@@ -35,5 +35,20 @@ export function useQuestionCountQuery(type?: QuestionType) {
   return useQuery({
     queryKey: ['questions-count', type ?? 'all'],
     queryFn: () => getQuestionCount(type),
+  });
+}
+
+export function createQuestion(body: ReqCreateQuestion) {
+  return apiClientES.post<Question>('/api/v1/questions', body);
+}
+
+export function useCreateQuestionMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: createQuestion,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['questions'] });
+      queryClient.invalidateQueries({ queryKey: ['questions-count'] });
+    },
   });
 }
