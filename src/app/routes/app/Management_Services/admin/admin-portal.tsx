@@ -74,9 +74,11 @@ export default function AdminPortalRoute() {
               ? 'Tuần học'
               : location.pathname.startsWith(paths.adminPortalClasses)
                 ? 'Lớp học'
-                : location.pathname.startsWith(paths.adminPortalExamQuestions)
-                  ? 'Ngân hàng câu hỏi'
-                  : 'Học sinh đăng ký';
+                : location.pathname.startsWith(paths.adminPortalExams)
+                  ? 'Quản lý phòng thi'
+                  : location.pathname.startsWith(paths.adminPortalExamQuestions)
+                    ? 'Ngân hàng câu hỏi'
+                    : 'Học sinh đăng ký';
   const mainStyle = {
     '--admin-sidebar-width': `${sidebarWidth}px`,
     '--admin-content-gap': `${contentGap}px`,
@@ -244,6 +246,14 @@ export default function AdminPortalRoute() {
                 >
                   <FileText size={18} className="shrink-0" />
                   {!isCompact ? <span className="truncate">Ngân hàng câu hỏi</span> : null}
+                </NavLink>
+                <NavLink
+                  to={paths.adminPortalExams}
+                  title={isCompact ? 'Quản lý phòng thi' : undefined}
+                  className={({ isActive }) => navItemClass(isActive)}
+                >
+                  <DoorOpen size={18} className="shrink-0" />
+                  {!isCompact ? <span className="truncate">Quản lý phòng thi</span> : null}
                 </NavLink>
               </div>
             )}

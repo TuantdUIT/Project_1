@@ -23,5 +23,6 @@ export const paths = {
   adminPortalLearningResources: '/admin-portal/learning-resources',
   adminPortalCosts: '/admin-portal/costs',
   adminPortalExamQuestions: '/admin-portal/exam/questions',
+  adminPortalExams: '/admin-portal/exam/exams',
   login: '/',
 } as const;

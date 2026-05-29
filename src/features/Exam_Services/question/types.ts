@@ -5,6 +5,7 @@ export type PageQuestion = components['schemas']['PageResQuestionDTO'];
 export type QuestionType = NonNullable<Question['questionType']>;
 
 export type ReqCreateQuestion = components['schemas']['ReqCreateQuestionDTO'];
+export type ReqUpdateQuestion = components['schemas']['ReqUpdateQuestionDTO'];
 export type ReqMcOption = components['schemas']['ReqQuestionMcOptionDTO'];
 export type ReqTfStatement = components['schemas']['ReqQuestionTrueFalseStatementDTO'];
 

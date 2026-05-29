@@ -3,8 +3,14 @@ import {
   Search, Plus, Pencil, Trash2, ChevronLeft, ChevronRight,
   BookOpen, ListChecks, ToggleLeft, AlignLeft, Loader2, AlertCircle, X,
 } from 'lucide-react';
-import { useQuestionsQuery, useQuestionCountQuery, useCreateQuestionMutation } from '@/features/Exam_Services/question/api/questions';
-import type { QuestionFilter, QuestionType, ReqCreateQuestion, ReqMcOption, ReqTfStatement } from '@/features/Exam_Services/question/types';
+import { useQuestionsQuery, useQuestionCountQuery, useCreateQuestionMutation, useUpdateQuestionMutation } from '@/features/Exam_Services/question/api/questions';
+import type { Question, QuestionFilter, QuestionType, ReqCreateQuestion, ReqMcOption, ReqTfStatement, ReqUpdateQuestion } from '@/features/Exam_Services/question/types';
+import { GRADE_DISPLAY_NAME_BY_ID } from '@/features/Management_Services/timetable-template/lib/supplement-grades';
+
+const GRADE_OPTIONS = Object.entries(GRADE_DISPLAY_NAME_BY_ID).map(([id, name]) => ({
+  id: Number(id),
+  name,
+}));
 
 const TYPE_LABEL: Record<string, string> = { MCQ: 'MCQ', TFQ: 'TFQ', SAQ: 'SAQ' };
 const TYPE_COLOR: Record<string, string> = {
@@ -21,6 +27,11 @@ export default function AdminQuestionsRoute() {
   });
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
+  const [editForm, setEditForm] = useState<ReqUpdateQuestion>({
+    gradeId: 0, questionContent: '', questionTopic: '', questionType: 'MCQ', isActive: true,
+    mcOptions: [], tfStatements: [], answerKey: { correctAnswerRaw: '' },
+  });
   const [form, setForm] = useState<ReqCreateQuestion>({
     gradeId: 0,
     questionContent: '',
@@ -33,11 +44,17 @@ export default function AdminQuestionsRoute() {
       { optionKey: 'C', optionContent: '' },
       { optionKey: 'D', optionContent: '' },
     ],
-    tfStatements: [{ statementOrder: 1, statementContent: '' }],
+    tfStatements: [
+      { statementOrder: 1, statementContent: '' },
+      { statementOrder: 2, statementContent: '' },
+      { statementOrder: 3, statementContent: '' },
+      { statementOrder: 4, statementContent: '' },
+    ],
     answerKey: { correctAnswerRaw: '' },
   });
 
   const createMutation = useCreateQuestionMutation();
+  const updateMutation = useUpdateQuestionMutation();
 
   const { data: pageData, isLoading, isError } = useQuestionsQuery(filter);
   const { data: countAll }  = useQuestionCountQuery();
@@ -65,13 +82,38 @@ export default function AdminQuestionsRoute() {
         { optionKey: 'A', optionContent: '' }, { optionKey: 'B', optionContent: '' },
         { optionKey: 'C', optionContent: '' }, { optionKey: 'D', optionContent: '' },
       ],
-      tfStatements: [{ statementOrder: 1, statementContent: '' }],
+      tfStatements: [
+        { statementOrder: 1, statementContent: '' },
+        { statementOrder: 2, statementContent: '' },
+        { statementOrder: 3, statementContent: '' },
+        { statementOrder: 4, statementContent: '' },
+      ],
       answerKey: { correctAnswerRaw: '' },
     });
   }
 
   function openModal() { resetForm(); setIsModalOpen(true); }
   function closeModal() { setIsModalOpen(false); }
+
+  function openEditModal(q: Question) {
+    setEditingQuestion(q);
+    setEditForm({
+      gradeId: q.gradeId ?? 0,
+      questionContent: q.questionContent ?? '',
+      questionTopic: q.questionTopic ?? '',
+      questionType: q.questionType ?? 'MCQ',
+      isActive: q.isActive ?? true,
+      mcOptions: (q.mcOptions ?? []).map((o) => ({ optionKey: o.optionKey ?? '', optionContent: o.optionContent ?? '' })),
+      tfStatements: (q.tfStatements ?? [
+        { statementOrder: 1, statementContent: '' },
+        { statementOrder: 2, statementContent: '' },
+        { statementOrder: 3, statementContent: '' },
+        { statementOrder: 4, statementContent: '' },
+      ]).map((s) => ({ statementOrder: s.statementOrder ?? 0, statementContent: s.statementContent ?? '' })),
+      answerKey: { correctAnswerRaw: q.correctAnswerRaw ?? '' },
+    });
+  }
+  function closeEditModal() { setEditingQuestion(null); }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -99,11 +141,35 @@ export default function AdminQuestionsRoute() {
     });
   }
 
-  function addTfStatement() {
-    setForm((f) => ({
-      ...f,
-      tfStatements: [...(f.tfStatements ?? []), { statementOrder: (f.tfStatements?.length ?? 0) + 1, statementContent: '' }],
-    }));
+  function handleEditSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editingQuestion?.questionUuid) return;
+    const payload: ReqUpdateQuestion = {
+      ...editForm,
+      mcOptions:    editForm.questionType === 'MCQ' ? editForm.mcOptions    : undefined,
+      tfStatements: editForm.questionType === 'TFQ' ? editForm.tfStatements : undefined,
+    };
+    console.log('>>>>PUT payload:', JSON.stringify(payload, null, 2));
+    updateMutation.mutate(
+      { questionUuid: editingQuestion.questionUuid, body: payload },
+      { onSuccess: closeEditModal },
+    );
+  }
+
+  function updateEditMcOption(index: number, value: string) {
+    setEditForm((f) => {
+      const opts = [...(f.mcOptions ?? [])];
+      opts[index] = { ...opts[index], optionContent: value };
+      return { ...f, mcOptions: opts };
+    });
+  }
+
+  function updateEditTfStatement(index: number, value: string) {
+    setEditForm((f) => {
+      const stmts = [...(f.tfStatements ?? [])];
+      stmts[index] = { ...stmts[index], statementContent: value };
+      return { ...f, tfStatements: stmts };
+    });
   }
 
   function shortUuid(uuid?: string) {
@@ -156,7 +222,7 @@ export default function AdminQuestionsRoute() {
 
         {/* Filters */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
             {/* Tìm kiếm */}
             <div className="flex items-center gap-2 border border-slate-200 rounded-xl px-3 py-2">
               <Search size={14} className="text-slate-400 shrink-0" />
@@ -176,6 +242,21 @@ export default function AdminQuestionsRoute() {
               placeholder="Chủ đề"
               className="border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none text-slate-700 placeholder:text-slate-400 focus:border-blue-400"
             />
+
+            {/* Khối lớp */}
+            <select
+              value={filter.gradeId === '' ? '' : String(filter.gradeId)}
+              onChange={(e) => {
+                const v = e.target.value;
+                setFilter((f) => ({ ...f, gradeId: v === '' ? '' : Number(v), page: 0 }));
+              }}
+              className="border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none text-slate-700 focus:border-blue-400 bg-white"
+            >
+              <option value="">Tất cả khối</option>
+              {GRADE_OPTIONS.map((g) => (
+                <option key={g.id} value={g.id}>{g.name}</option>
+              ))}
+            </select>
 
             {/* Loại câu hỏi */}
             <select
@@ -204,10 +285,10 @@ export default function AdminQuestionsRoute() {
             </select>
           </div>
 
-          <div>
+          <div className="flex justify-end">
             <button
               onClick={resetFilters}
-              className="text-sm font-bold text-blue-600 hover:underline"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-100 transition-colors"
             >
               Xóa bộ lọc
             </button>
@@ -283,7 +364,10 @@ export default function AdminQuestionsRoute() {
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
-                          <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors border border-slate-200">
+                          <button
+                            onClick={() => openEditModal(q)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors border border-slate-200"
+                          >
                             <Pencil size={12} />
                             Sửa
                           </button>
@@ -357,15 +441,17 @@ export default function AdminQuestionsRoute() {
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-xs font-black text-slate-500 uppercase tracking-wider">Khối lớp *</label>
-                  <input
-                    type="number"
-                    min={1}
+                  <select
                     value={form.gradeId || ''}
                     onChange={(e) => setForm((f) => ({ ...f, gradeId: Number(e.target.value) }))}
-                    placeholder="VD: 10, 11, 12"
                     required
-                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-400"
-                  />
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-400 bg-white"
+                  >
+                    <option value="">Chọn khối lớp</option>
+                    {GRADE_OPTIONS.map((g) => (
+                      <option key={g.id} value={g.id}>{g.name}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
@@ -418,11 +504,8 @@ export default function AdminQuestionsRoute() {
               {/* TFQ statements */}
               {form.questionType === 'TFQ' && (
                 <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
+                  <div>
                     <label className="text-xs font-black text-slate-500 uppercase tracking-wider">Các mệnh đề</label>
-                    <button type="button" onClick={addTfStatement} className="text-xs font-bold text-blue-600 hover:underline">
-                      + Thêm mệnh đề
-                    </button>
                   </div>
                   <div className="space-y-2">
                     {(form.tfStatements ?? []).map((stmt, i) => (
@@ -447,7 +530,7 @@ export default function AdminQuestionsRoute() {
                 <label className="text-xs font-black text-slate-500 uppercase tracking-wider">
                   Đáp án *
                   {form.questionType === 'MCQ' && <span className="ml-1 font-normal normal-case text-slate-400">(VD: A, B, C, D)</span>}
-                  {form.questionType === 'TFQ' && <span className="ml-1 font-normal normal-case text-slate-400">(VD: T,F,T,F)</span>}
+                  {form.questionType === 'TFQ' && <span className="ml-1 font-normal normal-case text-slate-400">(VD: DSDS )</span>}
                 </label>
                 <input
                   value={form.answerKey.correctAnswerRaw}
@@ -491,6 +574,171 @@ export default function AdminQuestionsRoute() {
               {createMutation.isError && (
                 <p className="text-xs font-bold text-red-500 flex items-center gap-1.5">
                   <AlertCircle size={13} /> Tạo thất bại. Vui lòng kiểm tra lại dữ liệu.
+                </p>
+              )}
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal chỉnh sửa câu hỏi */}
+      {editingQuestion && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+              <h2 className="text-lg font-black text-slate-900">Chỉnh sửa câu hỏi</h2>
+              <button onClick={closeEditModal} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 transition-colors">
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleEditSubmit} className="p-6 space-y-5">
+              {/* Loại + Khối lớp */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-black text-slate-500 uppercase tracking-wider">Loại câu hỏi *</label>
+                  <select
+                    value={editForm.questionType}
+                    onChange={(e) => setEditForm((f) => ({ ...f, questionType: e.target.value as QuestionType }))}
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-400 bg-white"
+                  >
+                    <option value="MCQ">MCQ — Trắc nghiệm</option>
+                    <option value="TFQ">TFQ — Đúng/Sai</option>
+                    <option value="SAQ">SAQ — Trả lời ngắn</option>
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-black text-slate-500 uppercase tracking-wider">Khối lớp *</label>
+                  <select
+                    value={editForm.gradeId || ''}
+                    onChange={(e) => setEditForm((f) => ({ ...f, gradeId: Number(e.target.value) }))}
+                    required
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-400 bg-white"
+                  >
+                    <option value="">Chọn khối lớp</option>
+                    {GRADE_OPTIONS.map((g) => (
+                      <option key={g.id} value={g.id}>{g.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Nội dung */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-black text-slate-500 uppercase tracking-wider">Nội dung câu hỏi *</label>
+                <textarea
+                  rows={3}
+                  value={editForm.questionContent}
+                  onChange={(e) => setEditForm((f) => ({ ...f, questionContent: e.target.value }))}
+                  required
+                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-400 resize-none"
+                />
+              </div>
+
+              {/* Chủ đề */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-black text-slate-500 uppercase tracking-wider">Chủ đề</label>
+                <input
+                  value={editForm.questionTopic ?? ''}
+                  onChange={(e) => setEditForm((f) => ({ ...f, questionTopic: e.target.value }))}
+                  placeholder="VD: Giải tích, Hình học..."
+                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-400"
+                />
+              </div>
+
+              {/* MCQ options */}
+              {editForm.questionType === 'MCQ' && (
+                <div className="space-y-1.5">
+                  <label className="text-xs font-black text-slate-500 uppercase tracking-wider">Các đáp án</label>
+                  <div className="space-y-2">
+                    {(editForm.mcOptions ?? []).map((opt, i) => (
+                      <div key={opt.optionKey} className="flex items-center gap-2">
+                        <span className="w-7 h-7 flex items-center justify-center rounded-lg bg-slate-100 text-xs font-black text-slate-600 shrink-0">
+                          {opt.optionKey}
+                        </span>
+                        <input
+                          value={opt.optionContent}
+                          onChange={(e) => updateEditMcOption(i, e.target.value)}
+                          placeholder={`Đáp án ${opt.optionKey}`}
+                          className="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-400"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* TFQ statements */}
+              {editForm.questionType === 'TFQ' && (
+                <div className="space-y-1.5">
+                  <label className="text-xs font-black text-slate-500 uppercase tracking-wider">Các mệnh đề</label>
+                  <div className="space-y-2">
+                    {(editForm.tfStatements ?? []).map((stmt, i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <span className="w-7 h-7 flex items-center justify-center rounded-lg bg-slate-100 text-xs font-black text-slate-600 shrink-0">
+                          {i + 1}
+                        </span>
+                        <input
+                          value={stmt.statementContent}
+                          onChange={(e) => updateEditTfStatement(i, e.target.value)}
+                          placeholder={`Mệnh đề ${i + 1}`}
+                          className="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-400"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Đáp án */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-black text-slate-500 uppercase tracking-wider">
+                  Đáp án *
+                  {editForm.questionType === 'MCQ' && <span className="ml-1 font-normal normal-case text-slate-400">(VD: A, B, C, D)</span>}
+                  {editForm.questionType === 'TFQ' && <span className="ml-1 font-normal normal-case text-slate-400">(VD: DSDS)</span>}
+                </label>
+                <input
+                  value={editForm.answerKey.correctAnswerRaw}
+                  onChange={(e) => setEditForm((f) => ({ ...f, answerKey: { correctAnswerRaw: e.target.value } }))}
+                  placeholder="Nhập đáp án..."
+                  required
+                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-400"
+                />
+              </div>
+
+              {/* Trạng thái */}
+              <label className="flex items-center gap-2.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={editForm.isActive ?? true}
+                  onChange={(e) => setEditForm((f) => ({ ...f, isActive: e.target.checked }))}
+                  className="w-4 h-4 rounded"
+                />
+                <span className="text-sm font-bold text-slate-700">Đang hoạt động</span>
+              </label>
+
+              {/* Actions */}
+              <div className="flex justify-end gap-3 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={closeEditModal}
+                  className="px-4 py-2 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-100 transition-colors"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  disabled={updateMutation.isPending}
+                  className="flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-bold rounded-xl transition-colors"
+                >
+                  {updateMutation.isPending && <Loader2 size={14} className="animate-spin" />}
+                  Lưu thay đổi
+                </button>
+              </div>
+
+              {updateMutation.isError && (
+                <p className="text-xs font-bold text-red-500 flex items-center gap-1.5">
+                  <AlertCircle size={13} /> Cập nhật thất bại. Vui lòng kiểm tra lại dữ liệu.
                 </p>
               )}
             </form>
