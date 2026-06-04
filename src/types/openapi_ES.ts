@@ -68,6 +68,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/student/attempts/{attemptUuid}/proctoring-events/batch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["createEvents"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/student/attempts/{attemptUuid}/answers": {
         parameters: {
             query?: never;
@@ -116,6 +132,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/omr/scoring-jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["createScoringJob"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/omr/imports": {
         parameters: {
             query?: never;
@@ -142,6 +174,22 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["createExamPaper"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/files": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["uploadFile"];
         delete?: never;
         options?: never;
         head?: never;
@@ -228,6 +276,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/student/attempts/{attemptUuid}/proctoring-events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getEvents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/question-groups/{questionGroupUuid}": {
         parameters: {
             query?: never;
@@ -244,6 +308,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/omr/scoring-jobs/{jobUuid}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getScoringJob"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health": {
         parameters: {
             query?: never;
@@ -252,6 +332,54 @@ export interface paths {
             cookie?: never;
         };
         get: operations["health"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/dashboard/exams/{examUuid}/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getExamStats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/dashboard/exams/{examUuid}/results": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getExamResults"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/dashboard/exams/{examUuid}/rankings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getExamRanking"];
         put?: never;
         post?: never;
         delete?: never;
@@ -362,6 +490,7 @@ export interface components {
             examName: string;
             /** Format: int64 */
             gradeId: number;
+            schoolYear: string;
             /** @enum {string} */
             examType: "QUIZ" | "HOMEWORK" | "MOCK_TEST" | "OFFICIAL_TEST";
             /** Format: date-time */
@@ -388,6 +517,7 @@ export interface components {
             examName?: string;
             /** Format: int64 */
             gradeId?: number;
+            schoolYear?: string;
             /** @enum {string} */
             examType?: "QUIZ" | "HOMEWORK" | "MOCK_TEST" | "OFFICIAL_TEST";
             /** Format: date-time */
@@ -521,6 +651,8 @@ export interface components {
             examName?: string;
             /** Format: uuid */
             studentUuid?: string;
+            studentId?: string;
+            studentFullname?: string;
             /** Format: int32 */
             attemptNo?: number;
             /** Format: date-time */
@@ -533,7 +665,40 @@ export interface components {
             status?: "IN_PROGRESS" | "SUBMITTED" | "SCORED" | "ANSWER_RELEASED" | "CANCELLED";
             score?: number;
             isAutoSubmitted?: boolean;
+            /** Format: int32 */
+            violationCount?: number;
+            rawImageUrl?: string;
+            scoredImageUrl?: string;
             questions?: components["schemas"]["ResAttemptQuestionDTO"][];
+        };
+        JsonNode: unknown;
+        ReqProctoringEventBatchDTO: {
+            events: components["schemas"]["ReqProctoringEventDTO"][];
+        };
+        ReqProctoringEventDTO: {
+            /** Format: date-time */
+            eventTime?: string;
+            /** @enum {string} */
+            eventType: "TAB_SWITCH" | "FULLSCREEN_EXIT" | "WINDOW_BLUR" | "COPY_PASTE" | "NETWORK_LOST";
+            eventPayload?: components["schemas"]["JsonNode"];
+        };
+        ResProctoringEventBatchDTO: {
+            /** Format: uuid */
+            attemptUuid?: string;
+            /** Format: int32 */
+            acceptedCount?: number;
+            events?: components["schemas"]["ResProctoringEventDTO"][];
+        };
+        ResProctoringEventDTO: {
+            /** Format: uuid */
+            eventUuid?: string;
+            /** Format: uuid */
+            attemptUuid?: string;
+            /** Format: date-time */
+            eventTime?: string;
+            /** @enum {string} */
+            eventType?: "TAB_SWITCH" | "FULLSCREEN_EXIT" | "WINDOW_BLUR" | "COPY_PASTE" | "NETWORK_LOST";
+            eventPayload?: string;
         };
         ReqStudentAnswerDTO: {
             /** Format: uuid */
@@ -586,6 +751,51 @@ export interface components {
             /** @enum {string} */
             questionType?: "MCQ" | "TFQ" | "SAQ";
         };
+        ResOmrScoringJobDTO: {
+            /** Format: uuid */
+            jobUuid?: string;
+            /** Format: uuid */
+            examUuid?: string;
+            schoolYear?: string;
+            /** @enum {string} */
+            status?: "PENDING" | "PROCESSING" | "EXTRACTED" | "IMPORTING" | "COMPLETED" | "FAILED";
+            /** Format: int32 */
+            pageCount?: number;
+            rawImageUrl?: string;
+            scoredImageUrl?: string;
+            /** Format: int64 */
+            resultCount?: number;
+            /** Format: int64 */
+            completedCount?: number;
+            /** Format: int64 */
+            failedCount?: number;
+            results?: components["schemas"]["ResOmrScoringJobResultDTO"][];
+            errorMessage?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        ResOmrScoringJobResultDTO: {
+            /** Format: uuid */
+            jobResultUuid?: string;
+            /** Format: int32 */
+            pageNumber?: number;
+            paperCode?: string;
+            studentCode?: string;
+            schoolYear?: string;
+            studentFullname?: string;
+            /** Format: uuid */
+            studentUuid?: string;
+            /** Format: uuid */
+            attemptUuid?: string;
+            /** @enum {string} */
+            status?: "EXTRACTED" | "IMPORTING" | "COMPLETED" | "FAILED";
+            score?: number;
+            rawImageUrl?: string;
+            scoredImageUrl?: string;
+            errorMessage?: string;
+        };
         ReqOmrAnswerDTO: {
             /** Format: int32 */
             sectionQuestionNumber: number;
@@ -597,7 +807,11 @@ export interface components {
             paperCode: string;
             /** Format: uuid */
             studentUuid: string;
+            studentId?: string;
+            studentFullname?: string;
             externalSubmissionId?: string;
+            rawImageUrl?: string;
+            scoredImageUrl?: string;
             /** Format: date-time */
             scannedAt?: string;
             sections: components["schemas"]["ReqOmrSectionsDTO"];
@@ -657,10 +871,16 @@ export interface components {
             groupUuid?: string;
             groupName?: string;
         };
+        UploadFileResDTO: {
+            fileName?: string;
+            /** Format: date-time */
+            uploadedAt?: string;
+        };
         ReqCreateExamDTO: {
             examName: string;
             /** Format: int64 */
             gradeId: number;
+            schoolYear: string;
             /** @enum {string} */
             examType: "QUIZ" | "HOMEWORK" | "MOCK_TEST" | "OFFICIAL_TEST";
             /** Format: date-time */
@@ -696,10 +916,10 @@ export interface components {
             sort?: string[];
         };
         PageResExamAttemptSummaryDTO: {
-            /** Format: int64 */
-            totalElements?: number;
             /** Format: int32 */
             totalPages?: number;
+            /** Format: int64 */
+            totalElements?: number;
             /** Format: int32 */
             size?: number;
             content?: components["schemas"]["ResExamAttemptSummaryDTO"][];
@@ -717,12 +937,12 @@ export interface components {
             /** Format: int64 */
             offset?: number;
             sort?: components["schemas"]["SortObject"];
+            unpaged?: boolean;
             /** Format: int32 */
             pageSize?: number;
-            paged?: boolean;
             /** Format: int32 */
             pageNumber?: number;
-            unpaged?: boolean;
+            paged?: boolean;
         };
         ResExamAttemptSummaryDTO: {
             /** Format: uuid */
@@ -730,6 +950,8 @@ export interface components {
             /** Format: uuid */
             examUuid?: string;
             examName?: string;
+            studentId?: string;
+            studentFullname?: string;
             /** Format: int32 */
             attemptNo?: number;
             /** Format: date-time */
@@ -742,17 +964,21 @@ export interface components {
             status?: "IN_PROGRESS" | "SUBMITTED" | "SCORED" | "ANSWER_RELEASED" | "CANCELLED";
             score?: number;
             isAutoSubmitted?: boolean;
+            /** Format: int32 */
+            violationCount?: number;
+            rawImageUrl?: string;
+            scoredImageUrl?: string;
         };
         SortObject: {
             empty?: boolean;
-            sorted?: boolean;
             unsorted?: boolean;
+            sorted?: boolean;
         };
         PageResQuestionDTO: {
-            /** Format: int64 */
-            totalElements?: number;
             /** Format: int32 */
             totalPages?: number;
+            /** Format: int64 */
+            totalElements?: number;
             /** Format: int32 */
             size?: number;
             content?: components["schemas"]["ResQuestionDTO"][];
@@ -767,10 +993,10 @@ export interface components {
             empty?: boolean;
         };
         PageResQuestionGroupDTO: {
-            /** Format: int64 */
-            totalElements?: number;
             /** Format: int32 */
             totalPages?: number;
+            /** Format: int64 */
+            totalElements?: number;
             /** Format: int32 */
             size?: number;
             content?: components["schemas"]["ResQuestionGroupDTO"][];
@@ -785,10 +1011,10 @@ export interface components {
             empty?: boolean;
         };
         PageResExamDTO: {
-            /** Format: int64 */
-            totalElements?: number;
             /** Format: int32 */
             totalPages?: number;
+            /** Format: int64 */
+            totalElements?: number;
             /** Format: int32 */
             size?: number;
             content?: components["schemas"]["ResExamDTO"][];
@@ -951,6 +1177,32 @@ export interface operations {
             };
         };
     };
+    createEvents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                attemptUuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReqProctoringEventBatchDTO"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ResProctoringEventBatchDTO"];
+                };
+            };
+        };
+    };
     saveAnswer: {
         parameters: {
             query?: never;
@@ -1077,6 +1329,35 @@ export interface operations {
             };
         };
     };
+    createScoringJob: {
+        parameters: {
+            query: {
+                examUuid: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /** Format: binary */
+                    file?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ResOmrScoringJobDTO"];
+                };
+            };
+        };
+    };
     importOmrData: {
         parameters: {
             query?: never;
@@ -1121,6 +1402,35 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ResExamPaperDTO"];
+                };
+            };
+        };
+    };
+    uploadFile: {
+        parameters: {
+            query: {
+                folder: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /** Format: binary */
+                    file?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["UploadFileResDTO"];
                 };
             };
         };
@@ -1272,6 +1582,28 @@ export interface operations {
             };
         };
     };
+    getEvents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                attemptUuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ResProctoringEventDTO"][];
+                };
+            };
+        };
+    };
     getQuestionGroup: {
         parameters: {
             query?: never;
@@ -1294,6 +1626,28 @@ export interface operations {
             };
         };
     };
+    getScoringJob: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                jobUuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ResOmrScoringJobDTO"];
+                };
+            };
+        };
+    };
     health: {
         parameters: {
             query?: never;
@@ -1312,6 +1666,79 @@ export interface operations {
                     "*/*": {
                         [key: string]: unknown;
                     };
+                };
+            };
+        };
+    };
+    getExamStats: {
+        parameters: {
+            query?: {
+                exportXlsx?: boolean;
+            };
+            header?: never;
+            path: {
+                examUuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": Record<string, never>;
+                };
+            };
+        };
+    };
+    getExamResults: {
+        parameters: {
+            query?: {
+                exportXlsx?: boolean;
+            };
+            header?: never;
+            path: {
+                examUuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": Record<string, never>;
+                };
+            };
+        };
+    };
+    getExamRanking: {
+        parameters: {
+            query?: {
+                n?: number;
+                exportXlsx?: boolean;
+            };
+            header?: never;
+            path: {
+                examUuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": Record<string, never>;
                 };
             };
         };

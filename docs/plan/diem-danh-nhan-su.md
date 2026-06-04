@@ -12,7 +12,7 @@
 - Tách bạch UX điểm danh học sinh và nhân sự: hai vùng riêng, mở/đóng độc lập, không tranh chấp filter/search.
 - `RecordAttendancePanel` **chỉ chấm công** cho danh sách nhân sự được trả về từ `lesson.employee_assignments`. Việc gán nhân sự cho buổi học là trách nhiệm của luồng **thời khóa biểu** (template-level), không xử lý tại trang lesson-detail.
 - Trường hợp `lesson.employee_assignments` trống → hiển thị thông báo hướng dẫn user vào thời khóa biểu để gán, không có CTA "Thêm nhân sự" tại panel này.
-- Tái sử dụng tối đa pattern state machine của `AttendancePanel` (nháp `pendingTicks`, save batch, dirty count) để giảm chi phí maintain.
+- Tái sử dụng tối đa pattern state machine của `AttendancePanel` (Chưa mở `pendingTicks`, save batch, dirty count) để giảm chi phí maintain.
 
 ## 2. Phạm vi
 
@@ -157,9 +157,9 @@ return (
 - [ ] Đóng/mở mỗi dropdown độc lập, không ảnh hưởng filter/search trong panel còn lại.
 - [ ] `RecordAttendancePanel` khi `lesson.employee_assignments` trống → hiển thị empty state với thông báo "Hãy thêm nhân sự từ thời khóa biểu" (không có nút thêm).
 - [ ] Khi có nhân sự: render bảng với checkbox + Số tiết + OT cho từng người (không có cột Hành động xoá).
-- [ ] Tick / nhập số tiết / OT chỉ thay đổi state nháp; nút Lưu disabled khi không có diff.
+- [ ] Tick / nhập số tiết / OT chỉ thay đổi state Chưa mở; nút Lưu disabled khi không có diff.
 - [ ] Bấm Lưu phát đúng POST / PUT / DELETE theo diff; sau khi thành công bảng phản ánh state mới.
-- [ ] Hoàn tác xoá toàn bộ nháp, không gọi API.
+- [ ] Hoàn tác xoá toàn bộ Chưa mở, không gọi API.
 - [ ] Nếu lỗi 4xx/5xx riêng từng dòng: dòng đó hiển thị error pill, dòng khác vẫn lưu thành công.
 - [ ] Type-check (`pnpm run lint`) và build (`pnpm run build`) pass.
 

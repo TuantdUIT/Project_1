@@ -17,13 +17,13 @@ export default function Footer() {
               Nền tảng học tập trực tuyến hàng đầu Việt Nam, cung cấp lộ trình học tập tối ưu cho học sinh THPT chuẩn bị cho các kỳ thi quan trọng.
             </p>
             <div className="flex gap-4">
-              <a href="#" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-indigo-deep transition-colors">
+              <a href="#" className="w-10 h-10 rounded-full bg-blue-800 flex items-center justify-center hover:bg-indigo-deep transition-colors">
                 <Facebook size={18} />
               </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-indigo-deep transition-colors">
+              <a href="#" className="w-10 h-10 rounded-full bg-blue-800 flex items-center justify-center hover:bg-indigo-deep transition-colors">
                 <Youtube size={18} />
               </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-indigo-deep transition-colors">
+              <a href="#" className="w-10 h-10 rounded-full bg-blue-800 flex items-center justify-center hover:bg-indigo-deep transition-colors">
                 <Globe size={18} />
               </a>
             </div>

@@ -1,6 +1,6 @@
 import { type CSSProperties, useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router';
-import { BookOpen, CalendarDays, CalendarRange, ChevronDown, ClipboardList, DoorOpen, FileText, GraduationCap, GripVertical, Layers, LayoutDashboard, ReceiptText, School, Users } from 'lucide-react';
+import { BookOpen, CalendarDays, CalendarRange, ChevronDown, ClipboardList, DoorOpen, FileText, GraduationCap, GripVertical, Layers, LayoutDashboard, ReceiptText, ScanLine, School, Users } from 'lucide-react';
 import { paths } from '@/config/paths';
 
 const minSidebarWidth = 104;
@@ -74,11 +74,17 @@ export default function AdminPortalRoute() {
               ? 'Tuần học'
               : location.pathname.startsWith(paths.adminPortalClasses)
                 ? 'Lớp học'
-                : location.pathname.startsWith(paths.adminPortalExams)
+                : location.pathname.includes('/exam/exams/') && location.pathname.endsWith('/edit')
+                  ? 'Chỉnh sửa phòng thi'
+                  : location.pathname.startsWith(paths.adminPortalExamCreate)
+                  ? 'Tạo phòng thi mới'
+                  : location.pathname.startsWith(paths.adminPortalExams)
                   ? 'Quản lý phòng thi'
-                  : location.pathname.startsWith(paths.adminPortalExamQuestions)
-                    ? 'Ngân hàng câu hỏi'
-                    : 'Học sinh đăng ký';
+                  : location.pathname.startsWith(paths.adminPortalOmr)
+                    ? 'Chấm phiếu OMR'
+                    : location.pathname.startsWith(paths.adminPortalExamQuestions)
+                      ? 'Ngân hàng câu hỏi'
+                      : 'Đăng ký';
   const mainStyle = {
     '--admin-sidebar-width': `${sidebarWidth}px`,
     '--admin-content-gap': `${contentGap}px`,
@@ -112,7 +118,7 @@ export default function AdminPortalRoute() {
           ) : null}
         </div>
 
-        <nav className="mt-7 flex-1 px-3">
+        <nav className="mt-7 flex-1 overflow-y-auto px-3">
           {/* Management Services dropdown group */}
           <div>
             <button
@@ -254,6 +260,14 @@ export default function AdminPortalRoute() {
                 >
                   <DoorOpen size={18} className="shrink-0" />
                   {!isCompact ? <span className="truncate">Quản lý phòng thi</span> : null}
+                </NavLink>
+                <NavLink
+                  to={paths.adminPortalOmr}
+                  title={isCompact ? 'Chấm phiếu OMR' : undefined}
+                  className={({ isActive }) => navItemClass(isActive)}
+                >
+                  <ScanLine size={18} className="shrink-0" />
+                  {!isCompact ? <span className="truncate">Chấm phiếu OMR</span> : null}
                 </NavLink>
               </div>
             )}

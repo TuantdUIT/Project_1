@@ -45,7 +45,7 @@ async function loadScheduleRoute() {
  * Hàm sử dụng hàm này làm đầu vào: createBrowserRouter nhận hàm này trong field lazy của route /exam.
  */
 async function loadExamRoute() {
-  const module = await import('./routes/app/Exam_Services/exam');
+  const module = await import('./routes/app/Exam_Services/user/exam-process');
   return { Component: module.default };
 }
 
@@ -147,6 +147,21 @@ async function loadAdminQuestionsRoute() {
 
 async function loadAdminExamsRoute() {
   const module = await import('./routes/app/Exam_Services/admin/exams');
+  return { Component: module.default };
+}
+
+async function loadAdminOmrRoute() {
+  const module = await import('./routes/app/Exam_Services/admin/omr');
+  return { Component: module.default };
+}
+
+async function loadAdminExamCreateRoute() {
+  const module = await import('./routes/app/Exam_Services/admin/exam-create');
+  return { Component: module.default };
+}
+
+async function loadAdminExamEditRoute() {
+  const module = await import('./routes/app/Exam_Services/admin/exam-edit');
   return { Component: module.default };
 }
 
@@ -282,8 +297,20 @@ export const router = createBrowserRouter([
             lazy: loadAdminQuestionsRoute,
           },
           {
+            path: 'exam/omr',
+            lazy: loadAdminOmrRoute,
+          },
+          {
             path: 'exam/exams',
             lazy: loadAdminExamsRoute,
+          },
+          {
+            path: 'exam/exams/create',
+            lazy: loadAdminExamCreateRoute,
+          },
+          {
+            path: 'exam/exams/:examUuid/edit',
+            lazy: loadAdminExamEditRoute,
           },
         ],
       },

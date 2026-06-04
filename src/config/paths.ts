@@ -23,6 +23,9 @@ export const paths = {
   adminPortalLearningResources: '/admin-portal/learning-resources',
   adminPortalCosts: '/admin-portal/costs',
   adminPortalExamQuestions: '/admin-portal/exam/questions',
+  adminPortalOmr: '/admin-portal/exam/omr',
   adminPortalExams: '/admin-portal/exam/exams',
+  adminPortalExamCreate: '/admin-portal/exam/exams/create',
+  adminPortalExamEdit: (examUuid: string) => `/admin-portal/exam/exams/${examUuid}/edit`,
   login: '/',
 } as const;
