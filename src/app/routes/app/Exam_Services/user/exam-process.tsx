@@ -1,26 +1,29 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router';
 import { motion } from 'motion/react';
 import {
   FileText,
-  CheckCircle2,
   AlertCircle,
   BookOpen,
   Loader2,
   ChevronLeft,
   ChevronRight,
-  ShieldAlert,
+  CheckCircle2,
 } from 'lucide-react';
 import { useExamsQuery, useExamQuery, useStartAttemptMutation, useSubmitAttemptMutation, saveAnswer } from '@/features/Exam_Services/exam/api/exams';
-import { useProctoringEventsQuery, useProctoring } from '@/features/Exam_Services/proctoring';
+import { useProctoring } from '@/features/Exam_Services/proctoring';
 import type { ProctoringEventType } from '@/features/Exam_Services/proctoring';
 import type { Exam, ResAttemptQuestion } from '@/features/Exam_Services/exam/types';
 import { GRADE_DISPLAY_NAME_BY_ID } from '@/features/Management_Services/timetable-template/lib/supplement-grades';
 import { useAuth } from '@/lib/auth/auth-context';
+import { paths } from '@/config/paths';
 import type {
   FlatQ, QType, StandaloneQ, GroupQ, GroupOrigin, MCQOption,
-  AnswerMap, AnswerValue, GroupAnswer,
+  AnswerMap, AnswerValue,
 } from '@/features/Exam_Services/exam/components/exam-room/types';
 import { ExamRoomView } from '@/features/Exam_Services/exam/components/exam-room/ExamRoomView';
+import { buildSaveBody } from '@/features/Exam_Services/exam/components/exam-room/answer-codec';
+import { useAttemptAutosave } from '@/features/Exam_Services/exam/hooks/use-attempt-autosave';
 
 // ---------- constants ----------
 
@@ -186,7 +189,8 @@ function flattenAttemptQuestions(questions: ResAttemptQuestion[]): FlatQ[] {
 // ---------- main component ----------
 
 export default function ExamProcessRoute() {
-  const [view, setView]                         = useState<'wait' | 'detail' | 'room' | 'result'>('wait');
+  const navigate = useNavigate();
+  const [view, setView]                         = useState<'wait' | 'detail' | 'room'>('wait');
   const [selectedExam, setSelectedExam]         = useState<Exam | null>(null);
   const [attemptUuid, setAttemptUuid]           = useState<string | null>(null);
   const [attemptQuestions, setAttemptQuestions] = useState<ResAttemptQuestion[]>([]);
@@ -199,6 +203,7 @@ export default function ExamProcessRoute() {
 
   const startAttemptMutation  = useStartAttemptMutation();
   const submitAttemptMutation = useSubmitAttemptMutation();
+  const autosave              = useAttemptAutosave(attemptUuid);
 
   const handleViolationDetected = useCallback((type: ProctoringEventType) => {
     setLastViolation({ type, key: Date.now() });
@@ -209,10 +214,6 @@ export default function ExamProcessRoute() {
     enabled: view === 'room',
     onViolationDetected: handleViolationDetected,
   });
-
-  const { data: proctoringData, isLoading: proctoringLoading } = useProctoringEventsQuery(
-    view === 'result' ? attemptUuid : null,
-  );
 
   const { data: pageData, isLoading, isError } = useExamsQuery();
   const exams = pageData?.content ?? [];
@@ -231,7 +232,13 @@ export default function ExamProcessRoute() {
   useEffect(() => {
     if (view === 'room') {
       document.documentElement.requestFullscreen?.().catch(() => {});
-    } else if (document.fullscreenElement) {
+      return () => {
+        if (document.fullscreenElement) {
+          document.exitFullscreen?.();
+        }
+      };
+    }
+    if (document.fullscreenElement) {
       document.exitFullscreen?.();
     }
   }, [view]);
@@ -271,37 +278,34 @@ export default function ExamProcessRoute() {
 
   function handleAnswer(globalIndex: number, value: AnswerValue) {
     setAnswers((prev) => ({ ...prev, [globalIndex]: value }));
+    // Autosave xuống DB (student_answer) thay vì chỉ giữ trên RAM
+    const q = flatQuestions.find((fq) => fq.globalIndex === globalIndex);
+    if (q) {
+      const body = buildSaveBody(q, value);
+      if (body) autosave.schedule(body);
+    }
   }
 
   async function handleSubmit() {
     if (!attemptUuid || isSubmitting) return;
     setIsSubmitting(true);
     try {
-      const saveRequests = flatQuestions.flatMap((q) => {
-        const ans = answers[q.globalIndex];
-        if (ans === undefined || ans === null) return [];
+      // Đảm bảo mọi autosave đang chờ/đang chạy hoàn tất trước khi nộp
+      await autosave.flushAll();
 
-        if (q.kind === 'group') {
-          const ga = ans as GroupAnswer;
-          const rawAnswer = q.items
-            .map((item) => (ga[item.questionUuid] === true ? 'D' : 'S'))
-            .join('');
-          return [saveAnswer(attemptUuid!, {
-            questionUuid: q.questionUuid,
-            rawAnswer,
-          })];
-        }
-        return [saveAnswer(attemptUuid!, {
-          questionUuid: (q as StandaloneQ).questionUuid,
-          rawAnswer: String(ans),
-        })];
+      // Lưu lại toàn bộ đáp án lần cuối (lưới an toàn) — dùng chung mã hóa với autosave
+      const saveRequests = flatQuestions.flatMap((q) => {
+        const body = buildSaveBody(q, answers[q.globalIndex]);
+        return body ? [saveAnswer(attemptUuid!, body)] : [];
       });
 
       await Promise.all(saveRequests);
       await flushNow();
 
       submitAttemptMutation.mutate(attemptUuid, {
-        onSuccess: () => setView('result'),
+        onSuccess: (data) => {
+          navigate(paths.examResult(data.attemptUuid ?? attemptUuid), { replace: true });
+        },
         onSettled: () => setIsSubmitting(false),
       });
     } catch {
@@ -324,56 +328,6 @@ export default function ExamProcessRoute() {
         isSubmitting={isSubmitting}
         lastViolation={lastViolation}
       />
-    );
-  }
-
-  // ====================================================
-  // RESULT VIEW
-  // ====================================================
-  if (view === 'result') {
-    const violationCount = proctoringData?.violationCount ?? 0;
-    const hasViolation   = violationCount > 0;
-
-    return (
-      <div className="bg-slate-50 min-h-screen flex items-center justify-center p-8">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="bg-white rounded-3xl border border-slate-200 shadow-sm p-12 max-w-lg w-full text-center"
-        >
-          <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle2 className="text-emerald-500" size={40} />
-          </div>
-          <h1 className="text-3xl font-black text-slate-900 mb-2">Đã nộp bài!</h1>
-          <p className="text-slate-500 font-medium mb-8">{selectedExam?.examName}</p>
-
-          <div className={`rounded-2xl p-6 mb-8 border ${hasViolation ? 'bg-amber-50 border-amber-100' : 'bg-slate-50 border-slate-100'}`}>
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <ShieldAlert size={16} className={hasViolation ? 'text-amber-400' : 'text-slate-400'} />
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">
-                Vi phạm ghi nhận
-              </p>
-            </div>
-            {proctoringLoading ? (
-              <Loader2 size={28} className="animate-spin text-slate-300 mx-auto" />
-            ) : (
-              <>
-                <p className={`text-5xl font-black ${hasViolation ? 'text-amber-500' : 'text-slate-800'}`}>
-                  {violationCount}
-                </p>
-                <p className="text-xs font-medium text-slate-400 mt-1">sự kiện</p>
-              </>
-            )}
-          </div>
-
-          <button
-            onClick={() => { setView('wait'); setSelectedExam(null); setAttemptUuid(null); }}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-10 py-3 rounded-xl transition-colors w-full"
-          >
-            Về trang chủ
-          </button>
-        </motion.div>
-      </div>
     );
   }
 

@@ -49,6 +49,11 @@ async function loadExamRoute() {
   return { Component: module.default };
 }
 
+async function loadExamResultRoute() {
+  const module = await import('./routes/app/Exam_Services/user/exam-result');
+  return { Component: module.default };
+}
+
 /**
  * Ý nghĩa: Lazy-load route admin portal đã được RoleGuard bảo vệ.
  * Hàm sử dụng hàm này làm đầu vào: createBrowserRouter nhận hàm này trong field lazy của route /admin-portal.
@@ -130,6 +135,11 @@ async function loadAdminStudyWeekLessonDetailRoute() {
   return { Component: module.default };
 }
 
+async function loadAdminRecordAttendancesRoute() {
+  const module = await import('./routes/app/Management_Services/admin/record-attendances');
+  return { Component: module.default };
+}
+
 async function loadAdminCostsRoute() {
   const module = await import('./routes/app/Management_Services/admin/costs');
   return { Component: module.default };
@@ -200,6 +210,10 @@ export const router = createBrowserRouter([
           {
             path: 'exam',
             lazy: loadExamRoute,
+          },
+          {
+            path: 'exam/result/:attemptUuid',
+            lazy: loadExamResultRoute,
           },
         ],
       },
@@ -283,6 +297,10 @@ export const router = createBrowserRouter([
                 lazy: loadAdminStudyWeekLessonDetailRoute,
               },
             ],
+          },
+          {
+            path: 'record-attendances',
+            lazy: loadAdminRecordAttendancesRoute,
           },
           {
             path: 'learning-resources',

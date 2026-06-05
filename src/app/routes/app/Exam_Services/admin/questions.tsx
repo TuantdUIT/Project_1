@@ -7,6 +7,7 @@ import { useQuestionsQuery, useQuestionCountQuery, useUpdateQuestionMutation } f
 import type { Question, QuestionFilter, QuestionType, ReqMcOption, ReqUpdateQuestion } from '@/features/Exam_Services/question/types';
 import { CreateQuestionDialog } from '@/features/Exam_Services/question/components/create-question-dialog';
 import { MathRender, MathSourceField } from '@/features/Exam_Services/math';
+import { questionTypeLabel } from '@/features/Exam_Services/question/lib/question-type';
 import { GRADE_DISPLAY_NAME_BY_ID } from '@/features/Management_Services/timetable-template/lib/supplement-grades';
 
 const GRADE_OPTIONS = Object.entries(GRADE_DISPLAY_NAME_BY_ID).map(([id, name]) => ({
@@ -14,7 +15,6 @@ const GRADE_OPTIONS = Object.entries(GRADE_DISPLAY_NAME_BY_ID).map(([id, name]) 
   name,
 }));
 
-const TYPE_LABEL: Record<string, string> = { MCQ: 'MCQ', TFQ: 'TFQ', SAQ: 'SAQ' };
 const TYPE_COLOR: Record<string, string> = {
   MCQ: 'bg-blue-50 text-blue-600',
   TFQ: 'bg-violet-50 text-violet-600',
@@ -289,7 +289,7 @@ export default function AdminQuestionsRoute() {
                       <td className="px-4 py-3">
                         {q.questionType ? (
                           <span className={`px-2.5 py-1 rounded-lg text-xs font-black ${TYPE_COLOR[q.questionType] ?? ''}`}>
-                            {TYPE_LABEL[q.questionType]}
+                            {questionTypeLabel(q.questionType)}
                           </span>
                         ) : '—'}
                       </td>

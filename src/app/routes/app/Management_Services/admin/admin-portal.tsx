@@ -1,6 +1,6 @@
 import { type CSSProperties, useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router';
-import { BookOpen, CalendarDays, CalendarRange, ChevronDown, ClipboardList, DoorOpen, FileText, GraduationCap, GripVertical, Layers, LayoutDashboard, ReceiptText, ScanLine, School, Users } from 'lucide-react';
+import { BookOpen, CalendarDays, CalendarRange, ChevronDown, ClipboardList, DoorOpen, FileText, GraduationCap, GripVertical, Layers, LayoutDashboard, ReceiptText, ScanLine, School, UserRoundCheck, Users } from 'lucide-react';
 import { paths } from '@/config/paths';
 
 const minSidebarWidth = 104;
@@ -58,6 +58,7 @@ export default function AdminPortalRoute() {
   const studyWeeksLabel = isWide ? 'Tuần học (vận hành)' : 'Tuần học';
   const learningResourcesLabel = isWide ? 'Tài liệu học tập' : 'Học liệu';
   const costsLabel = 'Chi phí';
+  const recordAttendancesLabel = isWide ? 'Chấm công nhân sự' : 'Chấm công';
   const headerTitle = location.pathname.startsWith(paths.adminPortalOverview)
     ? 'Tổng quan'
     : location.pathname.startsWith(paths.adminPortalUsers)
@@ -68,6 +69,8 @@ export default function AdminPortalRoute() {
           ? 'Thời Khóa Biểu'
           : location.pathname.startsWith(paths.adminPortalLearningResources)
             ? 'Tài liệu học tập'
+          : location.pathname.startsWith(paths.adminPortalRecordAttendances)
+            ? 'Chấm công nhân sự'
           : location.pathname.startsWith(paths.adminPortalCosts)
             ? 'Chi phí'
             : location.pathname.startsWith(paths.adminPortalStudyWeeks)
@@ -199,6 +202,14 @@ export default function AdminPortalRoute() {
                 >
                   <CalendarDays size={18} className="shrink-0" />
                   {!isCompact ? <span className="truncate">{studyWeeksLabel}</span> : null}
+                </NavLink>
+                <NavLink
+                  to={paths.adminPortalRecordAttendances}
+                  title={isCompact ? recordAttendancesLabel : undefined}
+                  className={({ isActive }) => navItemClass(isActive)}
+                >
+                  <UserRoundCheck size={18} className="shrink-0" />
+                  {!isCompact ? <span className="truncate">{recordAttendancesLabel}</span> : null}
                 </NavLink>
                 <NavLink
                   to={paths.adminPortalLearningResources}

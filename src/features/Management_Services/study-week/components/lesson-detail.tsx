@@ -5,7 +5,6 @@ import { paths } from '@/config/paths';
 import AttendancePanel from '@/features/Management_Services/attendance/components/attendance-panel';
 import RecordAttendancePanel from '@/features/Management_Services/attendance/components/record-attendance-panel';
 import { useLessonQuery, useUpdateLesson } from '@/features/Management_Services/study-week/api/lessons';
-import { useLessonPersonnelByGrade } from '@/features/Management_Services/study-week/hooks/use-lesson-personnel-by-grade';
 import {
   DEFAULT_STUDY_WEEK_GRADE_ID,
   isStudyWeekGradeId,
@@ -108,10 +107,6 @@ export default function LessonDetail() {
   const lessonQuery = useLessonQuery(lessonUuid);
   const lesson = lessonQuery.data;
   const updateLesson = useUpdateLesson();
-  const personnelQuery = useLessonPersonnelByGrade(
-    lesson ? [lesson] : [],
-    isStudyWeekGradeId(numericGradeId) ? numericGradeId : undefined,
-  );
   const [isStudentOpen, setStudentOpen] = useState(true);
   const [isStaffOpen, setStaffOpen] = useState(false);
   const [endTimeValue, setEndTimeValue] = useState('');
@@ -140,9 +135,6 @@ export default function LessonDetail() {
   }
 
   const effectiveStatus = getEffectiveLessonStatus(lesson);
-  const templatePersonnel = lesson.lesson_uuid
-    ? personnelQuery.personnelByLessonUuid.get(lesson.lesson_uuid) ?? []
-    : [];
   const lessonGradeName = lesson.grade?.name ?? '-';
 
   if (lesson.study_week?.week_uuid && lesson.study_week.week_uuid !== weekUuid) {
@@ -248,12 +240,7 @@ export default function LessonDetail() {
         isOpen={isStaffOpen}
         onToggle={() => setStaffOpen((current) => !current)}
       >
-        <RecordAttendancePanel
-          lesson={lesson}
-          templatePersonnel={templatePersonnel}
-          isTemplatePersonnelLoading={personnelQuery.isLoading}
-          isTemplatePersonnelError={personnelQuery.isError}
-        />
+        <RecordAttendancePanel lesson={lesson} />
       </DropdownSection>
     </div>
   );

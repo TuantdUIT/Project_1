@@ -7,3 +7,4 @@ export type ReqUpdateAttendanceDTO = components['schemas']['ReqUpdateAttendanceD
 export type RecordAttendance = components['schemas']['ResRecordAttendanceDTO'];
 export type ReqCreateRecordAttendanceDTO = components['schemas']['ReqCreateRecordAttendanceDTO'];
 export type ReqUpdateRecordAttendanceDTO = components['schemas']['ReqUpdateRecordAttendanceDTO'];
+export type RecordAttendanceWeeklySummary = components['schemas']['ResRecordAttendanceWeeklySummaryDTO'];

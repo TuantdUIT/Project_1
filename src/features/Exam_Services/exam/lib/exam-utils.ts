@@ -33,18 +33,3 @@ export function joinDt(date: string, time: string): string | undefined {
 export function toInstant(value?: string): string | undefined {
   return value ? new Date(value).toISOString() : undefined;
 }
-
-export function calcEndTime(
-  startDate: string,
-  startTime: string,
-  durationMinutes: number,
-): { date: string; time: string } | null {
-  if (!startDate || !startTime || durationMinutes <= 0) return null;
-  // `${startDate}T${startTime}` không có Z → được hiểu là giờ local.
-  const end = new Date(new Date(`${startDate}T${startTime}`).getTime() + durationMinutes * 60_000);
-  // Lấy cả date lẫn time theo local để nhất quán (tránh lệch ngày quanh nửa đêm).
-  return {
-    date: `${end.getFullYear()}-${pad(end.getMonth() + 1)}-${pad(end.getDate())}`,
-    time: `${pad(end.getHours())}:${pad(end.getMinutes())}`,
-  };
-}

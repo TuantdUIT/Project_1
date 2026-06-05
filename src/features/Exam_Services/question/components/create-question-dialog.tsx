@@ -4,17 +4,12 @@ import { useCreateQuestionMutation } from '@/features/Exam_Services/question/api
 import type { Question, QuestionType, ReqCreateQuestion } from '@/features/Exam_Services/question/types';
 import { GRADE_DISPLAY_NAME_BY_ID } from '@/features/Management_Services/timetable-template/lib/supplement-grades';
 import { MathRender, MathSourceField } from '@/features/Exam_Services/math';
+import { QUESTION_TYPE_LABEL } from '@/features/Exam_Services/question/lib/question-type';
 
 const GRADE_OPTIONS = Object.entries(GRADE_DISPLAY_NAME_BY_ID).map(([id, name]) => ({
   id: Number(id),
   name,
 }));
-
-const TYPE_LABEL: Record<string, string> = {
-  MCQ: 'Trắc nghiệm',
-  TFQ: 'Đúng / Sai',
-  SAQ: 'Tự luận',
-};
 
 const EMPTY_FORM: ReqCreateQuestion = {
   gradeId: 0,
@@ -136,7 +131,7 @@ export function CreateQuestionDialog({ isOpen, onClose, onSuccess }: Props) {
                   >
                     <option value="MCQ">MCQ — Trắc nghiệm</option>
                     <option value="TFQ">TFQ — Đúng/Sai</option>
-                    <option value="SAQ">SAQ — Tự luận</option>
+                    <option value="SAQ">SAQ — Trả lời ngắn</option>
                   </select>
                 </div>
                 <div>
@@ -275,7 +270,7 @@ export function CreateQuestionDialog({ isOpen, onClose, onSuccess }: Props) {
 
             <div className="rounded-2xl border border-slate-200 bg-white p-6 space-y-5">
               <span className="inline-block rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-600">
-                Câu hỏi ({TYPE_LABEL[form.questionType ?? 'MCQ']})
+                Câu hỏi ({QUESTION_TYPE_LABEL[form.questionType ?? 'MCQ']})
               </span>
 
               <div className="text-base font-semibold text-slate-900 leading-relaxed">

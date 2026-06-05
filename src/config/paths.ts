@@ -4,6 +4,7 @@ export const paths = {
   courseDetail: (gradeId: string | number, lessonTypeId: string) => `/courses/${gradeId}/${lessonTypeId}`,
   schedule: '/schedule',
   exam: '/exam',
+  examResult: (attemptUuid: string) => `/exam/result/${attemptUuid}`,
   adminPortal: '/admin-portal',
   adminPortalOverview: '/admin-portal/overview',
   adminPortalRegistrations: '/admin-portal/registrations',
@@ -20,6 +21,7 @@ export const paths = {
     `/admin-portal/study-weeks/${weekUuid}/grade/${gradeId}`,
   adminPortalStudyWeekLesson: (weekUuid: string, gradeId: string | number, lessonUuid: string) =>
     `/admin-portal/study-weeks/${weekUuid}/grade/${gradeId}/lessons/${lessonUuid}`,
+  adminPortalRecordAttendances: '/admin-portal/record-attendances',
   adminPortalLearningResources: '/admin-portal/learning-resources',
   adminPortalCosts: '/admin-portal/costs',
   adminPortalExamQuestions: '/admin-portal/exam/questions',

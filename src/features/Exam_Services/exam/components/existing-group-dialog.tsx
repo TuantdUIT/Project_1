@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { X, Search, Loader2, Database } from 'lucide-react';
 import { useQuestionGroupsQuery, type ResQuestionGroup } from '@/features/Exam_Services/question-group/api/question-groups';
+import { questionTypeLabel } from '@/features/Exam_Services/question/lib/question-type';
+import { scoreForType, type TypeScoreConfig } from '@/features/Exam_Services/exam/lib/type-score';
 
 const TYPE_COLOR: Record<string, string> = {
   MCQ: 'bg-blue-50 text-blue-600',
@@ -14,6 +16,7 @@ const labelCls = 'block text-xs font-black text-slate-500 uppercase tracking-wid
 
 export type ExistingGroupPayload = {
   questionGroupUuid: string;
+  questionType?: 'MCQ' | 'TFQ' | 'SAQ';
   pickQuestionCount: number;
   scorePerQuestion: number;
   displayOrder: number;
@@ -23,11 +26,12 @@ type Props = {
   isOpen: boolean;
   nextDisplayOrder: number;
   linkedGroupUuids: string[];
+  typeScore: TypeScoreConfig;
   onClose: () => void;
   onConfirm: (payload: ExistingGroupPayload) => void;
 };
 
-export function ExistingGroupDialog({ isOpen, nextDisplayOrder, linkedGroupUuids, onClose, onConfirm }: Props) {
+export function ExistingGroupDialog({ isOpen, nextDisplayOrder, linkedGroupUuids, typeScore, onClose, onConfirm }: Props) {
   const [search, setSearch]               = useState('');
   const [selected, setSelected]           = useState<ResQuestionGroup | null>(null);
   const [pickQuestionCount, setPickCount] = useState(3);
@@ -55,6 +59,7 @@ export function ExistingGroupDialog({ isOpen, nextDisplayOrder, linkedGroupUuids
     if (!selected?.questionGroupUuid) return;
     onConfirm({
       questionGroupUuid: selected.questionGroupUuid,
+      questionType: selected.questionType,
       pickQuestionCount,
       scorePerQuestion,
       displayOrder,
@@ -109,7 +114,10 @@ export function ExistingGroupDialog({ isOpen, nextDisplayOrder, linkedGroupUuids
                 const isSelected = selected?.questionGroupUuid === g.questionGroupUuid;
                 return (
                   <button key={g.questionGroupUuid} type="button"
-                    onClick={() => setSelected(isSelected ? null : g)}
+                    onClick={() => {
+                      setSelected(isSelected ? null : g);
+                      if (!isSelected) setScore(scoreForType(typeScore, g.questionType));
+                    }}
                     className={`w-full text-left px-4 py-3 rounded-xl border transition-colors ${
                       isSelected ? 'border-blue-300 bg-blue-50' : 'border-slate-200 hover:bg-slate-50'
                     }`}>
@@ -118,7 +126,7 @@ export function ExistingGroupDialog({ isOpen, nextDisplayOrder, linkedGroupUuids
                       <div className="flex items-center gap-2 shrink-0">
                         {g.questionType && (
                           <span className={`px-1.5 py-0.5 rounded text-[10px] font-black ${TYPE_COLOR[g.questionType] ?? ''}`}>
-                            {g.questionType}
+                            {questionTypeLabel(g.questionType)}
                           </span>
                         )}
                         <span className="text-[10px] text-slate-400 font-bold">

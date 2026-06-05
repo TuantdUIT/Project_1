@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { X, Search, ChevronDown, ChevronUp, Loader2, Database } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { getQuestions } from '@/features/Exam_Services/question/api/questions';
 import type { Question } from '@/features/Exam_Services/question/types';
+import { questionTypeLabel } from '@/features/Exam_Services/question/lib/question-type';
+import { scoreForType, type TypeScoreConfig } from '@/features/Exam_Services/exam/lib/type-score';
 
 export type GroupForm = {
   groupName: string;
@@ -38,12 +40,22 @@ type Props = {
   isOpen: boolean;
   nextDisplayOrder: number;
   excludeUuids: string[];
+  typeScore: TypeScoreConfig;
   onClose: () => void;
   onConfirm: (form: GroupForm) => void;
 };
 
-export function CreateGroupDialog({ isOpen, nextDisplayOrder, excludeUuids, onClose, onConfirm }: Props) {
+export function CreateGroupDialog({ isOpen, nextDisplayOrder, excludeUuids, typeScore, onClose, onConfirm }: Props) {
   const [form, setForm] = useState<GroupForm>({ ...INIT, displayOrder: nextDisplayOrder });
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setForm((current) => ({
+      ...current,
+      displayOrder: nextDisplayOrder,
+      scorePerQuestion: scoreForType(typeScore, current.questionType),
+    }));
+  }, [isOpen, nextDisplayOrder, typeScore]);
 
   // Question bank state
   const [bankSearch, setBankSearch] = useState('');
@@ -64,7 +76,11 @@ export function CreateGroupDialog({ isOpen, nextDisplayOrder, excludeUuids, onCl
   if (!isOpen) return null;
 
   function handleClose() {
-    setForm({ ...INIT, displayOrder: nextDisplayOrder });
+    setForm({
+      ...INIT,
+      displayOrder: nextDisplayOrder,
+      scorePerQuestion: scoreForType(typeScore, INIT.questionType),
+    });
     setBankSearch('');
     setBankPage(0);
     setSelectedItems([]);
@@ -117,11 +133,18 @@ export function CreateGroupDialog({ isOpen, nextDisplayOrder, excludeUuids, onCl
             <div>
               <label className={labelCls}>Loại câu hỏi *</label>
               <select value={form.questionType}
-                onChange={(e) => setForm((f) => ({ ...f, questionType: e.target.value as GroupForm['questionType'] }))}
+                onChange={(e) => {
+                  const questionType = e.target.value as GroupForm['questionType'];
+                  setForm((f) => ({
+                    ...f,
+                    questionType,
+                    scorePerQuestion: scoreForType(typeScore, questionType),
+                  }));
+                }}
                 className={`${inputCls} bg-white`}>
-                <option value="MCQ">MCQ</option>
-                <option value="TFQ">TFQ</option>
-                <option value="SAQ">SAQ</option>
+                <option value="MCQ">MCQ — Trắc nghiệm</option>
+                <option value="TFQ">TFQ — Đúng/Sai</option>
+                <option value="SAQ">SAQ — Trả lời ngắn</option>
               </select>
             </div>
 
@@ -208,7 +231,7 @@ export function CreateGroupDialog({ isOpen, nextDisplayOrder, excludeUuids, onCl
                         <div className="flex items-center gap-2 mt-0.5">
                           {q.questionType && (
                             <span className={`px-1.5 py-0.5 rounded text-[10px] font-black ${TYPE_COLOR[q.questionType] ?? ''}`}>
-                              {q.questionType}
+                              {questionTypeLabel(q.questionType)}
                             </span>
                           )}
                           {q.questionTopic && (

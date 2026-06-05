@@ -1,7 +1,11 @@
-﻿import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { CheckCircle2, RefreshCw, RotateCcw, Save, UsersRound } from 'lucide-react';
-import { useToggleRecordAttendance } from '@/features/Management_Services/attendance/api/record-attendances';
-import type { EmployeeRATemplateItem } from '@/features/Management_Services/employee-ra-template/types';
+import {
+  useDeleteRecordAttendance,
+  useRecordAttendancesQuery,
+  useSaveRecordAttendance,
+} from '@/features/Management_Services/attendance/api/record-attendances';
+import type { RecordAttendance } from '@/features/Management_Services/attendance/types';
 import { UNASSIGNED_PERSONNEL_MESSAGE } from '@/features/Management_Services/study-week/lib/lesson-personnel';
 import type { Lesson } from '@/features/Management_Services/study-week/types';
 import { parseApiError } from '@/utils/api-errors';
@@ -36,24 +40,10 @@ function extractErrorMessage(error: unknown) {
 }
 
 function getDefaultLessonTime(lesson: Lesson) {
-  return lesson.lesson_type?.lesson_time ?? lesson.real_lesson_length ?? 0;
+  return lesson.real_lesson_length ?? lesson.lesson_type?.lesson_time ?? 0;
 }
 
-function buildAssigneeRows(
-  lesson: Lesson,
-  templatePersonnel: EmployeeRATemplateItem[] | undefined,
-): AssigneeRow[] {
-  if (templatePersonnel?.length) {
-    return templatePersonnel
-      .filter((personnel) => Boolean(personnel.user_uuid))
-      .map((personnel) => ({
-        userUuid: personnel.user_uuid ?? '',
-        fullName: personnel.full_name ?? personnel.email ?? 'Nhân sự',
-        email: personnel.email,
-        roleName: personnel.role_name,
-      }));
-  }
-
+function buildAssigneeRows(lesson: Lesson): AssigneeRow[] {
   return (lesson.employee_assignments ?? [])
     .filter((assignment) => Boolean(assignment.user_uuid))
     .map((assignment) => ({
@@ -64,47 +54,66 @@ function buildAssigneeRows(
     }));
 }
 
-export default function RecordAttendancePanel({
-  lesson,
-  templatePersonnel,
-  isTemplatePersonnelLoading = false,
-  isTemplatePersonnelError = false,
-}: {
-  lesson: Lesson;
-  templatePersonnel?: EmployeeRATemplateItem[];
-  isTemplatePersonnelLoading?: boolean;
-  isTemplatePersonnelError?: boolean;
-}) {
-  const initialAssignees = useMemo(
-    () => buildAssigneeRows(lesson, templatePersonnel),
-    [lesson, templatePersonnel],
+function findRecordForAssignee(records: RecordAttendance[], lessonUuid: string | undefined, userUuid: string) {
+  if (!lessonUuid) return undefined;
+
+  return records.find(
+    (record) => record.lesson?.lesson_uuid === lessonUuid && record.user?.user_uuid === userUuid,
   );
+}
+
+function hasRowChanged(row: RecordRow, pendingTick: boolean | undefined, pendingMetric: PendingMetrics | undefined) {
+  const nextTicked = pendingTick ?? row.currentlyTicked;
+  const nextLessonTime = pendingMetric?.lessonTime ?? row.initialLessonTime;
+  const nextOvertime = pendingMetric?.overtime ?? row.initialOvertime;
+
+  return (
+    nextTicked !== row.initiallyTicked
+    || (nextTicked && (nextLessonTime !== row.initialLessonTime || nextOvertime !== row.initialOvertime))
+  );
+}
+
+export default function RecordAttendancePanel({ lesson }: { lesson: Lesson }) {
+  const initialAssignees = useMemo(() => buildAssigneeRows(lesson), [lesson]);
   const defaultLessonTime = getDefaultLessonTime(lesson);
   const [assignees, setAssignees] = useState<AssigneeRow[]>([]);
   const [rows, setRows] = useState<Record<string, RecordRow>>({});
   const [pendingTicks, setPendingTicks] = useState<Record<string, boolean>>({});
   const [pendingMetrics, setPendingMetrics] = useState<Record<string, PendingMetrics>>({});
   const [toast, setToast] = useState<AttendanceToastState | null>(null);
-  const toggleRecordAttendance = useToggleRecordAttendance();
+  const recordsQuery = useRecordAttendancesQuery();
+  const saveRecordAttendance = useSaveRecordAttendance();
+  const deleteRecordAttendance = useDeleteRecordAttendance();
+  const isSaving = saveRecordAttendance.isPending || deleteRecordAttendance.isPending;
 
   useEffect(() => {
     setAssignees(initialAssignees);
     setRows(
       Object.fromEntries(
-        initialAssignees.map((assignee) => [
-          assignee.userUuid,
-          {
-            initiallyTicked: false,
-            currentlyTicked: false,
-            initialLessonTime: defaultLessonTime,
-            initialOvertime: 0,
-          },
-        ]),
+        initialAssignees.map((assignee) => {
+          const existingRecord = findRecordForAssignee(
+            recordsQuery.data ?? [],
+            lesson.lesson_uuid,
+            assignee.userUuid,
+          );
+          const isTicked = Boolean(existingRecord);
+
+          return [
+            assignee.userUuid,
+            {
+              initiallyTicked: isTicked,
+              currentlyTicked: isTicked,
+              initialLessonTime: existingRecord?.ra_lesson_time ?? defaultLessonTime,
+              initialOvertime: existingRecord?.ra_overtime ?? 0,
+              raAttdUuid: existingRecord?.ra_attd_uuid,
+            },
+          ];
+        }),
       ),
     );
     setPendingTicks({});
     setPendingMetrics({});
-  }, [defaultLessonTime, initialAssignees]);
+  }, [defaultLessonTime, initialAssignees, lesson.lesson_uuid, recordsQuery.data]);
 
   const presentCount = useMemo(
     () => Object.values(rows).filter((row) => row.currentlyTicked).length,
@@ -116,10 +125,9 @@ export default function RecordAttendancePanel({
         const row = rows[assignee.userUuid];
         if (!row) return false;
 
-        const nextTicked = pendingTicks[assignee.userUuid] ?? row.currentlyTicked;
-        return nextTicked !== row.initiallyTicked;
+        return hasRowChanged(row, pendingTicks[assignee.userUuid], pendingMetrics[assignee.userUuid]);
       }).length,
-    [assignees, pendingTicks, rows],
+    [assignees, pendingMetrics, pendingTicks, rows],
   );
 
   function showAttendanceToast(message: string, tone: AttendanceToastState['tone']) {
@@ -131,7 +139,7 @@ export default function RecordAttendancePanel({
       ...current,
       [userUuid]: {
         ...current[userUuid],
-        [field]: Math.max(value, 0),
+        [field]: field === 'lessonTime' ? Math.max(value, 0) : value,
       },
     }));
   }
@@ -155,14 +163,13 @@ export default function RecordAttendancePanel({
 
   async function saveDraft() {
     const lessonUuid = lesson.lesson_uuid;
-    if (!dirtyCount || toggleRecordAttendance.isPending || !lessonUuid) return;
+    if (!dirtyCount || isSaving || !lessonUuid) return;
 
     const changedAssignees = assignees.filter((assignee) => {
       const row = rows[assignee.userUuid];
       if (!row) return false;
 
-      const nextTicked = pendingTicks[assignee.userUuid] ?? row.currentlyTicked;
-      return nextTicked !== row.initiallyTicked;
+      return hasRowChanged(row, pendingTicks[assignee.userUuid], pendingMetrics[assignee.userUuid]);
     });
 
     if (!changedAssignees.length) return;
@@ -187,13 +194,16 @@ export default function RecordAttendancePanel({
         if (!row) {
           throw new Error('Không tìm thấy dòng điểm danh nhân sự.');
         }
-        if (row.initiallyTicked && !row.raAttdUuid) {
-          throw new Error('Không tìm thấy mã điểm danh để bỏ điểm danh nhân sự này.');
+
+        const nextTicked = pendingTicks[assignee.userUuid] ?? row.currentlyTicked;
+        if (!nextTicked) {
+          if (!row.raAttdUuid) return Promise.resolve(undefined);
+          return deleteRecordAttendance.mutateAsync(row.raAttdUuid);
         }
 
-        return toggleRecordAttendance.toggle({
-          currentRaUuid: row.initiallyTicked ? row.raAttdUuid : undefined,
-          createPayload: {
+        return saveRecordAttendance.mutateAsync({
+          raAttdUuid: row.raAttdUuid,
+          body: {
             userUuid: assignee.userUuid,
             lessonUuid,
             lessonTime: metrics.lessonTime ?? row.initialLessonTime ?? defaultLessonTime,
@@ -207,20 +217,23 @@ export default function RecordAttendancePanel({
     const failedUserUuids = new Set<string>();
     let checkedCount = 0;
     let uncheckedCount = 0;
+    let updatedCount = 0;
 
     results.forEach((result, index) => {
       const assignee = changedAssignees[index];
       if (!assignee) return;
       const row = rows[assignee.userUuid];
       if (!row) return;
+      const nextTicked = pendingTicks[assignee.userUuid] ?? row.currentlyTicked;
 
       if (result.status === 'fulfilled') {
         const metrics = pendingMetrics[assignee.userUuid] ?? {};
-        const nextTicked = !row.initiallyTicked;
-        if (nextTicked) {
+        if (nextTicked && !row.initiallyTicked) {
           checkedCount += 1;
-        } else {
+        } else if (!nextTicked && row.initiallyTicked) {
           uncheckedCount += 1;
+        } else if (nextTicked) {
+          updatedCount += 1;
         }
 
         successPatches[assignee.userUuid] = {
@@ -228,7 +241,7 @@ export default function RecordAttendancePanel({
           currentlyTicked: nextTicked,
           initialLessonTime: metrics.lessonTime ?? row.initialLessonTime ?? defaultLessonTime,
           initialOvertime: metrics.overtime ?? row.initialOvertime ?? 0,
-          raAttdUuid: nextTicked ? result.value?.ra_attd_uuid : undefined,
+          raAttdUuid: nextTicked ? (result.value as RecordAttendance | undefined)?.ra_attd_uuid ?? row.raAttdUuid : undefined,
           error: undefined,
         };
         return;
@@ -236,7 +249,7 @@ export default function RecordAttendancePanel({
 
       failedUserUuids.add(assignee.userUuid);
       successPatches[assignee.userUuid] = {
-        currentlyTicked: true,
+        currentlyTicked: nextTicked,
         error: extractErrorMessage(result.reason),
       };
     });
@@ -277,6 +290,9 @@ export default function RecordAttendancePanel({
     if (uncheckedCount) {
       showAttendanceToast(`Bỏ điểm danh ${uncheckedCount} nhân sự`, 'warning');
     }
+    if (updatedCount) {
+      showAttendanceToast(`Cập nhật ${updatedCount} bản ghi chấm công`, 'success');
+    }
   }
 
   return (
@@ -293,7 +309,7 @@ export default function RecordAttendancePanel({
           <button
             type="button"
             onClick={resetChanges}
-            disabled={toggleRecordAttendance.isPending || !dirtyCount}
+            disabled={isSaving || !dirtyCount}
             className="inline-flex h-12 items-center gap-3 rounded-xl border border-slate-200 bg-white px-5 text-[15px] font-extrabold text-slate-700 transition hover:border-[#1870FF] hover:text-[#1870FF] disabled:cursor-not-allowed disabled:opacity-50"
           >
             <RotateCcw size={20} />
@@ -302,20 +318,20 @@ export default function RecordAttendancePanel({
           <button
             type="button"
             onClick={saveDraft}
-            disabled={toggleRecordAttendance.isPending || !dirtyCount}
+            disabled={isSaving || !dirtyCount}
             className="inline-flex h-12 items-center gap-3 rounded-xl bg-[#1870FF] px-6 text-[15px] font-extrabold text-white shadow-[0_14px_26px_rgba(24,112,255,0.28)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {toggleRecordAttendance.isPending ? <RefreshCw size={20} className="animate-spin" /> : <Save size={20} />}
+            {isSaving ? <RefreshCw size={20} className="animate-spin" /> : <Save size={20} />}
             Lưu thay đổi
           </button>
         </div>
       </div>
 
-      {isTemplatePersonnelLoading ? (
+      {recordsQuery.isLoading ? (
         <div className="rounded-2xl border border-slate-200 bg-white px-5 py-8 text-center text-[14px] font-bold text-slate-500">
-          Đang tải nhân sự...
+          Đang tải dữ liệu chấm công...
         </div>
-      ) : assignees.length && !isTemplatePersonnelError ? (
+      ) : assignees.length ? (
         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[820px] text-left">
@@ -369,13 +385,12 @@ export default function RecordAttendancePanel({
                           value={lessonTime}
                           onChange={(event) => updateMetric(assignee.userUuid, 'lessonTime', Number(event.target.value))}
                           className={numberInputClass}
-                          aria-label={`Số tiết của ${assignee.fullName}`}
+                          aria-label={`Số phút của ${assignee.fullName}`}
                         />
                       </td>
                       <td className="px-5 py-4">
                         <input
                           type="number"
-                          min={0}
                           value={overtime}
                           onChange={(event) => updateMetric(assignee.userUuid, 'overtime', Number(event.target.value))}
                           className={numberInputClass}
@@ -383,11 +398,10 @@ export default function RecordAttendancePanel({
                         />
                       </td>
                       <td className="px-5 py-4">
-                        <span className={`inline-flex rounded-full px-4 py-1.5 text-[13px] font-black ${
-                          isTicked
-                            ? 'bg-emerald-50 text-emerald-700'
-                            : 'bg-slate-100 text-slate-600'
-                        }`}
+                        <span
+                          className={`inline-flex rounded-full px-4 py-1.5 text-[13px] font-black ${
+                            isTicked ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'
+                          }`}
                         >
                           {isTicked ? 'Có mặt' : 'Chưa có'}
                         </span>

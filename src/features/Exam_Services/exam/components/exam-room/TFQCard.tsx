@@ -1,4 +1,5 @@
 import { MathRender } from '@/features/Exam_Services/math';
+import { QUESTION_TYPE_LABEL } from '@/features/Exam_Services/question/lib/question-type';
 import type { FlatQ, AnswerMap, GroupAnswer, AnswerValue } from './types';
 
 interface Props {
@@ -20,7 +21,7 @@ export function TFQCard({ q, displayIndex, answers, onChange }: Props) {
       <div className="px-6 py-3.5 border-b border-slate-100">
         <span className="text-sm font-bold text-indigo-600">Câu {displayIndex}</span>
         <span className="text-slate-300 mx-2">•</span>
-        <span className="text-sm text-slate-400 font-medium">Đúng / Sai</span>
+        <span className="text-sm text-slate-400 font-medium">{QUESTION_TYPE_LABEL.TFQ}</span>
         <span className="text-slate-300 mx-2">•</span>
         <span className="text-sm text-slate-400 font-medium">{scoreLabel}</span>
       </div>

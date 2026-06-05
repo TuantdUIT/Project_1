@@ -23,6 +23,10 @@ export function getUserByUuid(userUuid: string) {
   return apiClient.get<ResUserDTO | null>(`/api/v1/users/${userUuid}`);
 }
 
+export function getNonStudentUsers() {
+  return apiClient.get<ResUserDTO[]>('/api/v1/users/non-students');
+}
+
 export function createUser(body: ReqCreateUserDTO) {
   return apiClient.post<ResUserDTO>('/api/v1/users', body);
 }
@@ -47,6 +51,13 @@ export function useUserDetailQuery(userUuid?: string) {
     queryKey: ['admin', 'users', userUuid],
     queryFn: () => getUserByUuid(userUuid ?? ''),
     enabled: Boolean(userUuid),
+  });
+}
+
+export function useNonStudentUsersQuery() {
+  return useQuery({
+    queryKey: ['admin', 'users', 'non-students'],
+    queryFn: getNonStudentUsers,
   });
 }
 

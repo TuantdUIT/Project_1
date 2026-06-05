@@ -4,6 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import { useCreateQuestionMutation, getQuestions } from '@/features/Exam_Services/question/api/questions';
 import type { Question, ReqCreateQuestion } from '@/features/Exam_Services/question/types';
 import { GRADE_DISPLAY_NAME_BY_ID } from '@/features/Management_Services/timetable-template/lib/supplement-grades';
+import { questionTypeLabel } from '@/features/Exam_Services/question/lib/question-type';
+import { scoreForType, type TypeScoreConfig } from '@/features/Exam_Services/exam/lib/type-score';
 
 export type ExamQuestionItem = {
   questionUuid?: string;
@@ -67,6 +69,7 @@ const labelCls = 'block text-xs font-black text-slate-500 uppercase tracking-wid
 type Props = {
   isOpen: boolean;
   nextOrder: number;
+  typeScore: TypeScoreConfig;
   onClose: () => void;
   onConfirm: (items: ExamQuestionItem[]) => void;
 };
@@ -111,7 +114,7 @@ const TYPE_COLOR: Record<string, string> = {
   SAQ: 'bg-orange-50 text-orange-600',
 };
 
-export function AddQuestionDialog({ isOpen, nextOrder, onClose, onConfirm }: Props) {
+export function AddQuestionDialog({ isOpen, nextOrder, typeScore, onClose, onConfirm }: Props) {
   const [tab, setTab] = useState<Tab>('QUESTION_BANK');
   const [mf, setMf] = useState<ManualForm>(INIT_MANUAL);
 
@@ -162,7 +165,7 @@ export function AddQuestionDialog({ isOpen, nextOrder, onClose, onConfirm }: Pro
           questionUuid:  q.questionUuid,
           questionOrder: nextOrder + i,
           content:       q.questionContent ?? '',
-          score:         1.0,
+          score:         scoreForType(typeScore, q.questionType),
           sectionType:   (q.questionType ?? 'MCQ') as ExamQuestionItem['sectionType'],
           sourceType:    'QUESTION_BANK',
         })),
@@ -176,7 +179,7 @@ export function AddQuestionDialog({ isOpen, nextOrder, onClose, onConfirm }: Pro
           questionUuid:  data.questionUuid,
           questionOrder: nextOrder,
           content:       mf.questionContent,
-          score:         1.0,
+          score:         scoreForType(typeScore, mf.questionType),
           sectionType:   mf.questionType,
           sourceType:    'MANUAL',
         }]);
@@ -247,7 +250,7 @@ export function AddQuestionDialog({ isOpen, nextOrder, onClose, onConfirm }: Pro
                   >
                     <option value="MCQ">MCQ — Trắc nghiệm</option>
                     <option value="TFQ">TFQ — Đúng/Sai</option>
-                    <option value="SAQ">SAQ — Tự luận</option>
+                    <option value="SAQ">SAQ — Trả lời ngắn</option>
                   </select>
                 </div>
                 <div>
@@ -473,7 +476,7 @@ export function AddQuestionDialog({ isOpen, nextOrder, onClose, onConfirm }: Pro
                             <div className="flex items-center gap-2 mt-0.5">
                               {q.questionType && (
                                 <span className={`px-1.5 py-0.5 rounded text-[10px] font-black ${TYPE_COLOR[q.questionType] ?? ''}`}>
-                                  {q.questionType}
+                                  {questionTypeLabel(q.questionType)}
                                 </span>
                               )}
                               {q.questionTopic && (

@@ -4,10 +4,16 @@ import { TimePicker } from 'antd';
 import dayjs from 'dayjs';
 import { ArrowLeft, Loader2, AlertCircle } from 'lucide-react';
 import { useCreateExamMutation } from '@/features/Exam_Services/exam/api/exams';
-import { calcEndTime, splitDt, joinDt, toInstant } from '@/features/Exam_Services/exam/lib/exam-utils';
+import { splitDt, joinDt, toInstant } from '@/features/Exam_Services/exam/lib/exam-utils';
 import type { ExamStatus, ExamType, ReqCreateExam } from '@/features/Exam_Services/exam/types';
 import { GRADE_DISPLAY_NAME_BY_ID } from '@/features/Management_Services/timetable-template/lib/supplement-grades';
 import { paths } from '@/config/paths';
+import {
+  DEFAULT_TYPE_SCORE,
+  QUESTION_TYPES,
+  type TypeScoreConfig,
+} from '@/features/Exam_Services/exam/lib/type-score';
+import { questionTypeLabel } from '@/features/Exam_Services/question/lib/question-type';
 
 const GRADE_OPTIONS = Object.entries(GRADE_DISPLAY_NAME_BY_ID).map(([id, name]) => ({ id: Number(id), name }));
 
@@ -31,7 +37,7 @@ const EMPTY_FORM: ReqCreateExam = {
   schoolYear: '',
   examType: 'QUIZ',
   durationMinutes: 45,
-  totalScore: 10,
+  totalScore: 0,
   numberOfAttempt: 1,
   status: 'DRAFT',
   startTime: undefined,
@@ -45,6 +51,7 @@ const EMPTY_FORM: ReqCreateExam = {
 };
 
 const inputCls = 'w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-400';
+const numberInputCls = `${inputCls} [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none`;
 const labelCls = 'block text-xs font-black text-slate-500 uppercase tracking-wider mb-1.5';
 const cardCls = 'bg-white rounded-2xl border border-slate-200 shadow-sm';
 
@@ -53,25 +60,27 @@ export default function AdminExamCreateRoute() {
   const [form, setForm] = useState<ReqCreateExam>(EMPTY_FORM);
   const [startTimePart, setStartTimePart] = useState('');
   const [endTimePart, setEndTimePart] = useState('');
+  const [typeScore, setTypeScore] = useState<TypeScoreConfig>(DEFAULT_TYPE_SCORE);
   const createMutation = useCreateExamMutation();
 
-  function autoFillEnd(startDate: string, startTime: string, duration: number) {
-    const result = calcEndTime(startDate, startTime, duration);
-    if (!result) return;
-    setForm((f) => ({ ...f, endTime: result.date }));
-    setEndTimePart(result.time);
-  }
+  // Giờ mở & giờ đóng là 2 mốc độc lập (sớm nhất để vào thi / trễ nhất để nộp).
+  const startInstant = toInstant(joinDt(splitDt(form.startTime).date, startTimePart));
+  const endInstant   = toInstant(joinDt(splitDt(form.endTime).date,   endTimePart));
+  const timeRangeInvalid =
+    !!startInstant && !!endInstant && new Date(startInstant) >= new Date(endInstant);
 
   function handleSubmit() {
+    if (timeRangeInvalid) return;
     const payload: ReqCreateExam = {
       ...form,
-      startTime: toInstant(joinDt(splitDt(form.startTime).date, startTimePart)),
-      endTime:   toInstant(joinDt(splitDt(form.endTime).date,   endTimePart)),
+      totalScore: 0,
+      startTime: startInstant,
+      endTime:   endInstant,
       examQuestions: [],
       examQuestionGroups: [],
     };
     createMutation.mutate(payload, {
-      onSuccess: (data) => navigate(paths.adminPortalExamEdit(data.examUuid ?? '')),
+      onSuccess: (data) => navigate(paths.adminPortalExamEdit(data.examUuid ?? ''), { state: { typeScore } }),
     });
   }
 
@@ -172,10 +181,10 @@ export default function AdminExamCreateRoute() {
               <div>
                 <label className={labelCls}>Tổng điểm *</label>
                 <input
-                  type="number" min={0.01} step="0.01"
-                  value={form.totalScore}
-                  onChange={(e) => setForm((f) => ({ ...f, totalScore: Number(e.target.value) }))}
-                  className={inputCls}
+                  type="number" min={0} step="0.01"
+                  value={0}
+                  disabled
+                  className={`${numberInputCls} bg-slate-100 text-slate-500 cursor-not-allowed`}
                 />
               </div>
             </div>
@@ -186,12 +195,8 @@ export default function AdminExamCreateRoute() {
                 <input
                   type="number" min={0}
                   value={form.durationMinutes}
-                  onChange={(e) => {
-                    const duration = Number(e.target.value);
-                    setForm((f) => ({ ...f, durationMinutes: duration }));
-                    autoFillEnd(splitDt(form.startTime).date, startTimePart, duration);
-                  }}
-                  className={inputCls}
+                  onChange={(e) => setForm((f) => ({ ...f, durationMinutes: Number(e.target.value) }))}
+                  className={numberInputCls}
                 />
               </div>
               <div>
@@ -200,7 +205,7 @@ export default function AdminExamCreateRoute() {
                   type="number" min={0}
                   value={form.numberOfAttempt}
                   onChange={(e) => setForm((f) => ({ ...f, numberOfAttempt: Number(e.target.value) }))}
-                  className={inputCls}
+                  className={numberInputCls}
                 />
               </div>
             </div>
@@ -212,21 +217,13 @@ export default function AdminExamCreateRoute() {
                   <input
                     type="date"
                     value={splitDt(form.startTime).date}
-                    onChange={(e) => {
-                      const date = e.target.value;
-                      setForm((f) => ({ ...f, startTime: date || undefined }));
-                      autoFillEnd(date, startTimePart, form.durationMinutes);
-                    }}
+                    onChange={(e) => setForm((f) => ({ ...f, startTime: e.target.value || undefined }))}
                     className="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-400"
                   />
                   <TimePicker
                     format="HH:mm"
                     value={startTimePart ? dayjs(startTimePart, 'HH:mm') : null}
-                    onChange={(t) => {
-                      const time = t ? t.format('HH:mm') : '';
-                      setStartTimePart(time);
-                      autoFillEnd(splitDt(form.startTime).date, time, form.durationMinutes);
-                    }}
+                    onChange={(t) => setStartTimePart(t ? t.format('HH:mm') : '')}
                     className="w-24"
                     size="middle"
                   />
@@ -255,10 +252,30 @@ export default function AdminExamCreateRoute() {
           </div>
         </div>
 
-        {/* 2. Cấu hình chấm điểm TFQ */}
+        {/* 2. Cấu hình chấm điểm */}
         <div className={`${cardCls} p-6`}>
-          <h2 className="text-base font-black text-slate-900 mb-1">2. Cấu hình chấm điểm đúng/sai (TFQ)</h2>
-          <p className="text-xs text-slate-400 mb-5">Áp dụng cho câu hỏi dạng Đúng/Sai (TFQ).</p>
+          <h2 className="text-base font-black text-slate-900 mb-1">2. Cấu hình chấm điểm</h2>
+          <p className="text-xs text-slate-400 mb-4">Điểm mặc định sẽ được áp dụng khi thêm câu hỏi sau khi tạo bài thi.</p>
+          <div className="grid grid-cols-3 gap-3 mb-6">
+            {QUESTION_TYPES.map((type) => (
+              <div key={type} className="rounded-xl border border-slate-200 bg-slate-50/60 p-3">
+                <label className={labelCls}>{questionTypeLabel(type)}</label>
+                <div className="flex items-center gap-1.5">
+                  <input
+                    type="number" min={0.01} step="0.1"
+                    value={typeScore[type] ?? ''}
+                    onChange={(e) => setTypeScore((current) => ({
+                      ...current,
+                      [type]: e.target.value === '' ? null : Number(e.target.value),
+                    }))}
+                    className="min-w-0 flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-400"
+                  />
+                  <span className="text-xs font-bold text-slate-400 shrink-0">điểm/câu</span>
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className="text-xs font-black text-slate-500 uppercase tracking-wider mb-3">Tỉ lệ điểm Đúng/Sai theo số ý đúng</p>
           <div className="grid grid-cols-4 gap-3">
             {(
               [
@@ -287,7 +304,13 @@ export default function AdminExamCreateRoute() {
       </div>
 
       {/* Footer */}
-      <div className="flex justify-end gap-3 pb-4 max-w-2xl">
+      <div className="flex items-center justify-end gap-3 pb-4 max-w-2xl">
+        {timeRangeInvalid && (
+          <p className="mr-auto flex items-center gap-1.5 text-sm font-bold text-red-500">
+            <AlertCircle size={14} />
+            Thời gian mở phải trước thời gian đóng.
+          </p>
+        )}
         <button
           type="button"
           onClick={() => navigate(paths.adminPortalExams)}
@@ -298,8 +321,8 @@ export default function AdminExamCreateRoute() {
         <button
           type="button"
           onClick={handleSubmit}
-          disabled={createMutation.isPending}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-bold px-6 py-2.5 rounded-xl transition-colors shadow-sm shadow-blue-200"
+          disabled={createMutation.isPending || timeRangeInvalid}
+          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold px-6 py-2.5 rounded-xl transition-colors shadow-sm shadow-blue-200"
         >
           {createMutation.isPending && <Loader2 size={15} className="animate-spin" />}
           Tạo & thêm câu hỏi

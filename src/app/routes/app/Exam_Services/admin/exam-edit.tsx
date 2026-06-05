@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router';
+import { useEffect, useRef, useState } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router';
 import { TimePicker } from 'antd';
 import dayjs from 'dayjs';
 import { ArrowLeft, Plus, Info, Loader2, AlertCircle, CheckCircle2, FileBarChart } from 'lucide-react';
 import { useToastExam } from '@/hooks/hook_ES/use-toast-exam';
 import { useExamQuery, useUpdateExamMutation } from '@/features/Exam_Services/exam/api/exams';
-import { calcEndTime, splitDt, joinDt, toInstant } from '@/features/Exam_Services/exam/lib/exam-utils';
+import { splitDt, joinDt, toInstant } from '@/features/Exam_Services/exam/lib/exam-utils';
+import { questionTypeLabel } from '@/features/Exam_Services/question/lib/question-type';
 import type {
   Exam,
   ExamStatus,
@@ -13,7 +14,6 @@ import type {
   ReqUpdateExam,
   ReqExamQuestion,
   ReqExamQuestionGroup,
-  ResExamGroup,
 } from '@/features/Exam_Services/exam/types';
 import { AddQuestionDialog, type ExamQuestionItem } from '@/features/Exam_Services/exam/components/add-question-dialog';
 import { CreateGroupDialog, type GroupForm } from '@/features/Exam_Services/exam/components/create-group-dialog';
@@ -21,6 +21,17 @@ import { ExistingGroupDialog, type ExistingGroupPayload } from '@/features/Exam_
 import { ExamResultsDialog } from '@/features/Exam_Services/exam/components/exam-results-dialog';
 import { GRADE_DISPLAY_NAME_BY_ID } from '@/features/Management_Services/timetable-template/lib/supplement-grades';
 import { paths } from '@/config/paths';
+import {
+  DEFAULT_TYPE_SCORE,
+  QUESTION_TYPES,
+  calculateExamTotalScore,
+  getExamGroups,
+  getStandaloneQuestions,
+  inferTypeScore,
+  scoreForType,
+  type QuestionType,
+  type TypeScoreConfig,
+} from '@/features/Exam_Services/exam/lib/type-score';
 
 const GRADE_OPTIONS = Object.entries(GRADE_DISPLAY_NAME_BY_ID).map(([id, name]) => ({ id: Number(id), name }));
 
@@ -56,51 +67,46 @@ const SOURCE_TYPE_COLOR: Record<string, string> = {
   IMPORTED: 'bg-orange-50 text-orange-600',
 };
 
-function getStandaloneQuestions(exam: Exam) {
-  return (exam.questionSections ?? [])
-    .flatMap((s) => s.standaloneQuestions ?? [])
-    .sort((a, b) => (a.questionOrder ?? 0) - (b.questionOrder ?? 0));
-}
-
-function buildExamQuestionsPayload(exam: Exam): ReqExamQuestion[] {
+function buildExamQuestionsPayload(exam: Exam, typeScore: TypeScoreConfig): ReqExamQuestion[] {
   return getStandaloneQuestions(exam).map((q) => ({
     questionUuid:  q.questionUuid  ?? '',
     questionOrder: q.questionOrder ?? 0,
-    score:         q.score         ?? 1,
+    score:         scoreForType(typeScore, q.sectionType, q.score ?? 1),
     sectionType:   (q.sectionType  ?? 'MCQ') as 'MCQ' | 'TFQ' | 'SAQ',
     sourceType:    (q.sourceType   ?? 'MANUAL') as 'MANUAL' | 'QUESTION_BANK' | 'IMPORTED',
   }));
 }
 
-function getExamGroups(exam: Exam): ResExamGroup[] {
-  return (exam.questionSections ?? []).flatMap((s) => s.groups ?? []);
-}
-
-function buildExamGroupsPayload(exam: Exam): ReqExamQuestionGroup[] {
+function buildExamGroupsPayload(exam: Exam, typeScore: TypeScoreConfig): ReqExamQuestionGroup[] {
   return getExamGroups(exam).map((g) => ({
     questionGroupUuid: g.questionGroupUuid,
     pickQuestionCount: g.pickQuestionCount ?? 0,
-    scorePerQuestion:  g.scorePerQuestion  ?? 1,
+    scorePerQuestion:  scoreForType(typeScore, g.questionType, g.scorePerQuestion ?? 1),
     displayOrder:      g.displayOrder      ?? 0,
   }));
 }
 
 const inputCls = 'w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-400';
+const numberInputCls = `${inputCls} [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none`;
 const labelCls = 'block text-xs font-black text-slate-500 uppercase tracking-wider mb-1.5';
 const cardCls = 'bg-white rounded-2xl border border-slate-200 shadow-sm';
 
 export default function AdminExamEditRoute() {
   const { examUuid } = useParams<{ examUuid: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const carriedTypeScore = (location.state as { typeScore?: TypeScoreConfig } | null)?.typeScore;
 
   const { data: exam, isLoading, isError } = useExamQuery(examUuid ?? '');
   const [form, setForm] = useState<ReqUpdateExam | null>(null);
   const [startTimePart, setStartTimePart] = useState('');
   const [endTimePart, setEndTimePart] = useState('');
+  const [typeScore, setTypeScore] = useState<TypeScoreConfig>(carriedTypeScore ?? DEFAULT_TYPE_SCORE);
   const [isAddQOpen, setIsAddQOpen] = useState(false);
   const [isCreateGroupOpen, setIsCreateGroupOpen]   = useState(false);
   const [isUseExistingOpen, setIsUseExistingOpen]   = useState(false);
   const [isResultsOpen, setIsResultsOpen]           = useState(false);
+  const initializedTypeScoreForExam = useRef<string | null>(null);
 
   const updateMutation = useUpdateExamMutation();
   const { toasts, show: showToast } = useToastExam();
@@ -125,14 +131,18 @@ export default function AdminExamEditRoute() {
     });
     setStartTimePart(splitDt(exam.startTime).time);
     setEndTimePart(splitDt(exam.endTime).time);
-  }, [exam]);
-
-  function autoFillEnd(startDate: string, startTime: string, duration: number) {
-    const result = calcEndTime(startDate, startTime, duration);
-    if (!result) return;
-    setForm((f) => (f ? { ...f, endTime: result.date } : f));
-    setEndTimePart(result.time);
-  }
+    if (initializedTypeScoreForExam.current !== examUuid) {
+      const inferred = inferTypeScore(exam);
+      setTypeScore(
+        carriedTypeScore
+          ? Object.fromEntries(
+              QUESTION_TYPES.map((type) => [type, inferred[type] ?? carriedTypeScore[type]]),
+            ) as TypeScoreConfig
+          : inferred,
+      );
+      initializedTypeScoreForExam.current = examUuid ?? null;
+    }
+  }, [carriedTypeScore, exam, examUuid]);
 
   function buildBasePayload(): ReqUpdateExam {
     return {
@@ -142,22 +152,33 @@ export default function AdminExamEditRoute() {
     };
   }
 
+  function buildPayloadWithContent(
+    examQuestions: ReqExamQuestion[],
+    examQuestionGroups: ReqExamQuestionGroup[],
+  ): ReqUpdateExam {
+    return {
+      ...buildBasePayload(),
+      totalScore: calculateExamTotalScore(examQuestions, examQuestionGroups),
+      examQuestions,
+      examQuestionGroups,
+    };
+  }
+
   function handleQuestionConfirm(items: ExamQuestionItem[]) {
     if (!form || !examUuid || !exam || items.length === 0) return;
-    const existing = buildExamQuestionsPayload(exam);
-    const payload: ReqUpdateExam = {
-      ...buildBasePayload(),
-      examQuestions: [
-        ...existing,
-        ...items.map((item) => ({
+    const existing = buildExamQuestionsPayload(exam, typeScore);
+    const existingGroups = buildExamGroupsPayload(exam, typeScore);
+    const questions = [
+      ...existing,
+      ...items.map((item) => ({
           questionUuid:  item.questionUuid  ?? '',
           questionOrder: item.questionOrder,
           score:         item.score,
           sectionType:   item.sectionType,
           sourceType:    item.sourceType,
-        })),
-      ],
-    };
+      })),
+    ];
+    const payload = buildPayloadWithContent(questions, existingGroups);
     updateMutation.mutate({ examUuid, body: payload }, {
       onSuccess: () => showToast(`Đã thêm ${items.length} câu hỏi`),
     });
@@ -165,14 +186,11 @@ export default function AdminExamEditRoute() {
 
   function handleGroupConfirm(groupForm: GroupForm) {
     if (!form || !examUuid || !exam) return;
-    const existingQuestions = buildExamQuestionsPayload(exam);
-    const existingGroups    = buildExamGroupsPayload(exam);
-    const payload: ReqUpdateExam = {
-      ...buildBasePayload(),
-      ...(existingQuestions.length > 0 && { examQuestions: existingQuestions }),
-      examQuestionGroups: [
-        ...existingGroups,
-        {
+    const existingQuestions = buildExamQuestionsPayload(exam, typeScore);
+    const existingGroups    = buildExamGroupsPayload(exam, typeScore);
+    const groups = [
+      ...existingGroups,
+      {
           newQuestionGroup: {
             groupName:     groupForm.groupName,
             questionType:  groupForm.questionType,
@@ -181,43 +199,54 @@ export default function AdminExamEditRoute() {
             items:         groupForm.itemUuids.map((uuid) => ({ questionUuid: uuid })),
           },
           pickQuestionCount: groupForm.pickQuestionCount,
-          scorePerQuestion:  groupForm.scorePerQuestion,
+          scorePerQuestion:  scoreForType(typeScore, groupForm.questionType, groupForm.scorePerQuestion),
           displayOrder:      groupForm.displayOrder,
-        },
-      ],
-    };
+      },
+    ];
+    const payload = buildPayloadWithContent(existingQuestions, groups);
     updateMutation.mutate({ examUuid, body: payload });
   }
 
   function handleExistingGroupConfirm(payload: ExistingGroupPayload) {
     if (!form || !examUuid || !exam) return;
-    const existingQuestions = buildExamQuestionsPayload(exam);
-    const existingGroups    = buildExamGroupsPayload(exam);
+    const existingQuestions = buildExamQuestionsPayload(exam, typeScore);
+    const existingGroups    = buildExamGroupsPayload(exam, typeScore);
     const newGroup: ReqExamQuestionGroup = {
       questionGroupUuid: payload.questionGroupUuid,
       pickQuestionCount: payload.pickQuestionCount,
-      scorePerQuestion:  payload.scorePerQuestion,
+      scorePerQuestion:  scoreForType(typeScore, payload.questionType, payload.scorePerQuestion),
       displayOrder:      payload.displayOrder,
     };
     updateMutation.mutate({
       examUuid,
-      body: {
-        ...buildBasePayload(),
-        ...(existingQuestions.length > 0 && { examQuestions: existingQuestions }),
-        examQuestionGroups: [...existingGroups, newGroup],
-      },
+      body: buildPayloadWithContent(existingQuestions, [...existingGroups, newGroup]),
     });
   }
 
-  function handleSubmit() {
+  function handleQuestionDelete(questionUuid?: string, questionOrder?: number) {
     if (!form || !examUuid || !exam) return;
-    const existingQuestions = buildExamQuestionsPayload(exam);
-    const existingGroups    = buildExamGroupsPayload(exam);
-    const payload: ReqUpdateExam = {
-      ...buildBasePayload(),
-      ...(existingQuestions.length > 0 && { examQuestions: existingQuestions }),
-      ...(existingGroups.length    > 0 && { examQuestionGroups: existingGroups }),
-    };
+    const questions = buildExamQuestionsPayload(exam, typeScore).filter(
+      (question) =>
+        question.questionUuid !== questionUuid || question.questionOrder !== questionOrder,
+    );
+    const groups = buildExamGroupsPayload(exam, typeScore);
+    updateMutation.mutate({ examUuid, body: buildPayloadWithContent(questions, groups) });
+  }
+
+  function handleGroupDelete(questionGroupUuid?: string) {
+    if (!form || !examUuid || !exam || !questionGroupUuid) return;
+    const questions = buildExamQuestionsPayload(exam, typeScore);
+    const groups = buildExamGroupsPayload(exam, typeScore).filter(
+      (group) => group.questionGroupUuid !== questionGroupUuid,
+    );
+    updateMutation.mutate({ examUuid, body: buildPayloadWithContent(questions, groups) });
+  }
+
+  function handleSubmit() {
+    if (!form || !examUuid || !exam || timeRangeInvalid) return;
+    const existingQuestions = buildExamQuestionsPayload(exam, typeScore);
+    const existingGroups    = buildExamGroupsPayload(exam, typeScore);
+    const payload = buildPayloadWithContent(existingQuestions, existingGroups);
     updateMutation.mutate({ examUuid, body: payload }, {
       onSuccess: () => navigate(paths.adminPortalExams),
     });
@@ -249,6 +278,19 @@ export default function AdminExamEditRoute() {
 
   const standaloneQuestions = getStandaloneQuestions(exam);
   const examGroups          = getExamGroups(exam);
+  const currentQuestions    = buildExamQuestionsPayload(exam, typeScore);
+  const currentGroups       = buildExamGroupsPayload(exam, typeScore);
+  const totalScore          = calculateExamTotalScore(currentQuestions, currentGroups);
+
+  function applyTypeScore(type: QuestionType, value: number | null) {
+    setTypeScore((current) => ({ ...current, [type]: value }));
+  }
+
+  // Giờ mở & giờ đóng là 2 mốc độc lập (sớm nhất để vào thi / trễ nhất để nộp).
+  const startInstant = toInstant(joinDt(splitDt(form.startTime).date, startTimePart));
+  const endInstant   = toInstant(joinDt(splitDt(form.endTime).date,   endTimePart));
+  const timeRangeInvalid =
+    !!startInstant && !!endInstant && new Date(startInstant) >= new Date(endInstant);
 
   return (
     <>
@@ -359,10 +401,10 @@ export default function AdminExamEditRoute() {
                 <div>
                   <label className={labelCls}>Tổng điểm *</label>
                   <input
-                    type="number" min={0.01} step="0.01"
-                    value={form.totalScore}
-                    onChange={(e) => setForm((f) => f && { ...f, totalScore: Number(e.target.value) })}
-                    className={inputCls}
+                    type="number" min={0} step="0.01"
+                    value={totalScore}
+                    disabled
+                    className={`${numberInputCls} bg-slate-100 text-slate-500 cursor-not-allowed`}
                   />
                 </div>
               </div>
@@ -373,12 +415,8 @@ export default function AdminExamEditRoute() {
                   <input
                     type="number" min={0}
                     value={form.durationMinutes}
-                    onChange={(e) => {
-                      const duration = Number(e.target.value);
-                      setForm((f) => f && { ...f, durationMinutes: duration });
-                      autoFillEnd(splitDt(form.startTime).date, startTimePart, duration);
-                    }}
-                    className={inputCls}
+                    onChange={(e) => setForm((f) => f && { ...f, durationMinutes: Number(e.target.value) })}
+                    className={numberInputCls}
                   />
                 </div>
                 <div>
@@ -387,7 +425,7 @@ export default function AdminExamEditRoute() {
                     type="number" min={0}
                     value={form.numberOfAttempt}
                     onChange={(e) => setForm((f) => f && { ...f, numberOfAttempt: Number(e.target.value) })}
-                    className={inputCls}
+                    className={numberInputCls}
                   />
                 </div>
               </div>
@@ -399,21 +437,13 @@ export default function AdminExamEditRoute() {
                     <input
                       type="date"
                       value={splitDt(form.startTime).date}
-                      onChange={(e) => {
-                        const date = e.target.value;
-                        setForm((f) => f && { ...f, startTime: date || undefined });
-                        autoFillEnd(date, startTimePart, form.durationMinutes);
-                      }}
+                      onChange={(e) => setForm((f) => f && { ...f, startTime: e.target.value || undefined })}
                       className="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-400"
                     />
                     <TimePicker
                       format="HH:mm"
                       value={startTimePart ? dayjs(startTimePart, 'HH:mm') : null}
-                      onChange={(t) => {
-                        const time = t ? t.format('HH:mm') : '';
-                        setStartTimePart(time);
-                        autoFillEnd(splitDt(form.startTime).date, time, form.durationMinutes);
-                      }}
+                      onChange={(t) => setStartTimePart(t ? t.format('HH:mm') : '')}
                       className="w-24"
                       size="middle"
                     />
@@ -442,10 +472,28 @@ export default function AdminExamEditRoute() {
             </div>
           </div>
 
-          {/* 2. Cấu hình chấm điểm TFQ */}
+          {/* 2. Cấu hình chấm điểm */}
           <div className={`${cardCls} p-6`}>
-            <h2 className="text-base font-black text-slate-900 mb-1">2. Cấu hình chấm điểm đúng/sai (TFQ)</h2>
-            <p className="text-xs text-slate-400 mb-5">Áp dụng cho câu hỏi dạng Đúng/Sai (TFQ).</p>
+            <h2 className="text-base font-black text-slate-900 mb-1">2. Cấu hình chấm điểm</h2>
+            <p className="text-xs text-slate-400 mb-4">Nhập điểm mới sẽ ghi đè tất cả câu hỏi cùng loại.</p>
+            <div className="grid grid-cols-3 gap-3 mb-6">
+              {QUESTION_TYPES.map((type) => (
+                <div key={type} className="rounded-xl border border-slate-200 bg-slate-50/60 p-3">
+                  <label className={labelCls}>{questionTypeLabel(type)}</label>
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      type="number" min={0.01} step="0.1"
+                      value={typeScore[type] ?? ''}
+                      placeholder={typeScore[type] == null ? 'Hỗn hợp' : undefined}
+                      onChange={(e) => applyTypeScore(type, e.target.value === '' ? null : Number(e.target.value))}
+                      className="min-w-0 flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-400"
+                    />
+                    <span className="text-xs font-bold text-slate-400 shrink-0">điểm/câu</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs font-black text-slate-500 uppercase tracking-wider mb-3">Tỉ lệ điểm Đúng/Sai theo số ý đúng</p>
             <div className="grid grid-cols-4 gap-3">
               {(
                 [
@@ -519,7 +567,7 @@ export default function AdminExamEditRoute() {
                         <td className="px-4 py-3 text-sm text-slate-600">{q.questionOrder}</td>
                         <td className="px-4 py-3">
                           <span className={`px-2 py-0.5 rounded-md text-xs font-black ${SECTION_TYPE_COLOR[q.sectionType ?? ''] ?? ''}`}>
-                            {q.sectionType}
+                            {questionTypeLabel(q.sectionType)}
                           </span>
                         </td>
                         <td className="px-4 py-3">
@@ -530,8 +578,19 @@ export default function AdminExamEditRoute() {
                         <td className="px-4 py-3 text-sm text-slate-500 max-w-[200px] truncate">
                           {q.questionDetail?.questionContent ?? ''}
                         </td>
-                        <td className="px-4 py-3 text-sm text-slate-600">{q.score}</td>
-                        <td className="px-4 py-3">{/* Thao tác — thêm sau */}</td>
+                        <td className="px-4 py-3 text-sm text-slate-600">
+                          {scoreForType(typeScore, q.sectionType, q.score ?? 1)}
+                        </td>
+                        <td className="px-4 py-3">
+                          <button
+                            type="button"
+                            onClick={() => handleQuestionDelete(q.questionUuid, q.questionOrder)}
+                            disabled={updateMutation.isPending}
+                            className="text-xs font-bold text-red-500 hover:text-red-600 disabled:opacity-40"
+                          >
+                            Xóa
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -592,6 +651,8 @@ export default function AdminExamEditRoute() {
                         </button>
                         <button
                           type="button"
+                          onClick={() => handleGroupDelete(g.questionGroupUuid)}
+                          disabled={updateMutation.isPending}
                           className="flex items-center gap-1.5 border border-red-100 text-red-500 hover:bg-red-50 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors"
                         >
                           Xóa
@@ -608,7 +669,7 @@ export default function AdminExamEditRoute() {
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Loại câu hỏi</p>
-                          <p className="text-sm font-bold text-slate-700">{g.questionType ?? '—'}</p>
+                          <p className="text-sm font-bold text-slate-700">{questionTypeLabel(g.questionType)}</p>
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Chủ đề</p>
@@ -622,7 +683,9 @@ export default function AdminExamEditRoute() {
                       <div className="grid grid-cols-3 gap-3">
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Điểm mỗi câu</p>
-                          <p className="text-sm font-bold text-slate-700">{g.scorePerQuestion ?? '—'}</p>
+                          <p className="text-sm font-bold text-slate-700">
+                            {scoreForType(typeScore, g.questionType, g.scorePerQuestion ?? 1)}
+                          </p>
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Thứ tự hiển thị</p>
@@ -649,7 +712,13 @@ export default function AdminExamEditRoute() {
       </div>
 
       {/* Footer */}
-      <div className="flex justify-end gap-3 pb-4">
+      <div className="flex items-center justify-end gap-3 pb-4">
+        {timeRangeInvalid && (
+          <p className="mr-auto flex items-center gap-1.5 text-sm font-bold text-red-500">
+            <AlertCircle size={14} />
+            Thời gian mở phải trước thời gian đóng.
+          </p>
+        )}
         <button
           type="button"
           onClick={() => navigate(paths.adminPortalExams)}
@@ -660,8 +729,8 @@ export default function AdminExamEditRoute() {
         <button
           type="button"
           onClick={handleSubmit}
-          disabled={updateMutation.isPending}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-bold px-6 py-2.5 rounded-xl transition-colors shadow-sm shadow-blue-200"
+          disabled={updateMutation.isPending || timeRangeInvalid}
+          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold px-6 py-2.5 rounded-xl transition-colors shadow-sm shadow-blue-200"
         >
           {updateMutation.isPending && <Loader2 size={15} className="animate-spin" />}
           Lưu thay đổi
@@ -672,6 +741,7 @@ export default function AdminExamEditRoute() {
       <AddQuestionDialog
         isOpen={isAddQOpen}
         nextOrder={standaloneQuestions.length + 1}
+        typeScore={typeScore}
         onClose={() => setIsAddQOpen(false)}
         onConfirm={handleQuestionConfirm}
       />
@@ -680,6 +750,7 @@ export default function AdminExamEditRoute() {
         isOpen={isCreateGroupOpen}
         nextDisplayOrder={examGroups.length + 1}
         excludeUuids={standaloneQuestions.map((q) => q.questionUuid ?? '').filter(Boolean)}
+        typeScore={typeScore}
         onClose={() => setIsCreateGroupOpen(false)}
         onConfirm={handleGroupConfirm}
       />
@@ -688,6 +759,7 @@ export default function AdminExamEditRoute() {
         isOpen={isUseExistingOpen}
         nextDisplayOrder={examGroups.length + 1}
         linkedGroupUuids={examGroups.map((g) => g.questionGroupUuid ?? '').filter(Boolean)}
+        typeScore={typeScore}
         onClose={() => setIsUseExistingOpen(false)}
         onConfirm={handleExistingGroupConfirm}
       />

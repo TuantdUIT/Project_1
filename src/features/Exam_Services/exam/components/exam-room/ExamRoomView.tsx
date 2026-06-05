@@ -5,6 +5,7 @@ import type { Exam } from '@/features/Exam_Services/exam/types';
 import type { ProctoringEventType } from '@/features/Exam_Services/proctoring';
 import type { FlatQ, AnswerMap, AnswerValue, QType, StandaloneQ } from './types';
 import { isQuestionAnswered } from './types';
+import { QUESTION_TYPE_LABEL } from '@/features/Exam_Services/question/lib/question-type';
 import { MCQCard } from './MCQCard';
 import { TFQCard } from './TFQCard';
 import { SAQCard } from './SAQCard';
@@ -24,9 +25,9 @@ const VIOLATION_MESSAGE: Record<ProctoringEventType, string> = {
 };
 
 const TAB_CONFIG: Record<QType, { label: string; Icon: React.ElementType }> = {
-  MCQ: { label: 'Trắc nghiệm', Icon: LayoutList },
-  TFQ: { label: 'Đúng / Sai',  Icon: CheckCircle2 },
-  SAQ: { label: 'Trả lời ngắn', Icon: PenLine },
+  MCQ: { label: QUESTION_TYPE_LABEL.MCQ, Icon: LayoutList },
+  TFQ: { label: QUESTION_TYPE_LABEL.TFQ, Icon: CheckCircle2 },
+  SAQ: { label: QUESTION_TYPE_LABEL.SAQ, Icon: PenLine },
 };
 
 interface Props {
