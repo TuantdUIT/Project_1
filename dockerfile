@@ -1,36 +1,22 @@
-# Stage 1: Build the React application
-FROM node:20-alpine AS builder
-
-# Set the working directory
+FROM node:22-alpine AS builder
 WORKDIR /app
 
-# Copy package.json and package-lock.json (if available)
 COPY package*.json ./
+RUN npm ci
 
-# Install dependencies
-RUN npm install
-
-# Copy the rest of the application code
 COPY . .
 
-# Build the application
+ARG VITE_APP_API_URL_MS=http://localhost:8084
+ARG VITE_APP_API_URL_ES=http://localhost:8084
+ENV VITE_APP_API_URL_MS=$VITE_APP_API_URL_MS
+ENV VITE_APP_API_URL_ES=$VITE_APP_API_URL_ES
+
 RUN npm run build
 
-# Stage 2: Serve the application
-FROM node:20-alpine
+FROM nginx:1.27-alpine
 
-# Set the working directory
-WORKDIR /app
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Install 'serve' globally to serve static files
-RUN npm install -g serve
-
-# Copy built assets from the builder stage
-COPY --from=builder /app/dist ./dist
-
-# Expose port 3000
 EXPOSE 3000
-
-# Start the application
-# The -s flag rewrites all not-found requests to index.html (perfect for SPA routing)
-CMD ["serve", "-s", "dist", "-l", "3000"]
+CMD ["nginx", "-g", "daemon off;"]
