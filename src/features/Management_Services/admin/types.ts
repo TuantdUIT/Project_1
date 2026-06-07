@@ -31,3 +31,5 @@ export type ResPeriodSettingLessonTypeDTO = components['schemas']['ResPeriodSett
 export type ReqCreatePeriodSettingDTO = components['schemas']['ReqCreatePeriodSettingDTO'];
 export type ReqUpdatePeriodSettingDTO = components['schemas']['ReqUpdatePeriodSettingDTO'];
 export type ReqPeriodSettingLessonTypeItemDTO = components['schemas']['ReqPeriodSettingLessonTypeItemDTO'];
+
+export type ResThamSoDTO = components['schemas']['ResThamSoDTO'];

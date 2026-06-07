@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { X, Loader2, AlertCircle, RefreshCw, ImageIcon, FileText } from 'lucide-react';
 import { env } from '@/config/env';
 import { useScoringJobQuery } from '@/features/Exam_Services/omr/api/omr';
@@ -50,19 +50,39 @@ const TERMINAL = new Set(['COMPLETED', 'FAILED']);
 
 export function OmrJobDetailDialog({ jobUuid, fallback, examName, fileName, onClose, onSync }: Props) {
   const isOpen = !!jobUuid;
-  const { data, isLoading, isError, isFetching } = useScoringJobQuery(jobUuid, isOpen);
+  const { data, isLoading, isError, isFetching, isTimedOut } = useScoringJobQuery(jobUuid, isOpen);
 
   // Đồng bộ dữ liệu mới nhất về store của trang cha.
   useEffect(() => {
     if (data) onSync?.(data);
   }, [data, onSync]);
 
+  // FE hết giờ chờ (3s) → đẩy "Thất bại" về store để bảng danh sách cũng cập nhật.
+  // Chỉ chạy đúng 1 lần mỗi lần mở (timeout là của FE, không phải status thật của BE).
+  const timeoutSyncedRef = useRef(false);
+  useEffect(() => {
+    if (!isOpen) timeoutSyncedRef.current = false;
+  }, [isOpen]);
+  useEffect(() => {
+    if (!isTimedOut || timeoutSyncedRef.current) return;
+    const current = data ?? fallback;
+    if (!current?.jobUuid) return;
+    timeoutSyncedRef.current = true;
+    onSync?.({
+      ...current,
+      status: 'FAILED',
+      errorMessage: current.errorMessage ?? 'Quá thời gian chờ phản hồi (FE timeout 3s)',
+    });
+  }, [isTimedOut, data, fallback, onSync]);
+
   if (!isOpen) return null;
 
   const job = data ?? fallback;
   const results = job?.results ?? [];
-  const status = job?.status;
-  const isPolling = status != null && !TERMINAL.has(status);
+  const rawStatus = job?.status;
+  // Hết thời gian chờ (3s) mà chưa kết thúc → hiển thị "Thất bại".
+  const status = isTimedOut && (!rawStatus || !TERMINAL.has(rawStatus)) ? 'FAILED' : rawStatus;
+  const isPolling = !isTimedOut && status != null && !TERMINAL.has(status);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
@@ -119,6 +139,13 @@ export function OmrJobDetailDialog({ jobUuid, fallback, examName, fileName, onCl
           </div>
         )}
 
+        {isTimedOut && !job?.errorMessage && (
+          <div className="mx-6 mt-3 flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm font-bold shrink-0">
+            <AlertCircle size={16} />
+            Quá thời gian chờ chấm (3 giây) — đánh dấu Thất bại.
+          </div>
+        )}
+
         {/* Body: results table */}
         <div className="flex-1 overflow-auto">
           {isLoading && !job ? (
@@ -135,7 +162,11 @@ export function OmrJobDetailDialog({ jobUuid, fallback, examName, fileName, onCl
             <div className="flex flex-col items-center justify-center py-20 gap-2 text-slate-400">
               <FileText size={28} className="opacity-20" />
               <p className="text-sm font-bold">
-                {isPolling ? 'Hệ thống đang chấm, chưa có kết quả…' : 'Chưa có kết quả nào.'}
+                {isPolling
+                  ? 'Hệ thống đang chấm, chưa có kết quả…'
+                  : isTimedOut
+                    ? 'Quá thời gian chờ — Thất bại.'
+                    : 'Chưa có kết quả nào.'}
               </p>
             </div>
           ) : (

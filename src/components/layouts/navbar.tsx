@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router';
 import { AnimatePresence, motion } from 'motion/react';
-import { Bell, GraduationCap, LogOut, User } from 'lucide-react';
+import { Bell, GraduationCap, LogOut, Menu, User, X } from 'lucide-react';
 import { paths } from '@/config/paths';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useLoginModal } from '@/lib/auth/login-modal-context';
@@ -10,6 +10,7 @@ const navItems = [
   { label: 'Khóa học', to: paths.courses },
   { label: 'Phòng thi', to: paths.exam },
   { label: 'Thời khóa biểu', to: paths.schedule },
+  { label: 'Tài liệu', to: paths.learningResources },
 ];
 
 /**
@@ -18,6 +19,7 @@ const navItems = [
  */
 export default function Navbar() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, role, isAuthenticated, logout } = useAuth();
   const { open } = useLoginModal();
 
@@ -46,17 +48,28 @@ export default function Navbar() {
     <nav className="sticky top-0 z-50 w-full border-b border-outline-variant bg-white">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
-          <NavLink
-            to={paths.home}
-            className="flex items-center gap-2 transition-opacity hover:opacity-80"
-          >
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-deep text-white">
-              <GraduationCap size={20} />
-            </div>
-            <span className="text-xl font-bold tracking-tight text-indigo-deep">
-              BHP Math
-            </span>
-          </NavLink>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setIsMobileMenuOpen(true)}
+              aria-label="Mở menu"
+              className="-ml-1 rounded-lg p-2 text-on-surface-variant transition-colors hover:bg-surface-container-low hover:text-indigo-deep md:hidden"
+            >
+              <Menu size={24} />
+            </button>
+
+            <NavLink
+              to={paths.home}
+              className="flex items-center gap-2 transition-opacity hover:opacity-80"
+            >
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-deep text-white">
+                <GraduationCap size={20} />
+              </div>
+              <span className="text-xl font-bold tracking-tight text-indigo-deep">
+                BHP Math
+              </span>
+            </NavLink>
+          </div>
 
           <div className="hidden h-full items-center gap-8 md:flex">
             {navItems.map((item) => (
@@ -150,6 +163,109 @@ export default function Navbar() {
           </div>
         </div>
       </div>
+
+      {/* Mobile drawer (trượt từ bên trái khi màn hình thu nhỏ) */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <div className="md:hidden">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 bg-black/40"
+              onClick={() => setIsMobileMenuOpen(false)}
+            />
+            <motion.div
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'tween', duration: 0.25 }}
+              className="fixed inset-y-0 left-0 z-50 flex w-72 max-w-[80%] flex-col bg-white shadow-xl"
+            >
+              <div className="flex h-16 items-center justify-between border-b border-outline-variant px-4">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-deep text-white">
+                    <GraduationCap size={20} />
+                  </div>
+                  <span className="text-xl font-bold tracking-tight text-indigo-deep">
+                    BHP Math
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  aria-label="Đóng menu"
+                  className="rounded-lg p-2 text-on-surface-variant transition-colors hover:bg-surface-container-low hover:text-indigo-deep"
+                >
+                  <X size={22} />
+                </button>
+              </div>
+
+              <div className="flex flex-1 flex-col gap-1 overflow-y-auto p-4">
+                {navItems.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={({ isActive }) =>
+                      `rounded-lg px-4 py-3 text-sm font-bold transition-colors ${
+                        isActive
+                          ? 'bg-indigo-deep/10 text-indigo-deep'
+                          : 'text-on-surface-variant hover:bg-surface-container-low hover:text-indigo-deep'
+                      }`
+                    }
+                  >
+                    {item.label}
+                  </NavLink>
+                ))}
+
+                {role?.roleName === 'MANAGER' && (
+                  <NavLink
+                    to={paths.adminPortal}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="mt-2 flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-bold text-blue-600 transition-colors hover:bg-blue-50"
+                  >
+                    <GraduationCap size={18} />
+                    Admin Portal
+                  </NavLink>
+                )}
+              </div>
+
+              {!isAuthenticated && (
+                <div className="flex flex-col gap-3 border-t border-outline-variant p-4">
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      open();
+                    }}
+                    className="rounded-lg px-4 py-3 text-sm font-bold text-on-surface transition-colors hover:bg-surface-container-low"
+                  >
+                    Đăng nhập
+                  </button>
+                  <button className="btn-primary px-6 py-3 text-sm">
+                    Đăng ký
+                  </button>
+                </div>
+              )}
+
+              {isAuthenticated && (
+                <div className="border-t border-outline-variant p-4">
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      handleLogout();
+                    }}
+                    className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-bold text-red-600 transition-colors hover:bg-red-50"
+                  >
+                    <LogOut size={18} />
+                    Đăng xuất
+                  </button>
+                </div>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </nav>
   );
 }

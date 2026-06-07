@@ -79,6 +79,7 @@ export function useCreateStudent() {
     mutationFn: createStudent,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'students'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'tham-sos'] });
       queryClient.invalidateQueries({ queryKey: ['curriculum', 'grades'] });
     },
   });
@@ -102,6 +103,7 @@ export function useUpdateStudentByUuid() {
         queryKey: ['admin', 'students'],
         predicate: (query) => typeof query.queryKey[2] === 'object' && query.queryKey[2] !== null,
       });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'tham-sos'] });
       queryClient.invalidateQueries({ queryKey: ['curriculum', 'grades'] });
     },
   });

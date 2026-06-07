@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { apiClientES } from '@/lib/api-client-es';
 import type { ReqCreateExamPaper, ResExamPaper, ResOmrScoringJob } from '../types';
@@ -39,17 +40,47 @@ export function getScoringJob(jobUuid: string) {
 }
 
 const TERMINAL_STATUSES: ResOmrScoringJob['status'][] = ['COMPLETED', 'FAILED'];
+const POLL_INTERVAL_MS = 4000;
+const RESPONSE_TIMEOUT_MS = 3000; // thời gian tối đa chờ kết quả; quá hạn → Thất bại
 
-// Bước 4: auto-poll trạng thái job. Tự dừng poll khi job đã COMPLETED/FAILED.
+// Bước 4: auto-poll trạng thái job.
+// - Tự dừng poll khi job đã COMPLETED/FAILED.
+// - Hết thời gian chờ (cố định 3 giây) mà chưa xong → coi như Thất bại (isTimedOut=true).
+//   Mốc thời gian tính từ lúc bắt đầu theo dõi job.
 export function useScoringJobQuery(jobUuid: string | null, enabled = true) {
-  return useQuery({
+  const startRef = useRef<number>(Date.now());
+  const [isTimedOut, setIsTimedOut] = useState(false);
+
+  // Reset mốc bắt đầu + cờ timeout mỗi khi đổi job.
+  useEffect(() => {
+    startRef.current = Date.now();
+    setIsTimedOut(false);
+  }, [jobUuid]);
+
+  const query = useQuery({
     queryKey: ['omr-scoring-job', jobUuid],
     queryFn: () => getScoringJob(jobUuid!),
-    enabled: !!jobUuid && enabled,
+    enabled: !!jobUuid && enabled && !isTimedOut,
     staleTime: 0,
-    refetchInterval: (query) => {
-      const status = query.state.data?.status;
-      return status && TERMINAL_STATUSES.includes(status) ? false : 4000;
+    refetchInterval: (q) => {
+      const status = q.state.data?.status;
+      return status && TERMINAL_STATUSES.includes(status) ? false : POLL_INTERVAL_MS;
     },
   });
+
+  // Hẹn giờ "thất bại" sau 3 giây nếu job vẫn chưa kết thúc.
+  const status = query.data?.status;
+  useEffect(() => {
+    if (!jobUuid || !enabled) return;
+    if (status && TERMINAL_STATUSES.includes(status)) return;
+    const remaining = RESPONSE_TIMEOUT_MS - (Date.now() - startRef.current);
+    if (remaining <= 0) {
+      setIsTimedOut(true);
+      return;
+    }
+    const timer = setTimeout(() => setIsTimedOut(true), remaining);
+    return () => clearTimeout(timer);
+  }, [jobUuid, enabled, status]);
+
+  return { ...query, isTimedOut };
 }

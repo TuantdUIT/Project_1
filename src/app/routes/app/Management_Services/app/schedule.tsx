@@ -1,140 +1,178 @@
-﻿import { useEffect, useMemo, useState } from 'react';
-import { Calendar, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { CalendarRange } from 'lucide-react';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useStudentByUuidQuery } from '@/features/Management_Services/admin';
-import { useStudyWeeksQuery } from '@/features/Management_Services/study-week';
+import { useTimetableViewQuery } from '@/features/Management_Services/timetable-template/hooks/use-timetable-view-query';
 import {
-  composeSchedule,
-  useTimetableTemplatesQuery,
-} from '@/features/Management_Services/schedule';
-import { formatDate } from '@/utils/date';
+  SUPPLEMENT_GRADE_IDS_BY_PRIMARY_ID,
+  gradeDisplayName,
+  isPrimaryGradeId,
+  primaryGradeTitle,
+  type PrimaryGradeId,
+} from '@/features/Management_Services/timetable-template/lib/supplement-grades';
+import PartialErrorBanner from '@/features/Management_Services/timetable-template/components/partial-error-banner';
+import TimetableGrid from '@/features/Management_Services/timetable-template/components/timetable-grid';
+import WeekSpinner from '@/features/Management_Services/timetable-template/components/week-spinner';
 
-const currentSchoolYear = new Date().getFullYear();
+/** Đưa mọi grade (kể cả khối ảo VDC/DGNL) về khối chính tương ứng để render Thời Khóa Biểu. */
+function resolvePrimaryGradeId(gradeId: number): PrimaryGradeId | undefined {
+  if (isPrimaryGradeId(gradeId)) return gradeId;
+  const entry = (Object.entries(SUPPLEMENT_GRADE_IDS_BY_PRIMARY_ID) as Array<[
+    string,
+    readonly number[],
+  ]>).find(([, supplements]) => supplements.includes(gradeId));
+  if (!entry) return undefined;
+  const primaryId = Number(entry[0]);
+  return isPrimaryGradeId(primaryId) ? primaryId : undefined;
+}
 
 export default function ScheduleRoute() {
   const { user } = useAuth();
   const studentQuery = useStudentByUuidQuery(user?.id);
-  const templatesQuery = useTimetableTemplatesQuery();
-  const weeksQuery = useStudyWeeksQuery();
   const grades = studentQuery.data?.grades ?? [];
-  const [selectedGradeId, setSelectedGradeId] = useState<number | null>(null);
-  const [selectedWeekIndex, setSelectedWeekIndex] = useState(0);
+
+  const primaryGradeIds = useMemo<PrimaryGradeId[]>(() => {
+    const resolved = grades
+      .map((grade) => (grade.id != null ? resolvePrimaryGradeId(grade.id) : undefined))
+      .filter((id): id is PrimaryGradeId => id != null);
+    return Array.from(new Set(resolved));
+  }, [grades]);
+
+  const [selectedGradeId, setSelectedGradeId] = useState<PrimaryGradeId | null>(null);
 
   useEffect(() => {
-    if (!selectedGradeId && grades[0]?.id) {
-      setSelectedGradeId(grades[0].id);
+    if (selectedGradeId == null && primaryGradeIds[0] != null) {
+      setSelectedGradeId(primaryGradeIds[0]);
     }
-  }, [grades, selectedGradeId]);
-
-  const weeks = useMemo(
-    () =>
-      (weeksQuery.data ?? [])
-        .filter((week) => !week.school_year || week.school_year === currentSchoolYear)
-        .sort((a, b) => (a.week_number ?? 0) - (b.week_number ?? 0)),
-    [weeksQuery.data],
-  );
-  const selectedWeek = weeks[selectedWeekIndex];
-  const selectedTemplate = (templatesQuery.data ?? []).find(
-    (template) =>
-      template.active
-      && template.grade?.id === selectedGradeId
-      && (!template.school_year || template.school_year === currentSchoolYear),
-  );
-  const events = composeSchedule(selectedTemplate, selectedWeek);
-  const isLoading = studentQuery.isLoading || templatesQuery.isLoading || weeksQuery.isLoading;
-
-  function goToPreviousWeek() {
-    setSelectedWeekIndex((current) => Math.max(current - 1, 0));
-  }
-
-  function goToNextWeek() {
-    setSelectedWeekIndex((current) => Math.min(current + 1, Math.max(weeks.length - 1, 0)));
-  }
+  }, [primaryGradeIds, selectedGradeId]);
 
   return (
-    <div className="min-h-screen bg-white">
-      <header className="border-b border-gray-200 px-4 py-4">
-        <div className="mx-auto flex max-w-7xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="min-h-screen bg-[#f4f7fb]">
+      <header className="border-b border-slate-200 bg-white px-4 py-5">
+        <div className="mx-auto flex max-w-7xl items-center gap-3">
+          <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[rgba(24,112,255,0.1)] text-[#1870FF]">
+            <CalendarRange size={21} strokeWidth={2.6} />
+          </span>
           <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-indigo-deep">
-              Thời khóa biểu
+            <p className="text-[12px] font-black uppercase tracking-[0.16em] text-slate-400">
+              Thời Khóa Biểu
             </p>
-            <h1 className="text-2xl font-black text-slate-900">
-              Lịch học theo template và study week
+            <h1 className="mt-1 text-[22px] font-black leading-tight text-slate-950">
+              Lịch học của tôi
             </h1>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            <select
-              value={selectedGradeId ?? ''}
-              onChange={(event) => setSelectedGradeId(Number(event.target.value))}
-              className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700"
-            >
-              <option value="">Chọn khối</option>
-              {grades.map((grade) => (
-                <option key={grade.id} value={grade.id}>
-                  {grade.name}
-                </option>
-              ))}
-            </select>
-
-            <div className="flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2">
-              <button onClick={goToPreviousWeek} className="text-slate-500 hover:text-indigo-deep">
-                <ChevronLeft size={18} />
-              </button>
-              <span className="min-w-40 text-center text-sm font-bold text-slate-700">
-                Tuần {selectedWeek?.week_number ?? '-'}
-              </span>
-              <button onClick={goToNextWeek} className="text-slate-500 hover:text-indigo-deep">
-                <ChevronRight size={18} />
-              </button>
-            </div>
           </div>
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-8">
-        {isLoading ? (
+      <main className="mx-auto max-w-7xl space-y-5 px-4 py-6">
+        {studentQuery.isLoading ? (
           <p className="text-slate-500">Đang tải lịch học...</p>
-        ) : !grades.length ? (
+        ) : !primaryGradeIds.length ? (
           <EmptyState title="Chưa tìm thấy khối học của học sinh" />
-        ) : !selectedTemplate ? (
-          <EmptyState title="Chưa có timetable template active cho khối đã chọn" />
-        ) : !selectedWeek ? (
-          <EmptyState title="Chưa có study week cho năm học hiện tại" />
         ) : (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {events.map((event) => (
-              <article key={event.id} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                <div className="mb-4 flex items-center justify-between">
-                  <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-black text-indigo-deep">
-                    {event.dayOfWeek}
-                  </span>
-                  <span className="flex items-center gap-1 text-xs font-bold text-slate-500">
-                    <Calendar size={14} />
-                    {formatDate(event.date)}
-                  </span>
-                </div>
-                <h2 className="text-lg font-black text-slate-900">{event.lessonTypeName}</h2>
-                <p className="mt-2 flex items-center gap-2 text-sm font-bold text-slate-500">
-                  <Clock size={16} />
-                  {event.startTime}
-                </p>
-              </article>
-            ))}
-          </div>
+          <>
+            {primaryGradeIds.length > 1 ? (
+              <GradeSelector
+                gradeIds={primaryGradeIds}
+                selectedGradeId={selectedGradeId}
+                onSelect={setSelectedGradeId}
+              />
+            ) : null}
+
+            {selectedGradeId != null ? (
+              <StudentTimetable primaryGradeId={selectedGradeId} />
+            ) : null}
+          </>
         )}
       </main>
     </div>
   );
 }
 
+function GradeSelector({
+  gradeIds,
+  selectedGradeId,
+  onSelect,
+}: {
+  gradeIds: PrimaryGradeId[];
+  selectedGradeId: PrimaryGradeId | null;
+  onSelect: (gradeId: PrimaryGradeId) => void;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-3">
+      {gradeIds.map((gradeId) => {
+        const isActive = gradeId === selectedGradeId;
+        return (
+          <button
+            key={gradeId}
+            type="button"
+            onClick={() => onSelect(gradeId)}
+            className={`inline-flex h-11 items-center rounded-xl px-5 text-[14px] font-extrabold transition ${
+              isActive
+                ? 'bg-[#1870FF] text-white shadow-[0_12px_22px_rgba(24,112,255,0.26)]'
+                : 'border border-slate-300 bg-white text-slate-700 hover:border-[#1870FF] hover:bg-[rgba(24,112,255,0.04)]'
+            }`}
+          >
+            {gradeDisplayName(gradeId)}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function StudentTimetable({ primaryGradeId }: { primaryGradeId: PrimaryGradeId }) {
+  const viewQuery = useTimetableViewQuery(primaryGradeId);
+  const title = primaryGradeTitle(primaryGradeId);
+
+  if (viewQuery.isLoading) {
+    return (
+      <div className="space-y-5">
+        <WeekSpinner />
+        <div className="h-[560px] animate-pulse rounded-2xl bg-slate-100" />
+      </div>
+    );
+  }
+
+  if (viewQuery.isError) {
+    return (
+      <div className="space-y-5">
+        <WeekSpinner />
+        <PartialErrorBanner
+          failedNames={viewQuery.failedLabels}
+          tone="danger"
+          onRetry={viewQuery.refetchAll}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-5">
+      <WeekSpinner />
+
+      {viewQuery.hasPartialError ? (
+        <PartialErrorBanner
+          failedNames={viewQuery.failedLabels}
+          onRetry={viewQuery.refetchFailed}
+        />
+      ) : null}
+
+      <TimetableGrid
+        items={viewQuery.items}
+        lessonTypes={viewQuery.lessonTypes}
+        emptyMessage={`${title} chưa có Thời Khóa Biểu.`}
+      />
+    </div>
+  );
+}
+
 function EmptyState({ title }: { title: string }) {
   return (
-    <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
+    <div className="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center">
       <p className="font-bold text-slate-700">{title}</p>
       <p className="mt-2 text-sm text-slate-500">
-        P1 đang compose từ `/timetable-templates` và `/study-weeks`; không dùng `/periods`.
+        Lịch học được dựng từ timetable template và study week của khối bạn đang theo học.
       </p>
     </div>
   );

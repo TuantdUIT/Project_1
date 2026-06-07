@@ -44,6 +44,15 @@ async function loadScheduleRoute() {
  * Ý nghĩa: Lazy-load route phòng thi đã được ProtectedRoute bảo vệ.
  * Hàm sử dụng hàm này làm đầu vào: createBrowserRouter nhận hàm này trong field lazy của route /exam.
  */
+/**
+ * Ý nghĩa: Lazy-load route học liệu (tài liệu + bài giảng) của học sinh, đã được ProtectedRoute bảo vệ.
+ * Hàm sử dụng hàm này làm đầu vào: createBrowserRouter nhận hàm này trong field lazy của route /learning-resources.
+ */
+async function loadLearningResourcesRoute() {
+  const module = await import('./routes/app/Management_Services/app/learning-resources');
+  return { Component: module.default };
+}
+
 async function loadExamRoute() {
   const module = await import('./routes/app/Exam_Services/user/exam-process');
   return { Component: module.default };
@@ -206,6 +215,10 @@ export const router = createBrowserRouter([
           {
             path: 'schedule',
             lazy: loadScheduleRoute,
+          },
+          {
+            path: 'learning-resources',
+            lazy: loadLearningResourcesRoute,
           },
           {
             path: 'exam',

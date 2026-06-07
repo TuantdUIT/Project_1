@@ -20,6 +20,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/question-groups/{questionGroupUuid}/items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["updateQuestionGroupItems"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/exams/{examUuid}": {
         parameters: {
             query?: never;
@@ -324,6 +340,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/omr/exams/{examUuid}/exam-papers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getExamPapersByExamUuid"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/omr/exams/{examUuid}/exam-papers/{paperCode}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["downloadExamPaper"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health": {
         parameters: {
             query?: never;
@@ -408,6 +456,7 @@ export interface components {
             /** Format: int64 */
             gradeId: number;
             questionContent: string;
+            imagePath?: string;
             questionTopic?: string;
             /** @enum {string} */
             questionType: "MCQ" | "TFQ" | "SAQ";
@@ -422,6 +471,7 @@ export interface components {
             /** Format: int64 */
             gradeId?: number;
             questionContent?: string;
+            imagePath?: string;
             questionTopic?: string;
             /** @enum {string} */
             questionType?: "MCQ" | "TFQ" | "SAQ";
@@ -452,6 +502,48 @@ export interface components {
             statementOrder?: number;
             statementContent?: string;
         };
+        ReqQuestionGroupItemDTO: {
+            /** Format: uuid */
+            questionUuid: string;
+        };
+        ReqUpdateQuestionGroupItemsDTO: {
+            items: components["schemas"]["ReqQuestionGroupItemDTO"][];
+        };
+        ResQuestionGroupDTO: {
+            /** Format: uuid */
+            questionGroupUuid?: string;
+            groupName?: string;
+            /** @enum {string} */
+            questionType?: "MCQ" | "TFQ" | "SAQ";
+            questionTopic?: string;
+            /** Format: int32 */
+            questionCount?: number;
+            /** Format: uuid */
+            createdByUserUuid?: string;
+            items?: components["schemas"]["ResQuestionGroupItemDTO"][];
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+            createdBy?: string;
+            updatedBy?: string;
+        };
+        ResQuestionGroupItemDTO: {
+            /** Format: uuid */
+            questionGroupItemUuid?: string;
+            /** Format: uuid */
+            questionUuid?: string;
+            questionDetail?: components["schemas"]["ResQuestionGroupQuestionDetailDTO"];
+        };
+        ResQuestionGroupQuestionDetailDTO: {
+            /** Format: uuid */
+            questionUuid?: string;
+            questionContent?: string;
+            imagePath?: string;
+            questionTopic?: string;
+            /** @enum {string} */
+            questionType?: "MCQ" | "TFQ" | "SAQ";
+        };
         ReqCreateQuestionGroupDTO: {
             groupName: string;
             /** @enum {string} */
@@ -481,10 +573,6 @@ export interface components {
             scorePerQuestion: number;
             /** Format: int32 */
             displayOrder: number;
-        };
-        ReqQuestionGroupItemDTO: {
-            /** Format: uuid */
-            questionUuid: string;
         };
         ReqUpdateExamDTO: {
             examName: string;
@@ -550,6 +638,7 @@ export interface components {
             /** Format: uuid */
             questionUuid?: string;
             questionContent?: string;
+            imagePath?: string;
             questionTopic?: string;
             /** @enum {string} */
             questionType?: "MCQ" | "TFQ" | "SAQ";
@@ -617,6 +706,7 @@ export interface components {
             /** @enum {string} */
             questionType?: "MCQ" | "TFQ" | "SAQ";
             questionContent?: string;
+            imagePath?: string;
             questionTopic?: string;
             score?: number;
             fromQuestionGroup?: boolean;
@@ -629,6 +719,9 @@ export interface components {
             currentNormalizedAnswer?: string;
             /** Format: int32 */
             answerChangeCount?: number;
+            correctAnswerRaw?: string;
+            correctNormalizedAnswer?: string;
+            earnedScore?: number;
         };
         ResAttemptQuestionMcOptionDTO: {
             /** Format: uuid */
@@ -709,6 +802,7 @@ export interface components {
             /** Format: int64 */
             gradeId: number;
             questionContent: string;
+            imagePath?: string;
             questionTopic?: string;
             /** @enum {string} */
             questionType: "MCQ" | "TFQ" | "SAQ";
@@ -716,40 +810,6 @@ export interface components {
             mcOptions?: components["schemas"]["ReqQuestionMcOptionDTO"][];
             tfStatements?: components["schemas"]["ReqQuestionTrueFalseStatementDTO"][];
             answerKey: components["schemas"]["ReqQuestionAnswerKeyDTO"];
-        };
-        ResQuestionGroupDTO: {
-            /** Format: uuid */
-            questionGroupUuid?: string;
-            groupName?: string;
-            /** @enum {string} */
-            questionType?: "MCQ" | "TFQ" | "SAQ";
-            questionTopic?: string;
-            /** Format: int32 */
-            questionCount?: number;
-            /** Format: uuid */
-            createdByUserUuid?: string;
-            items?: components["schemas"]["ResQuestionGroupItemDTO"][];
-            /** Format: date-time */
-            createdAt?: string;
-            /** Format: date-time */
-            updatedAt?: string;
-            createdBy?: string;
-            updatedBy?: string;
-        };
-        ResQuestionGroupItemDTO: {
-            /** Format: uuid */
-            questionGroupItemUuid?: string;
-            /** Format: uuid */
-            questionUuid?: string;
-            questionDetail?: components["schemas"]["ResQuestionGroupQuestionDetailDTO"];
-        };
-        ResQuestionGroupQuestionDetailDTO: {
-            /** Format: uuid */
-            questionUuid?: string;
-            questionContent?: string;
-            questionTopic?: string;
-            /** @enum {string} */
-            questionType?: "MCQ" | "TFQ" | "SAQ";
         };
         ResOmrScoringJobDTO: {
             /** Format: uuid */
@@ -854,6 +914,7 @@ export interface components {
             generatedAt?: string;
             /** Format: uuid */
             generatedByUserUuid?: string;
+            pdfUrl?: string;
             questions?: components["schemas"]["ResExamPaperQuestionDTO"][];
         };
         ResExamPaperQuestionDTO: {
@@ -865,6 +926,7 @@ export interface components {
             questionUuid?: string;
             /** @enum {string} */
             questionType?: "MCQ" | "TFQ" | "SAQ";
+            imagePath?: string;
             score?: number;
             fromQuestionGroup?: boolean;
             /** Format: uuid */
@@ -939,9 +1001,9 @@ export interface components {
             sort?: components["schemas"]["SortObject"];
             unpaged?: boolean;
             /** Format: int32 */
-            pageSize?: number;
-            /** Format: int32 */
             pageNumber?: number;
+            /** Format: int32 */
+            pageSize?: number;
             paged?: boolean;
         };
         ResExamAttemptSummaryDTO: {
@@ -1081,6 +1143,32 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ResQuestionDTO"];
+                };
+            };
+        };
+    };
+    updateQuestionGroupItems: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                questionGroupUuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReqUpdateQuestionGroupItemsDTO"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ResQuestionGroupDTO"];
                 };
             };
         };
@@ -1644,6 +1732,51 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ResOmrScoringJobDTO"];
+                };
+            };
+        };
+    };
+    getExamPapersByExamUuid: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                examUuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ResExamPaperDTO"][];
+                };
+            };
+        };
+    };
+    downloadExamPaper: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                examUuid: string;
+                paperCode: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": string;
                 };
             };
         };

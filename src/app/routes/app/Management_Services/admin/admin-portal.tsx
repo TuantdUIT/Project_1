@@ -1,6 +1,6 @@
 import { type CSSProperties, useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router';
-import { BookOpen, CalendarDays, CalendarRange, ChevronDown, ClipboardList, DoorOpen, FileText, GraduationCap, GripVertical, Layers, LayoutDashboard, ReceiptText, ScanLine, School, UserRoundCheck, Users } from 'lucide-react';
+import { BookOpen, CalendarDays, CalendarRange, ChevronDown, ClipboardList, DoorOpen, FileText, GraduationCap, GripVertical, Layers, LayoutDashboard, Menu, ReceiptText, ScanLine, School, UserRoundCheck, Users, X } from 'lucide-react';
 import { paths } from '@/config/paths';
 
 const minSidebarWidth = 104;
@@ -17,7 +17,13 @@ export default function AdminPortalRoute() {
   const [isResizing, setIsResizing] = useState(false);
   const [isMsOpen, setIsMsOpen] = useState(true);
   const [isEsOpen, setIsEsOpen] = useState(true);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const location = useLocation();
+
+  // Đóng drawer mobile mỗi khi điều hướng sang route khác.
+  useEffect(() => {
+    setIsMobileSidebarOpen(false);
+  }, [location.pathname]);
 
   useEffect(() => {
     if (!isResizing) {
@@ -50,15 +56,6 @@ export default function AdminPortalRoute() {
 
   const isCompact = sidebarWidth < 176;
   const isWide = sidebarWidth >= 288;
-  const usersLabel = isWide ? 'Quản lý nhân sự' : 'Nhân sự';
-  const registrationsLabel = isWide ? 'Học sinh đăng ký' : 'Đăng ký';
-  const classesLabel = isWide ? 'Lớp học (đang học)' : 'Lớp học';
-  const periodSettingsLabel = isWide ? 'Mẫu khóa học' : 'Template Period';
-  const timetableLabel = isWide ? 'Thời Khóa Biểu' : 'Timetable';
-  const studyWeeksLabel = isWide ? 'Tuần học (vận hành)' : 'Tuần học';
-  const learningResourcesLabel = isWide ? 'Tài liệu học tập' : 'Học liệu';
-  const costsLabel = 'Chi phí';
-  const recordAttendancesLabel = isWide ? 'Chấm công nhân sự' : 'Chấm công';
   const headerTitle = location.pathname.startsWith(paths.adminPortalOverview)
     ? 'Tổng quan'
     : location.pathname.startsWith(paths.adminPortalUsers)
@@ -93,14 +90,213 @@ export default function AdminPortalRoute() {
     '--admin-content-gap': `${contentGap}px`,
   } as CSSProperties;
 
-  function navItemClass(isActive: boolean) {
-    return `flex h-12 w-full items-center rounded-xl text-[15px] font-semibold transition-colors ${
-      isCompact ? 'justify-center px-0' : 'gap-3 px-4'
-    } ${
-      isActive
-        ? 'bg-[#1870FF] text-white shadow-[0_14px_24px_rgba(24,112,255,0.24)]'
-        : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'
-    }`;
+  function renderSidebarLinks({
+    compact,
+    wide,
+    onNavigate,
+  }: {
+    compact: boolean;
+    wide: boolean;
+    onNavigate?: () => void;
+  }) {
+    const usersLabel = wide ? 'Quản lý nhân sự' : 'Nhân sự';
+    const registrationsLabel = wide ? 'Học sinh đăng ký' : 'Đăng ký';
+    const classesLabel = wide ? 'Lớp học (đang học)' : 'Lớp học';
+    const periodSettingsLabel = wide ? 'Mẫu khóa học' : 'Template Period';
+    const timetableLabel = wide ? 'Thời Khóa Biểu' : 'Timetable';
+    const studyWeeksLabel = wide ? 'Tuần học (vận hành)' : 'Tuần học';
+    const learningResourcesLabel = wide ? 'Tài liệu học tập' : 'Học liệu';
+    const costsLabel = 'Chi phí';
+    const recordAttendancesLabel = wide ? 'Chấm công nhân sự' : 'Chấm công';
+
+    function navItemClass(isActive: boolean) {
+      return `flex h-12 w-full items-center rounded-xl text-[15px] font-semibold transition-colors ${
+        compact ? 'justify-center px-0' : 'gap-3 px-4'
+      } ${
+        isActive
+          ? 'bg-[#1870FF] text-white shadow-[0_14px_24px_rgba(24,112,255,0.24)]'
+          : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'
+      }`;
+    }
+
+    return (
+      <>
+        {/* Management Services dropdown group */}
+        <div>
+          <button
+            type="button"
+            onClick={() => setIsMsOpen((v) => !v)}
+            title={compact ? 'Management Services' : undefined}
+            className={`flex w-full items-center rounded-xl text-[13px] font-black uppercase tracking-wider transition-colors text-slate-400 hover:text-slate-700 hover:bg-slate-100 ${
+              compact ? 'h-10 justify-center px-0' : 'h-9 gap-2 px-3'
+            }`}
+          >
+            {!compact ? (
+              <>
+                <span className="truncate">Management Services</span>
+                <ChevronDown
+                  size={14}
+                  className={`ml-auto shrink-0 transition-transform duration-200 ${isMsOpen ? 'rotate-0' : '-rotate-90'}`}
+                />
+              </>
+            ) : (
+              <span className="font-black">MS</span>
+            )}
+          </button>
+
+          {isMsOpen && (
+            <div className={`mt-1 space-y-1 ${!compact ? 'border-l-2 border-slate-100 ml-3 pl-2' : ''}`}>
+              <NavLink
+                to={paths.adminPortalOverview}
+                onClick={onNavigate}
+                title={compact ? 'Tổng quan' : undefined}
+                className={({ isActive }) => navItemClass(isActive)}
+              >
+                <LayoutDashboard size={18} className="shrink-0" />
+                {!compact ? <span className="truncate">Tổng quan</span> : null}
+              </NavLink>
+              <NavLink
+                to={paths.adminPortalRegistrations}
+                onClick={onNavigate}
+                title={compact ? registrationsLabel : undefined}
+                className={({ isActive }) => navItemClass(isActive)}
+              >
+                <ClipboardList size={18} className="shrink-0" />
+                {!compact ? <span className="truncate">{registrationsLabel}</span> : null}
+              </NavLink>
+              <NavLink
+                to={paths.adminPortalClasses}
+                onClick={onNavigate}
+                title={compact ? classesLabel : undefined}
+                className={({ isActive }) => navItemClass(isActive)}
+              >
+                <School size={18} className="shrink-0" />
+                {!compact ? <span className="truncate">{classesLabel}</span> : null}
+              </NavLink>
+              <NavLink
+                to={paths.adminPortalUsers}
+                onClick={onNavigate}
+                title={compact ? usersLabel : undefined}
+                className={({ isActive }) => navItemClass(isActive)}
+              >
+                <Users size={18} className="shrink-0" />
+                {!compact ? <span className="truncate">{usersLabel}</span> : null}
+              </NavLink>
+              <NavLink
+                to={paths.adminPortalPeriodSettings}
+                onClick={onNavigate}
+                title={compact ? periodSettingsLabel : undefined}
+                className={({ isActive }) => navItemClass(isActive)}
+              >
+                <Layers size={18} className="shrink-0" />
+                {!compact ? <span className="truncate">{periodSettingsLabel}</span> : null}
+              </NavLink>
+              <NavLink
+                to={paths.adminPortalTimetable}
+                onClick={onNavigate}
+                title={compact ? timetableLabel : undefined}
+                className={({ isActive }) => navItemClass(isActive)}
+              >
+                <CalendarRange size={18} className="shrink-0" />
+                {!compact ? <span className="truncate">{timetableLabel}</span> : null}
+              </NavLink>
+              <NavLink
+                to={paths.adminPortalStudyWeeks}
+                onClick={onNavigate}
+                title={compact ? studyWeeksLabel : undefined}
+                className={({ isActive }) => navItemClass(isActive)}
+              >
+                <CalendarDays size={18} className="shrink-0" />
+                {!compact ? <span className="truncate">{studyWeeksLabel}</span> : null}
+              </NavLink>
+              <NavLink
+                to={paths.adminPortalRecordAttendances}
+                onClick={onNavigate}
+                title={compact ? recordAttendancesLabel : undefined}
+                className={({ isActive }) => navItemClass(isActive)}
+              >
+                <UserRoundCheck size={18} className="shrink-0" />
+                {!compact ? <span className="truncate">{recordAttendancesLabel}</span> : null}
+              </NavLink>
+              <NavLink
+                to={paths.adminPortalLearningResources}
+                onClick={onNavigate}
+                title={compact ? learningResourcesLabel : undefined}
+                className={({ isActive }) => navItemClass(isActive)}
+              >
+                <BookOpen size={18} className="shrink-0" />
+                {!compact ? <span className="truncate">{learningResourcesLabel}</span> : null}
+              </NavLink>
+              <NavLink
+                to={paths.adminPortalCosts}
+                onClick={onNavigate}
+                title={compact ? costsLabel : undefined}
+                className={({ isActive }) => navItemClass(isActive)}
+              >
+                <ReceiptText size={18} className="shrink-0" />
+                {!compact ? <span className="truncate">{costsLabel}</span> : null}
+              </NavLink>
+            </div>
+          )}
+        </div>
+
+        {/* Exam Services dropdown group */}
+        <div className="mt-4">
+          <button
+            type="button"
+            onClick={() => setIsEsOpen((v) => !v)}
+            title={compact ? 'Exam Services' : undefined}
+            className={`flex w-full items-center rounded-xl text-[13px] font-black uppercase tracking-wider transition-colors text-slate-400 hover:text-slate-700 hover:bg-slate-100 ${
+              compact ? 'h-10 justify-center px-0' : 'h-9 gap-2 px-3'
+            }`}
+          >
+            {!compact ? (
+              <>
+                <span className="truncate">Exam Services</span>
+                <ChevronDown
+                  size={14}
+                  className={`ml-auto shrink-0 transition-transform duration-200 ${isEsOpen ? 'rotate-0' : '-rotate-90'}`}
+                />
+              </>
+            ) : (
+              <span className="font-black">ES</span>
+            )}
+          </button>
+
+          {isEsOpen && (
+            <div className={`mt-1 space-y-1 ${!compact ? 'border-l-2 border-slate-100 ml-3 pl-2' : ''}`}>
+              <NavLink
+                to={paths.adminPortalExamQuestions}
+                onClick={onNavigate}
+                title={compact ? 'Ngân hàng câu hỏi' : undefined}
+                className={({ isActive }) => navItemClass(isActive)}
+              >
+                <FileText size={18} className="shrink-0" />
+                {!compact ? <span className="truncate">Ngân hàng câu hỏi</span> : null}
+              </NavLink>
+              <NavLink
+                to={paths.adminPortalExams}
+                onClick={onNavigate}
+                title={compact ? 'Quản lý phòng thi' : undefined}
+                className={({ isActive }) => navItemClass(isActive)}
+              >
+                <DoorOpen size={18} className="shrink-0" />
+                {!compact ? <span className="truncate">Quản lý phòng thi</span> : null}
+              </NavLink>
+              <NavLink
+                to={paths.adminPortalOmr}
+                onClick={onNavigate}
+                title={compact ? 'Chấm phiếu OMR' : undefined}
+                className={({ isActive }) => navItemClass(isActive)}
+              >
+                <ScanLine size={18} className="shrink-0" />
+                {!compact ? <span className="truncate">Chấm phiếu OMR</span> : null}
+              </NavLink>
+            </div>
+          )}
+        </div>
+      </>
+    );
   }
 
   return (
@@ -122,167 +318,7 @@ export default function AdminPortalRoute() {
         </div>
 
         <nav className="mt-7 flex-1 overflow-y-auto px-3">
-          {/* Management Services dropdown group */}
-          <div>
-            <button
-              type="button"
-              onClick={() => setIsMsOpen((v) => !v)}
-              title={isCompact ? 'Management Services' : undefined}
-              className={`flex w-full items-center rounded-xl text-[13px] font-black uppercase tracking-wider transition-colors text-slate-400 hover:text-slate-700 hover:bg-slate-100 ${
-                isCompact ? 'h-10 justify-center px-0' : 'h-9 gap-2 px-3'
-              }`}
-            >
-              {!isCompact ? (
-                <>
-                  <span className="truncate">Management Services</span>
-                  <ChevronDown
-                    size={14}
-                    className={`ml-auto shrink-0 transition-transform duration-200 ${isMsOpen ? 'rotate-0' : '-rotate-90'}`}
-                  />
-                </>
-              ) : (
-                <span className="font-black">MS</span>
-              )}
-            </button>
-
-            {isMsOpen && (
-              <div className={`mt-1 space-y-1 ${!isCompact ? 'border-l-2 border-slate-100 ml-3 pl-2' : ''}`}>
-                <NavLink
-                  to={paths.adminPortalOverview}
-                  title={isCompact ? 'Tổng quan' : undefined}
-                  className={({ isActive }) => navItemClass(isActive)}
-                >
-                  <LayoutDashboard size={18} className="shrink-0" />
-                  {!isCompact ? <span className="truncate">Tổng quan</span> : null}
-                </NavLink>
-                <NavLink
-                  to={paths.adminPortalRegistrations}
-                  title={isCompact ? registrationsLabel : undefined}
-                  className={({ isActive }) => navItemClass(isActive)}
-                >
-                  <ClipboardList size={18} className="shrink-0" />
-                  {!isCompact ? <span className="truncate">{registrationsLabel}</span> : null}
-                </NavLink>
-                <NavLink
-                  to={paths.adminPortalClasses}
-                  title={isCompact ? classesLabel : undefined}
-                  className={({ isActive }) => navItemClass(isActive)}
-                >
-                  <School size={18} className="shrink-0" />
-                  {!isCompact ? <span className="truncate">{classesLabel}</span> : null}
-                </NavLink>
-                <NavLink
-                  to={paths.adminPortalUsers}
-                  title={isCompact ? usersLabel : undefined}
-                  className={({ isActive }) => navItemClass(isActive)}
-                >
-                  <Users size={18} className="shrink-0" />
-                  {!isCompact ? <span className="truncate">{usersLabel}</span> : null}
-                </NavLink>
-                <NavLink
-                  to={paths.adminPortalPeriodSettings}
-                  title={isCompact ? periodSettingsLabel : undefined}
-                  className={({ isActive }) => navItemClass(isActive)}
-                >
-                  <Layers size={18} className="shrink-0" />
-                  {!isCompact ? <span className="truncate">{periodSettingsLabel}</span> : null}
-                </NavLink>
-                <NavLink
-                  to={paths.adminPortalTimetable}
-                  title={isCompact ? timetableLabel : undefined}
-                  className={({ isActive }) => navItemClass(isActive)}
-                >
-                  <CalendarRange size={18} className="shrink-0" />
-                  {!isCompact ? <span className="truncate">{timetableLabel}</span> : null}
-                </NavLink>
-                <NavLink
-                  to={paths.adminPortalStudyWeeks}
-                  title={isCompact ? studyWeeksLabel : undefined}
-                  className={({ isActive }) => navItemClass(isActive)}
-                >
-                  <CalendarDays size={18} className="shrink-0" />
-                  {!isCompact ? <span className="truncate">{studyWeeksLabel}</span> : null}
-                </NavLink>
-                <NavLink
-                  to={paths.adminPortalRecordAttendances}
-                  title={isCompact ? recordAttendancesLabel : undefined}
-                  className={({ isActive }) => navItemClass(isActive)}
-                >
-                  <UserRoundCheck size={18} className="shrink-0" />
-                  {!isCompact ? <span className="truncate">{recordAttendancesLabel}</span> : null}
-                </NavLink>
-                <NavLink
-                  to={paths.adminPortalLearningResources}
-                  title={isCompact ? learningResourcesLabel : undefined}
-                  className={({ isActive }) => navItemClass(isActive)}
-                >
-                  <BookOpen size={18} className="shrink-0" />
-                  {!isCompact ? <span className="truncate">{learningResourcesLabel}</span> : null}
-                </NavLink>
-                <NavLink
-                  to={paths.adminPortalCosts}
-                  title={isCompact ? costsLabel : undefined}
-                  className={({ isActive }) => navItemClass(isActive)}
-                >
-                  <ReceiptText size={18} className="shrink-0" />
-                  {!isCompact ? <span className="truncate">{costsLabel}</span> : null}
-                </NavLink>
-              </div>
-            )}
-          </div>
-
-          {/* Exam Services dropdown group */}
-          <div className="mt-4">
-            <button
-              type="button"
-              onClick={() => setIsEsOpen((v) => !v)}
-              title={isCompact ? 'Exam Services' : undefined}
-              className={`flex w-full items-center rounded-xl text-[13px] font-black uppercase tracking-wider transition-colors text-slate-400 hover:text-slate-700 hover:bg-slate-100 ${
-                isCompact ? 'h-10 justify-center px-0' : 'h-9 gap-2 px-3'
-              }`}
-            >
-              {!isCompact ? (
-                <>
-                  <span className="truncate">Exam Services</span>
-                  <ChevronDown
-                    size={14}
-                    className={`ml-auto shrink-0 transition-transform duration-200 ${isEsOpen ? 'rotate-0' : '-rotate-90'}`}
-                  />
-                </>
-              ) : (
-                <span className="font-black">ES</span>
-              )}
-            </button>
-
-            {isEsOpen && (
-              <div className={`mt-1 space-y-1 ${!isCompact ? 'border-l-2 border-slate-100 ml-3 pl-2' : ''}`}>
-                <NavLink
-                  to={paths.adminPortalExamQuestions}
-                  title={isCompact ? 'Ngân hàng câu hỏi' : undefined}
-                  className={({ isActive }) => navItemClass(isActive)}
-                >
-                  <FileText size={18} className="shrink-0" />
-                  {!isCompact ? <span className="truncate">Ngân hàng câu hỏi</span> : null}
-                </NavLink>
-                <NavLink
-                  to={paths.adminPortalExams}
-                  title={isCompact ? 'Quản lý phòng thi' : undefined}
-                  className={({ isActive }) => navItemClass(isActive)}
-                >
-                  <DoorOpen size={18} className="shrink-0" />
-                  {!isCompact ? <span className="truncate">Quản lý phòng thi</span> : null}
-                </NavLink>
-                <NavLink
-                  to={paths.adminPortalOmr}
-                  title={isCompact ? 'Chấm phiếu OMR' : undefined}
-                  className={({ isActive }) => navItemClass(isActive)}
-                >
-                  <ScanLine size={18} className="shrink-0" />
-                  {!isCompact ? <span className="truncate">Chấm phiếu OMR</span> : null}
-                </NavLink>
-              </div>
-            )}
-          </div>
+          {renderSidebarLinks({ compact: isCompact, wide: isWide })}
         </nav>
 
         <div className={`mb-5 mt-4 border-t border-slate-200/80 pt-4 ${isCompact ? 'px-3' : 'px-3'}`}>
@@ -333,16 +369,86 @@ export default function AdminPortalRoute() {
         </button>
       </aside>
 
+      {/* Drawer sidebar cho mobile/tablet (hiện khi màn hình thu nhỏ < lg) */}
+      <div
+        className={`fixed inset-0 z-40 lg:hidden ${isMobileSidebarOpen ? '' : 'pointer-events-none'}`}
+        aria-hidden={!isMobileSidebarOpen}
+      >
+        <div
+          className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${
+            isMobileSidebarOpen ? 'opacity-100' : 'opacity-0'
+          }`}
+          onClick={() => setIsMobileSidebarOpen(false)}
+        />
+        <aside
+          className={`absolute inset-y-0 left-0 flex w-72 max-w-[80%] flex-col bg-white shadow-xl transition-transform duration-300 ${
+            isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
+        >
+          <div className="flex items-center justify-between border-b border-slate-200/80 px-5 py-5">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#1870FF] text-white shadow-[0_10px_22px_rgba(24,112,255,0.28)]">
+                <GraduationCap size={22} />
+              </div>
+              <div className="min-w-0">
+                <h1 className="truncate text-[16px] font-extrabold leading-tight text-slate-950">BHP Math</h1>
+                <p className="truncate text-[11px] font-medium leading-tight text-slate-500">Manager</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsMobileSidebarOpen(false)}
+              aria-label="Đóng menu"
+              className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900"
+            >
+              <X size={22} />
+            </button>
+          </div>
+
+          <nav className="mt-4 flex-1 overflow-y-auto px-3">
+            {renderSidebarLinks({
+              compact: false,
+              wide: true,
+              onNavigate: () => setIsMobileSidebarOpen(false),
+            })}
+          </nav>
+
+          <div className="mb-5 mt-4 border-t border-slate-200/80 px-3 pt-4">
+            <Link
+              to={paths.home}
+              onClick={() => setIsMobileSidebarOpen(false)}
+              className="group flex h-12 w-full items-center gap-3 rounded-xl px-4 text-[15px] font-semibold text-slate-600 transition-colors hover:bg-[#1870FF]/10 hover:text-[#1870FF]"
+            >
+              <DoorOpen
+                size={20}
+                className="shrink-0 transition-transform group-hover:-translate-x-0.5"
+              />
+              <span className="truncate">Trở về Trang chủ</span>
+            </Link>
+          </div>
+        </aside>
+      </div>
+
       <main
         className="min-w-0 flex-1 overflow-y-auto lg:pl-[calc(var(--admin-sidebar-width)+var(--admin-content-gap))]"
         style={mainStyle}
       >
         <header className="px-5 pb-6 pt-6 sm:px-8 lg:pl-0 lg:pr-10">
-          <div className="mx-auto max-w-7xl">
-            <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Admin Portal</p>
-            <h1 className="text-[26px] font-extrabold leading-tight tracking-normal text-slate-950">
-              {headerTitle}
-            </h1>
+          <div className="mx-auto flex max-w-7xl items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setIsMobileSidebarOpen(true)}
+              aria-label="Mở menu"
+              className="-ml-2 shrink-0 rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 lg:hidden"
+            >
+              <Menu size={24} />
+            </button>
+            <div className="min-w-0">
+              <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Admin Portal</p>
+              <h1 className="text-[26px] font-extrabold leading-tight tracking-normal text-slate-950">
+                {headerTitle}
+              </h1>
+            </div>
           </div>
         </header>
 

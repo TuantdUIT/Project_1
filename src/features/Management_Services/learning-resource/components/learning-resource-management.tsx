@@ -31,6 +31,7 @@ import type {
   ReqUpdateOnlineLectureDTO,
 } from '@/features/Management_Services/learning-resource/types';
 import { formatDate, formatDateShort, formatDateTime } from '@/utils/date';
+import { openExternalLink } from '@/utils/url';
 import { parseApiError } from '@/utils/api-errors';
 
 const fieldClass =
@@ -98,11 +99,6 @@ function getWeekLabel(lecture: OnlineLecture) {
 
 function getGroupLabel(week: NonNullable<OnlineLecture['study_week']>) {
   return `Tuần ${week.week_number ?? '-'} (${formatDateShort(week.week_start_date)} - ${formatDateShort(week.week_end_date)})`;
-}
-
-function openExternalLink(url?: string | null) {
-  if (!url) return;
-  window.open(url, '_blank', 'noopener,noreferrer');
 }
 
 export default function LearningResourceManagement() {
