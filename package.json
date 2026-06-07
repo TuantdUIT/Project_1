@@ -8,8 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
-    "codegen:ms": "openapi-typescript http://localhost:8084/docs/management-service/v3/api-docs -o src/types/openapi_MS.ts",
-    "codegen:es": "openapi-typescript http://localhost:8084/docs/exam-service/v3/api-docs -o src/types/openapi_ES.ts",
+    "codegen:ms": "openapi-typescript http://localhost:8081/v3/api-docs -o src/types/openapi_MS.ts",
+    "codegen:es": "openapi-typescript http://localhost:8080/v3/api-docs -o src/types/openapi_ES.ts",
     "codegen": "pnpm codegen:ms && pnpm codegen:es",
     "lint": "tsc --noEmit"
   },
