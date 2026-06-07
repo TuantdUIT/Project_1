@@ -12,10 +12,12 @@ import {
   Users,
   X,
 } from 'lucide-react';
+import { useMemo } from 'react';
 import {
   useCreateStudent,
   useStudentByStudentIdQuery,
   useStudentsQuery,
+  useThamSosBySchoolYearQuery,
   useUpdateStudentByUuid,
   type ResStudentDTO,
 } from '@/features/Management_Services/admin';
@@ -23,6 +25,11 @@ import { useGradesQuery } from '@/features/Management_Services/curriculum';
 import { formatDate } from '@/utils/date';
 
 const currentSchoolYear = new Date().getFullYear();
+const sidGradeConfigs = [
+  { gradeName: 'K10', configKeys: ['10xx'] },
+  { gradeName: 'K11', configKeys: ['11xx'] },
+  { gradeName: 'K12', configKeys: ['22xx', '12xx'] },
+];
 
 const cardClass = 'rounded-2xl border border-slate-200/80 bg-white shadow-[0_16px_36px_rgba(15,23,42,0.24)]';
 const fieldClass =
@@ -380,6 +387,23 @@ function AcceptStudentModal({
   }, [studentId]);
 
   const duplicateQuery = useStudentByStudentIdQuery(debouncedSid || undefined, schoolYear);
+  const latestSidQuery = useThamSosBySchoolYearQuery(schoolYear);
+  const latestSidByGrade = useMemo(() => {
+    const result = new Map<string, string>();
+
+    for (const item of latestSidQuery.data ?? []) {
+      const key = item.configKey?.trim() ?? '';
+      const gradeConfig = sidGradeConfigs.find((grade) =>
+        grade.configKeys.includes(key) || key === `${grade.gradeName}-${schoolYear}-SID`,
+      );
+
+      if (gradeConfig && item.configValue) {
+        result.set(gradeConfig.gradeName, item.configValue);
+      }
+    }
+
+    return result;
+  }, [latestSidQuery.data, schoolYear]);
   const isCheckingDuplicate =
     debouncedSid.length > 0 && (duplicateQuery.isLoading || duplicateQuery.isFetching);
   const existingStudent =
@@ -411,7 +435,7 @@ function AcceptStudentModal({
 
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/40 px-4">
-      <form onSubmit={handleSubmit} className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+      <form onSubmit={handleSubmit} className="w-full max-w-3xl rounded-2xl bg-white p-6 shadow-2xl">
         <div className="mb-4 flex items-start justify-between gap-4">
           <div className="min-w-0">
             <p className="text-[12px] font-bold uppercase tracking-[0.16em] text-slate-400">Duyệt học sinh</p>
@@ -432,44 +456,68 @@ function AcceptStudentModal({
           </button>
         </div>
 
-        <label className="block space-y-2">
-          <span className="text-[13px] font-bold text-slate-600">
-            Mã học sinh (SID) <span className="text-rose-500">*</span>
-            <span className="ml-1 text-slate-400 font-medium">· Năm học {schoolYear}</span>
-          </span>
-          <input
-            type="text"
-            value={studentId}
-            onChange={(event) => setStudentId(event.target.value)}
-            placeholder="Ví dụ: 00010"
-            autoFocus
-            aria-invalid={isDuplicate}
-            className={`${fieldClass} ${
-              isDuplicate
-                ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-100'
-                : isSidAvailable
-                  ? 'border-emerald-400 focus:border-emerald-500 focus:ring-emerald-100'
-                  : ''
-            }`}
-          />
-          {isCheckingDuplicate ? (
-            <p className="flex items-center gap-1.5 text-[12px] font-medium text-slate-500">
-              <Loader2 size={13} className="animate-spin" />
-              Đang kiểm tra SID...
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,1fr)_260px] md:items-start">
+          <label className="block space-y-2">
+            <span className="text-[13px] font-bold text-slate-600">
+              Mã học sinh (SID) <span className="text-rose-500">*</span>
+              <span className="ml-1 text-slate-400 font-medium">· Năm học {schoolYear}</span>
+            </span>
+            <input
+              type="text"
+              value={studentId}
+              onChange={(event) => setStudentId(event.target.value)}
+              placeholder="Ví dụ: 00010"
+              autoFocus
+              aria-invalid={isDuplicate}
+              className={`${fieldClass} ${
+                isDuplicate
+                  ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-100'
+                  : isSidAvailable
+                    ? 'border-emerald-400 focus:border-emerald-500 focus:ring-emerald-100'
+                    : ''
+              }`}
+            />
+            {isCheckingDuplicate ? (
+              <p className="flex items-center gap-1.5 text-[12px] font-medium text-slate-500">
+                <Loader2 size={13} className="animate-spin" />
+                Đang kiểm tra SID...
+              </p>
+            ) : isDuplicate && existingStudent ? (
+              <p className="flex items-center gap-1.5 text-[12px] font-semibold text-rose-600">
+                <AlertCircle size={13} />
+                SID đã thuộc về <strong>{existingStudent.user_fullname ?? '—'}</strong> trong năm {schoolYear}.
+              </p>
+            ) : isSidAvailable ? (
+              <p className="flex items-center gap-1.5 text-[12px] font-semibold text-emerald-600">
+                <CheckCircle2 size={13} />
+                SID khả dụng.
+              </p>
+            ) : null}
+            {error ? <p className="text-[13px] font-semibold text-rose-600">{error}</p> : null}
+          </label>
+
+          <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5">
+            <p className="mb-2 text-[12px] font-extrabold uppercase tracking-[0.12em] text-slate-500">
+              SID gần nhất
             </p>
-          ) : isDuplicate && existingStudent ? (
-            <p className="flex items-center gap-1.5 text-[12px] font-semibold text-rose-600">
-              <AlertCircle size={13} />
-              SID đã thuộc về <strong>{existingStudent.user_fullname ?? '—'}</strong> trong năm {schoolYear}.
-            </p>
-          ) : isSidAvailable ? (
-            <p className="flex items-center gap-1.5 text-[12px] font-semibold text-emerald-600">
-              <CheckCircle2 size={13} />
-              SID khả dụng.
-            </p>
-          ) : null}
-          {error ? <p className="text-[13px] font-semibold text-rose-600">{error}</p> : null}
-        </label>
+            <div className="space-y-1.5">
+              {sidGradeConfigs.map((grade) => (
+                <p key={grade.gradeName} className="text-[13px] font-bold text-slate-700">
+                  {grade.gradeName}-SID-Lasted:{' '}
+                  <span className="font-extrabold text-slate-950">
+                    "
+                    {latestSidQuery.isLoading
+                      ? 'Đang tải...'
+                      : latestSidQuery.isError
+                        ? 'Không tải được SID'
+                        : latestSidByGrade.get(grade.gradeName) ?? 'Chưa có học sinh'}
+                    "
+                  </span>
+                </p>
+              ))}
+            </div>
+          </div>
+        </div>
 
         <p className="mt-3 text-[12px] font-medium text-slate-500">
           Sau khi xác nhận, học sinh sẽ chuyển sang trạng thái <strong>ACTIVE</strong> với mã SID vừa nhập.

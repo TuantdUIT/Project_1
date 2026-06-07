@@ -3,6 +3,7 @@ export const paths = {
   courses: '/courses',
   courseDetail: (gradeId: string | number, lessonTypeId: string) => `/courses/${gradeId}/${lessonTypeId}`,
   schedule: '/schedule',
+  learningResources: '/learning-resources',
   exam: '/exam',
   examResult: (attemptUuid: string) => `/exam/result/${attemptUuid}`,
   adminPortal: '/admin-portal',

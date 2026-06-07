@@ -23,6 +23,22 @@ export function getLearningFiles() {
   return apiClient.get<LearningFile[]>(LEARNING_FILES_BASE);
 }
 
+/**
+ * Lấy bài giảng online mà học sinh được phép xem.
+ * Backend đã lọc sẵn theo Grade của học sinh + cửa sổ hiệu lực,
+ * nên frontend không tự suy diễn quyền truy cập theo khối.
+ */
+export function getOnlineLecturesForStudent(userUuid: string) {
+  return apiClient.get<OnlineLecture[]>(`${ONLINE_LECTURES_BASE}/student/${userUuid}`);
+}
+
+/**
+ * Lấy tài liệu học tập mà học sinh được phép xem (đã lọc theo Grade + hiệu lực ở backend).
+ */
+export function getLearningFilesForStudent(userUuid: string) {
+  return apiClient.get<LearningFile[]>(`${LEARNING_FILES_BASE}/student/${userUuid}`);
+}
+
 export function createOnlineLecture(body: ReqCreateOnlineLectureDTO) {
   return apiClient.post<OnlineLecture>(ONLINE_LECTURES_BASE, body);
 }
@@ -58,6 +74,28 @@ export function useLearningFilesQuery() {
   return useQuery({
     queryKey: learningFilesKey,
     queryFn: getLearningFiles,
+  });
+}
+
+/**
+ * Hook học sinh: bài giảng online đã được backend lọc theo quyền truy cập (Grade + hiệu lực).
+ */
+export function useStudentOnlineLecturesQuery(userUuid?: string) {
+  return useQuery({
+    queryKey: [...onlineLecturesKey, 'student', userUuid],
+    queryFn: () => getOnlineLecturesForStudent(userUuid ?? ''),
+    enabled: Boolean(userUuid),
+  });
+}
+
+/**
+ * Hook học sinh: tài liệu học tập đã được backend lọc theo quyền truy cập (Grade + hiệu lực).
+ */
+export function useStudentLearningFilesQuery(userUuid?: string) {
+  return useQuery({
+    queryKey: [...learningFilesKey, 'student', userUuid],
+    queryFn: () => getLearningFilesForStudent(userUuid ?? ''),
+    enabled: Boolean(userUuid),
   });
 }
 

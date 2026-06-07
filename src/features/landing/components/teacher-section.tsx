@@ -1,52 +1,56 @@
 
+// Ảnh online cho đội ngũ giảng dạy (Google Drive direct link)
+const ODD_IMAGE = 'https://drive.google.com/thumbnail?id=1R4ETMUH3j6EWIHXMT3yhB58jZW7BDjGR&sz=w1000';
+const EVEN_IMAGE = 'https://drive.google.com/thumbnail?id=1kGIWei53YMLfMKmSqmCM5wbca3LrN_FQ&sz=w1000';
+
 const teachers = [
   {
     name: 'Thầy Nguyễn Văn A',
     title: 'Chuyên gia Toán học',
     bio: '15 năm kinh nghiệm luyện thi ĐH, tác giả của nhiều đầu sách tham khảo nổi tiếng.',
-    image: '/assets/teachers/teacher1.jpg'
+    image: ODD_IMAGE
   },
   {
     name: 'Cô Trần Thị B',
     title: 'Thạc sĩ Ngữ văn',
     bio: 'Truyền cảm hứng học Văn qua phương pháp tư duy sơ đồ hóa hiện đại.',
-    image: '/assets/teachers/teacher2.jpg'
+    image: EVEN_IMAGE
   },
   {
     name: 'Thầy Lê Văn C',
     title: 'Tiến sĩ Vật lý',
     bio: 'Giảng viên đại học uy tín, chuyên luyện thi các kỳ thi đánh giá năng lực.',
-    image: '/assets/teachers/teacher3.jpg'
+    image: ODD_IMAGE
   },
   {
     name: 'Cô Phạm Thị D',
     title: 'Giảng viên Tiếng Anh',
     bio: 'Sở hữu chứng chỉ IELTS 8.5, chuyên đào tạo ngữ pháp và kỹ năng thi cử.',
-    image: '/assets/teachers/teacher4.jpg'
+    image: EVEN_IMAGE
   },
   {
     name: 'Thầy Hoàng Văn E',
     title: 'Chuyên gia Hóa học',
     bio: 'Phương pháp giải nhanh trắc nghiệm Hóa học độc quyền, giúp học sinh đạt điểm 9+.',
-    image: '/assets/teachers/teacher5.jpg'
+    image: ODD_IMAGE
   },
   {
     name: 'Cô Vũ Thị F',
     title: 'Thạc sĩ Sinh học',
     bio: 'Kinh nghiệm luyện thi học sinh giỏi Quốc gia, truyền đạt kiến thức sinh động.',
-    image: '/assets/teachers/teacher6.jpg'
+    image: EVEN_IMAGE
   },
   {
     name: 'Thầy Đinh Văn G',
     title: 'Giảng viên Lịch sử',
     bio: 'Biến những con số và sự kiện khô khan thành những câu chuyện lịch sử hấp dẫn.',
-    image: '/assets/teachers/teacher7.jpg'
+    image: ODD_IMAGE
   },
   {
     name: 'Cô Lý Thị H',
     title: 'Chuyên gia Địa lý',
     bio: 'Sử dụng Atlat và sơ đồ tư duy giúp học sinh nắm bắt kiến thức Địa lý dễ dàng.',
-    image: '/assets/teachers/teacher8.jpg'
+    image: EVEN_IMAGE
   }
 ];
 
