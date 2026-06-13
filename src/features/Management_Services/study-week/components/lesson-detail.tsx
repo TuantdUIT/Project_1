@@ -216,7 +216,7 @@ export default function LessonDetail() {
                 className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#1870FF] px-4 text-[14px] font-extrabold text-white transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Save size={16} />
-                Luu gio ket thuc
+                Lưu giờ kết thúc
               </button>
             </div>
           </div>

@@ -2,6 +2,8 @@ import { type CSSProperties, useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router';
 import { BookOpen, CalendarDays, CalendarRange, ChevronDown, ClipboardList, DoorOpen, FileText, GraduationCap, GripVertical, Layers, LayoutDashboard, Menu, ReceiptText, ScanLine, School, UserRoundCheck, Users, X } from 'lucide-react';
 import { paths } from '@/config/paths';
+import { useAuth } from '@/lib/auth/auth-context';
+import { canAccessExamServices, canAccessManagementServices } from '@/lib/auth/permissions';
 
 const minSidebarWidth = 104;
 const defaultSidebarWidth = 240;
@@ -19,6 +21,9 @@ export default function AdminPortalRoute() {
   const [isEsOpen, setIsEsOpen] = useState(true);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const location = useLocation();
+  const { role } = useAuth();
+  const showExamServices = canAccessExamServices(role?.roleName);
+  const showManagementServices = canAccessManagementServices(role?.roleName);
 
   // Đóng drawer mobile mỗi khi điều hướng sang route khác.
   useEffect(() => {
@@ -61,7 +66,7 @@ export default function AdminPortalRoute() {
     : location.pathname.startsWith(paths.adminPortalUsers)
       ? 'Quản lý nhân sự'
       : location.pathname.startsWith(paths.adminPortalPeriodSettings)
-        ? 'Mẫu khóa học'
+        ? 'Tổng hợp template'
         : location.pathname.startsWith(paths.adminPortalTimetable)
           ? 'Thời Khóa Biểu'
           : location.pathname.startsWith(paths.adminPortalLearningResources)
@@ -102,7 +107,7 @@ export default function AdminPortalRoute() {
     const usersLabel = wide ? 'Quản lý nhân sự' : 'Nhân sự';
     const registrationsLabel = wide ? 'Học sinh đăng ký' : 'Đăng ký';
     const classesLabel = wide ? 'Lớp học (đang học)' : 'Lớp học';
-    const periodSettingsLabel = wide ? 'Mẫu khóa học' : 'Template Period';
+    const periodSettingsLabel = wide ? 'Tổng hợp template' : 'Template';
     const timetableLabel = wide ? 'Thời Khóa Biểu' : 'Timetable';
     const studyWeeksLabel = wide ? 'Tuần học (vận hành)' : 'Tuần học';
     const learningResourcesLabel = wide ? 'Tài liệu học tập' : 'Học liệu';
@@ -121,8 +126,8 @@ export default function AdminPortalRoute() {
 
     return (
       <>
-        {/* Management Services dropdown group */}
-        <div>
+        {/* Management Services dropdown group — TA không có quyền truy cập */}
+        {showManagementServices ? <div>
           <button
             type="button"
             onClick={() => setIsMsOpen((v) => !v)}
@@ -156,6 +161,15 @@ export default function AdminPortalRoute() {
                 {!compact ? <span className="truncate">Tổng quan</span> : null}
               </NavLink>
               <NavLink
+                to={paths.adminPortalPeriodSettings}
+                onClick={onNavigate}
+                title={compact ? periodSettingsLabel : undefined}
+                className={({ isActive }) => navItemClass(isActive)}
+              >
+                <Layers size={18} className="shrink-0" />
+                {!compact ? <span className="truncate">{periodSettingsLabel}</span> : null}
+              </NavLink>
+              <NavLink
                 to={paths.adminPortalRegistrations}
                 onClick={onNavigate}
                 title={compact ? registrationsLabel : undefined}
@@ -181,15 +195,6 @@ export default function AdminPortalRoute() {
               >
                 <Users size={18} className="shrink-0" />
                 {!compact ? <span className="truncate">{usersLabel}</span> : null}
-              </NavLink>
-              <NavLink
-                to={paths.adminPortalPeriodSettings}
-                onClick={onNavigate}
-                title={compact ? periodSettingsLabel : undefined}
-                className={({ isActive }) => navItemClass(isActive)}
-              >
-                <Layers size={18} className="shrink-0" />
-                {!compact ? <span className="truncate">{periodSettingsLabel}</span> : null}
               </NavLink>
               <NavLink
                 to={paths.adminPortalTimetable}
@@ -238,9 +243,10 @@ export default function AdminPortalRoute() {
               </NavLink>
             </div>
           )}
-        </div>
+        </div> : null}
 
-        {/* Exam Services dropdown group */}
+        {/* Exam Services dropdown group — TEACHER và TA được phép */}
+        {showExamServices ? (
         <div className="mt-4">
           <button
             type="button"
@@ -295,6 +301,7 @@ export default function AdminPortalRoute() {
             </div>
           )}
         </div>
+        ) : null}
       </>
     );
   }

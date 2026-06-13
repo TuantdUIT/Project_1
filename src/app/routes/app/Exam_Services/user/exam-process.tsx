@@ -10,7 +10,7 @@ import {
   ChevronRight,
   CheckCircle2,
 } from 'lucide-react';
-import { useExamsQuery, useExamQuery, useStartAttemptMutation, useSubmitAttemptMutation, saveAnswer } from '@/features/Exam_Services/exam/api/exams';
+import { useExamsQuery, useExamQuery, useStartAttemptMutation, useSubmitAttemptMutation, useAttemptsQuery, saveAnswer } from '@/features/Exam_Services/exam/api/exams';
 import { useProctoring } from '@/features/Exam_Services/proctoring';
 import type { ProctoringEventType } from '@/features/Exam_Services/proctoring';
 import type { Exam, ResAttemptQuestion } from '@/features/Exam_Services/exam/types';
@@ -55,7 +55,30 @@ const STATUS_STYLE: Record<string, string> = {
   ARCHIVED:  'bg-orange-100 text-orange-600',
 };
 
+const ATTEMPT_STATUS_LABEL: Record<string, string> = {
+  IN_PROGRESS:     'Đang làm',
+  SUBMITTED:       'Đã nộp',
+  SCORED:          'Đã chấm',
+  ANSWER_RELEASED: 'Đã công bố',
+  CANCELLED:       'Đã hủy',
+};
+
+const ATTEMPT_STATUS_STYLE: Record<string, string> = {
+  IN_PROGRESS:     'bg-blue-100 text-blue-600',
+  SUBMITTED:       'bg-amber-100 text-amber-700',
+  SCORED:          'bg-emerald-100 text-emerald-700',
+  ANSWER_RELEASED: 'bg-emerald-100 text-emerald-700',
+  CANCELLED:       'bg-slate-100 text-slate-500',
+};
+
 // ---------- helpers ----------
+
+function formatDuration(seconds?: number) {
+  if (seconds == null) return '—';
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return m > 0 ? `${m} phút ${s}s` : `${s}s`;
+}
 
 function formatDateTime(iso?: string) {
   if (!iso) return '—';
@@ -204,6 +227,8 @@ export default function ExamProcessRoute() {
   const startAttemptMutation  = useStartAttemptMutation();
   const submitAttemptMutation = useSubmitAttemptMutation();
   const autosave              = useAttemptAutosave(attemptUuid);
+  // Lịch sử làm bài của học sinh đang đăng nhập (ES dùng chung access token của MS).
+  const attemptsQuery         = useAttemptsQuery();
 
   const handleViolationDetected = useCallback((type: ProctoringEventType) => {
     setLastViolation({ type, key: Date.now() });
@@ -429,6 +454,11 @@ export default function ExamProcessRoute() {
     { label: 'Điểm tối đa', value: ex?.totalScore != null ? String(ex.totalScore) : '—' },
   ];
 
+  // Lịch sử làm bài của HỌC SINH này cho ĐỀ THI này (lọc theo examUuid).
+  const examAttempts = (attemptsQuery.data?.content ?? [])
+    .filter((attempt) => attempt.examUuid === ex?.examUuid)
+    .sort((a, b) => (b.attemptNo ?? 0) - (a.attemptNo ?? 0));
+
   return (
     <div className="bg-slate-50 min-h-screen p-8">
       <div className="max-w-4xl mx-auto space-y-6">
@@ -499,6 +529,86 @@ export default function ExamProcessRoute() {
               </ul>
             </div>
           </div>
+        </div>
+
+        {/* Lịch sử làm bài của học sinh cho đề thi này (GET /api/v1/student/attempts). */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-black text-slate-700 uppercase tracking-wider">Lịch sử làm bài</h2>
+            {attemptsQuery.isLoading ? <Loader2 className="animate-spin text-slate-400" size={16} /> : null}
+          </div>
+
+          {attemptsQuery.isError ? (
+            <p className="flex items-center gap-1.5 text-sm font-bold text-red-400">
+              <AlertCircle size={14} />
+              Không tải được lịch sử làm bài.
+            </p>
+          ) : examAttempts.length === 0 ? (
+            <p className="text-sm font-bold text-slate-400">
+              {attemptsQuery.isLoading ? 'Đang tải...' : 'Chưa có lượt thi nào cho bài thi này.'}
+            </p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[640px] text-left text-sm">
+                <thead className="text-[11px] font-black uppercase tracking-wider text-slate-400">
+                  <tr className="border-b border-slate-100">
+                    <th className="py-2 pr-4">Lần</th>
+                    <th className="py-2 pr-4">Nộp lúc</th>
+                    <th className="py-2 pr-4">Thời gian</th>
+                    <th className="py-2 pr-4">Điểm</th>
+                    <th className="py-2 pr-4">Trạng thái</th>
+                    <th className="py-2 pr-4 text-right" />
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {examAttempts.map((attempt) => {
+                    const attemptStatus = attempt.status ?? 'IN_PROGRESS';
+                    const canViewResult =
+                      Boolean(attempt.attemptUuid)
+                      && (attemptStatus === 'SCORED' || attemptStatus === 'ANSWER_RELEASED');
+                    return (
+                      <tr key={attempt.attemptUuid}>
+                        <td className="py-2.5 pr-4 font-black text-slate-800">#{attempt.attemptNo ?? '—'}</td>
+                        <td className="py-2.5 pr-4 font-medium text-slate-600">
+                          {attempt.submittedAt ? formatDateTime(attempt.submittedAt) : '—'}
+                        </td>
+                        <td className="py-2.5 pr-4 font-medium text-slate-600">{formatDuration(attempt.timeSpentSeconds)}</td>
+                        <td className="py-2.5 pr-4 font-black text-slate-900">
+                          {attempt.score != null ? attempt.score : '—'}
+                        </td>
+                        <td className="py-2.5 pr-4">
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-black ${ATTEMPT_STATUS_STYLE[attemptStatus] ?? 'bg-slate-100 text-slate-500'}`}>
+                              {ATTEMPT_STATUS_LABEL[attemptStatus] ?? attemptStatus}
+                            </span>
+                            {attempt.isAutoSubmitted ? (
+                              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500">Tự động nộp</span>
+                            ) : null}
+                            {attempt.violationCount ? (
+                              <span className="rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-bold text-red-500">
+                                {attempt.violationCount} vi phạm
+                              </span>
+                            ) : null}
+                          </div>
+                        </td>
+                        <td className="py-2.5 pr-4 text-right">
+                          {canViewResult ? (
+                            <button
+                              type="button"
+                              onClick={() => navigate(paths.examResult(attempt.attemptUuid!))}
+                              className="text-[13px] font-bold text-blue-600 hover:underline"
+                            >
+                              Xem kết quả
+                            </button>
+                          ) : null}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
         <div className="flex flex-col items-center gap-4">

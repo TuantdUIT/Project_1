@@ -389,6 +389,20 @@ export default function AdminQuestionsRoute() {
               {/* Nội dung */}
               <div className="space-y-1.5">
                 <label className="text-xs font-black text-slate-500 uppercase tracking-wider">Nội dung câu hỏi *</label>
+
+                {/* Xem trước nội dung như học sinh thấy trong phòng thi (render từ LaTeX).
+                    LaTeX thuần chỉ lưu DB; ô này hiển thị bản đã render. */}
+                <div className="space-y-1">
+                  <span className="text-[11px] font-bold text-slate-400">Hiển thị trong đề thi</span>
+                  <div className="min-h-[44px] w-full rounded-xl border border-dashed border-slate-300 bg-slate-50 px-3 py-2 text-sm leading-relaxed text-slate-800">
+                    {editForm.questionContent?.trim() ? (
+                      <MathRender value={editForm.questionContent} />
+                    ) : (
+                      <span className="text-slate-400">Nội dung hiển thị sẽ xuất hiện ở đây</span>
+                    )}
+                  </div>
+                </div>
+
                 <MathSourceField
                   value={editForm.questionContent ?? ''}
                   onChange={(v) => setEditForm((f) => ({ ...f, questionContent: v }))}

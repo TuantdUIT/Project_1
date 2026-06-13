@@ -130,14 +130,7 @@ export default function AdminOmrRoute() {
     <div className="space-y-6">
 
       {/* Cảnh báo giới hạn backend */}
-      <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-700 text-xs font-bold">
-        <Info size={15} className="shrink-0 mt-0.5" />
-        <span>
-          Backend chưa có API liệt kê mã đề / phiếu đã upload. Danh sách bên dưới được lưu cục bộ
-          trên trình duyệt này (không thấy mục do người khác tạo). Trạng thái job có thể làm mới qua nút
-          “Làm mới”.
-        </span>
-      </div>
+      
 
       {/* Chọn bài thi */}
       <div className={`${cardCls} p-5`}>
@@ -235,10 +228,7 @@ export default function AdminOmrRoute() {
       {/* ── BƯỚC 2: NGOÀI HỆ THỐNG ── */}
       <div className="flex items-center gap-3 px-5 py-3 rounded-xl border border-dashed border-slate-300 bg-slate-50 text-slate-500">
         <span className="flex items-center justify-center w-6 h-6 rounded-lg bg-slate-300 text-white text-xs font-black shrink-0">2</span>
-        <p className="text-sm font-bold">
-          (Ngoài hệ thống) In đề → phát cho học sinh làm → quét phiếu thành file PDF.
-          <span className="font-medium text-slate-400"> Thao tác vật lý/offline, không qua API.</span>
-        </p>
+      
       </div>
 
       {/* ── BƯỚC 3: UPLOAD PHIẾU QUÉT ── */}

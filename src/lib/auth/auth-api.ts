@@ -1,7 +1,7 @@
 import { apiClient } from '@/lib/api-client';
 import type { components } from '@/types/openapi_MS';
 
-export type AuthRoleName = 'MANAGER' | 'STUDENT' | 'TEACHER' | 'ADMIN' | string;
+export type AuthRoleName = 'STUDENT' | 'TEACHER' | 'MANAGER' | 'TA' | 'COLAB_TEACHER' | string;
 
 export type AuthUser = {
   id: string;

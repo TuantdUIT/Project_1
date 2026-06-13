@@ -1,9 +1,6 @@
 ﻿import { useMemo, useState } from 'react';
-import { Layers, Pencil, Plus, Trash2 } from 'lucide-react';
-import {
-  useDeletePeriodSetting,
-  usePeriodSettingsQuery,
-} from '@/features/Management_Services/period-setting';
+import { Layers, Plus } from 'lucide-react';
+import { usePeriodSettingsQuery } from '@/features/Management_Services/period-setting';
 import type { ResPeriodSettingDTO } from '@/features/Management_Services/period-setting/types';
 import { useGradesQuery } from '@/features/Management_Services/curriculum';
 import { formatDate } from '@/utils/date';
@@ -23,11 +20,8 @@ type EditingState =
 export default function PeriodSettingList() {
   const settingsQuery = usePeriodSettingsQuery();
   const gradesQuery = useGradesQuery();
-  const deleteSetting = useDeletePeriodSetting();
 
   const [editing, setEditing] = useState<EditingState>(null);
-  const [pendingDeleteUuid, setPendingDeleteUuid] = useState<string | null>(null);
-  const [deleteError, setDeleteError] = useState('');
   const [gradeFilter, setGradeFilter] = useState<string>('');
   const [yearFilter, setYearFilter] = useState<string>('');
 
@@ -46,21 +40,6 @@ export default function PeriodSettingList() {
     if (yearFilter && String(setting.school_year ?? '') !== yearFilter) return false;
     return true;
   });
-
-  async function handleConfirmDelete() {
-    if (!pendingDeleteUuid) return;
-    setDeleteError('');
-    try {
-      await deleteSetting.mutateAsync(pendingDeleteUuid);
-      setPendingDeleteUuid(null);
-    } catch (error) {
-      setDeleteError(
-        error instanceof Error
-          ? error.message
-          : 'Không xóa được template. Có thể đang có period dùng template này.',
-      );
-    }
-  }
 
   return (
     <>
@@ -129,12 +108,15 @@ export default function PeriodSettingList() {
                 <th className="px-6 py-4">Số tuần</th>
                 <th className="px-6 py-4">Học phí</th>
                 <th className="px-6 py-4">Lesson types</th>
-                <th className="px-6 py-4 text-right">Thao tác</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filtered.map((setting) => (
-                <tr key={setting.uuid_period_setting} className="h-[68px] transition hover:bg-slate-50/70">
+                <tr
+                  key={setting.uuid_period_setting}
+                  onClick={() => setEditing({ kind: 'update', setting })}
+                  className="h-[68px] cursor-pointer transition hover:bg-slate-50/70"
+                >
                   <td className="px-6 py-4">
                     <p className="text-[15px] font-extrabold text-slate-950">
                       {setting.period_setting_name ?? '—'}
@@ -158,35 +140,12 @@ export default function PeriodSettingList() {
                   <td className="px-6 py-4 text-[14px] font-medium text-slate-900">
                     {setting.lesson_type_configs?.length ?? 0}
                   </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center justify-end gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setEditing({ kind: 'update', setting })}
-                        className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-slate-200 px-3 text-[12px] font-extrabold text-slate-700 transition hover:border-[#1870FF] hover:text-[#1870FF]"
-                      >
-                        <Pencil size={13} />
-                        Sửa
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setDeleteError('');
-                          setPendingDeleteUuid(setting.uuid_period_setting ?? null);
-                        }}
-                        className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-rose-100 bg-rose-50 px-3 text-[12px] font-extrabold text-rose-600 transition hover:bg-rose-100"
-                      >
-                        <Trash2 size={13} />
-                        Xóa
-                      </button>
-                    </div>
-                  </td>
                 </tr>
               ))}
 
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-[14px] font-semibold text-slate-500">
+                  <td colSpan={6} className="px-6 py-12 text-center text-[14px] font-semibold text-slate-500">
                     {settingsQuery.isLoading
                       ? 'Đang tải...'
                       : 'Chưa có template khớp bộ lọc.'}
@@ -207,39 +166,6 @@ export default function PeriodSettingList() {
           setting={editing.setting}
           onClose={() => setEditing(null)}
         />
-      ) : null}
-
-      {pendingDeleteUuid ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
-            <h3 className="text-[18px] font-extrabold text-slate-950">Xác nhận xóa template</h3>
-            <p className="mt-2 text-[14px] font-medium text-slate-600">
-              Template chỉ xóa được nếu chưa có period nào sử dụng. Bạn có chắc chắn?
-            </p>
-            {deleteError ? (
-              <p className="mt-3 rounded-lg bg-rose-50 px-3 py-2 text-[13px] font-semibold text-rose-700">
-                {deleteError}
-              </p>
-            ) : null}
-            <div className="mt-6 flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => setPendingDeleteUuid(null)}
-                className="h-11 rounded-xl border border-slate-300 px-4 text-[14px] font-extrabold text-slate-600 transition hover:bg-slate-50"
-              >
-                Hủy
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmDelete}
-                disabled={deleteSetting.isPending}
-                className="h-11 rounded-xl bg-rose-600 px-4 text-[14px] font-extrabold text-white shadow-[0_10px_22px_rgba(225,29,72,0.26)] transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {deleteSetting.isPending ? 'Đang xóa...' : 'Xóa'}
-              </button>
-            </div>
-          </div>
-        </div>
       ) : null}
     </>
   );

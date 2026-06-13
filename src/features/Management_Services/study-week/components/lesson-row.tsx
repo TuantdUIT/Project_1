@@ -1,7 +1,6 @@
 ﻿import { type KeyboardEvent, useEffect, useState } from 'react';
 import { Edit3, UsersRound } from 'lucide-react';
 import { paths } from '@/config/paths';
-import type { EmployeeRATemplateItem } from '@/features/Management_Services/employee-ra-template/types';
 import { useUpdateLesson } from '@/features/Management_Services/study-week/api/lessons';
 import {
   formatLessonDate,
@@ -16,7 +15,7 @@ import {
   getLessonStatusClass,
   getLessonStatusLabel,
 } from '@/features/Management_Services/study-week/lib/lesson-status';
-import type { Lesson } from '@/features/Management_Services/study-week/types';
+import type { Lesson, LessonEmployeeAssignment } from '@/features/Management_Services/study-week/types';
 import { formatWeekday } from '@/utils/date';
 
 function formatLessonWeekday(lesson: Lesson) {
@@ -29,19 +28,17 @@ export default function LessonRow({
   lesson,
   weekUuid,
   gradeId,
-  personnel = [],
-  isPersonnelLoading = false,
-  isPersonnelError = false,
   onOpen,
 }: {
   lesson: Lesson;
   weekUuid: string;
   gradeId: number;
-  personnel?: EmployeeRATemplateItem[];
-  isPersonnelLoading?: boolean;
-  isPersonnelError?: boolean;
   onOpen: (url: string) => void;
 }) {
+  // Nhân sự của buổi học đọc TRỰC TIẾP từ employee_assignments (gắn cứng lesson_uuid),
+  // không còn khớp slot từ RA template — nhờ đó không "biến mất" khi đổi giờ template.
+  // Xem docs/fe-tickets/FE-P1-002-lesson-personnel-from-employee-assignments.md
+  const personnel = lesson.employee_assignments ?? [];
   const updateLesson = useUpdateLesson();
   const [isEditing, setIsEditing] = useState(false);
   const [endTimeValue, setEndTimeValue] = useState(
@@ -103,11 +100,7 @@ export default function LessonRow({
         {lesson.lesson_type?.lesson_type_name ?? '-'}
       </td>
       <td className="px-5 py-4">
-        <LessonPersonnelCell
-          personnel={personnel}
-          isLoading={isPersonnelLoading}
-          isError={isPersonnelError}
-        />
+        <LessonPersonnelCell personnel={personnel} />
       </td>
       <td className="px-5 py-4 text-[14px] font-bold text-slate-700">
         {isEditing ? (
@@ -147,20 +140,8 @@ export default function LessonRow({
   );
 }
 
-function LessonPersonnelCell({
-  personnel,
-  isLoading,
-  isError,
-}: {
-  personnel: EmployeeRATemplateItem[];
-  isLoading: boolean;
-  isError: boolean;
-}) {
-  if (isLoading) {
-    return <span className="text-[13px] font-bold text-slate-500">Dang tai nhan su...</span>;
-  }
-
-  if (isError || !personnel.length) {
+function LessonPersonnelCell({ personnel }: { personnel: LessonEmployeeAssignment[] }) {
+  if (!personnel.length) {
     return <span className="text-[13px] font-bold text-amber-700">{UNASSIGNED_PERSONNEL_MESSAGE}</span>;
   }
 
@@ -168,7 +149,7 @@ function LessonPersonnelCell({
     <div className="max-w-[360px] space-y-1.5">
       {personnel.map((item, index) => (
         <div
-          key={item.employee_ra_template_item_uuid ?? `${item.user_uuid ?? 'person'}-${index}`}
+          key={item.lesson_employee_assignment_uuid ?? `${item.user_uuid ?? 'person'}-${index}`}
           className="flex max-w-full items-center gap-1.5 rounded-lg bg-blue-50 px-2.5 py-1.5 text-[12px] font-black text-[#1870FF]"
         >
           <UsersRound size={13} strokeWidth={2.5} className="shrink-0" />

@@ -1,12 +1,23 @@
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { AnimatePresence, motion } from 'motion/react';
 import { X } from 'lucide-react';
-import { LoginForm } from '@/features/auth';
+import { ForgotPasswordForm, LoginForm } from '@/features/auth';
 import { useLoginModal } from '@/lib/auth/login-modal-context';
+
+type ModalView = 'login' | 'forgot';
 
 export default function LoginModal() {
   const navigate = useNavigate();
   const { isOpen, close, consumeRedirectTo } = useLoginModal();
+  const [view, setView] = useState<ModalView>('login');
+
+  // Mỗi lần mở lại modal, luôn quay về màn đăng nhập.
+  useEffect(() => {
+    if (isOpen) {
+      setView('login');
+    }
+  }, [isOpen]);
 
   function handleSuccess() {
     close();
@@ -42,7 +53,7 @@ export default function LoginModal() {
             <div className="p-8">
               <div className="mb-8 flex items-center justify-between">
                 <h2 className="text-2xl font-bold text-indigo-deep">
-                  BHP Math
+                  {view === 'login' ? 'BHP Math' : 'Quên mật khẩu'}
                 </h2>
                 <button
                   onClick={handleClose}
@@ -52,7 +63,21 @@ export default function LoginModal() {
                 </button>
               </div>
 
-              <LoginForm onSuccess={handleSuccess} />
+              {view === 'login' ? (
+                <>
+                  <LoginForm onSuccess={handleSuccess} />
+
+                  <button
+                    type="button"
+                    onClick={() => setView('forgot')}
+                    className="mt-4 w-full rounded-xl border border-gray-200 bg-white py-4 text-lg font-bold text-gray-600 transition-all hover:border-indigo-deep hover:text-indigo-deep"
+                  >
+                    Quên mật khẩu
+                  </button>
+                </>
+              ) : (
+                <ForgotPasswordForm onBack={() => setView('login')} />
+              )}
             </div>
           </motion.div>
         </div>

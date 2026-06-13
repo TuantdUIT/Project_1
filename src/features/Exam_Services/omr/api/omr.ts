@@ -15,12 +15,13 @@ export function useCreateExamPaperMutation() {
 }
 
 // ── Bước 3: Upload phiếu quét (scoring job) ─────────────────────────────────
-// POST /api/v1/omr/scoring-jobs?examUuid={uuid}  — multipart/form-data: file(.pdf)
+// POST /api/v1/omr/scoring-jobs  — multipart/form-data: file(.pdf) + examUuid
 export function createScoringJob(examUuid: string, file: File) {
   const formData = new FormData();
   formData.append('file', file);
+  formData.append('examUuid', examUuid);
   return apiClientES.post<ResOmrScoringJob>(
-    `/api/v1/omr/scoring-jobs?examUuid=${encodeURIComponent(examUuid)}`,
+    '/api/v1/omr/scoring-jobs',
     formData,
     // Đặt multipart để axios không JSON-hóa FormData; browser tự thêm boundary.
     { headers: { 'Content-Type': 'multipart/form-data' } },

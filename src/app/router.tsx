@@ -3,6 +3,16 @@ import AppLayout from '@/components/layouts/app-layout';
 import { paths } from '@/config/paths';
 import { ProtectedRoute } from '@/lib/auth/protected-route';
 import { RoleGuard } from '@/lib/auth/role-guard';
+import { ADMIN_PORTAL_ROLES, EXAM_SERVICES_ROLES, MANAGEMENT_SERVICES_ROLES } from '@/lib/auth/permissions';
+import { useAuth } from '@/lib/auth/auth-context';
+
+function AdminPortalIndex() {
+  const { role } = useAuth();
+  if (role?.roleName === 'TA') {
+    return <Navigate to={paths.adminPortalExamQuestions} replace />;
+  }
+  return <Navigate to={paths.adminPortalRegistrations} replace />;
+}
 
 /**
  * Ý nghĩa: Lazy-load route landing để giảm bundle ban đầu.
@@ -237,7 +247,7 @@ export const router = createBrowserRouter([
     ],
   },
   {
-    element: <RoleGuard roleName="MANAGER" />,
+    element: <RoleGuard roleName={ADMIN_PORTAL_ROLES} />,
     children: [
       {
         path: paths.adminPortal.slice(1),
@@ -245,103 +255,115 @@ export const router = createBrowserRouter([
         children: [
           {
             index: true,
-            element: <Navigate to={paths.adminPortalRegistrations} replace />,
+            element: <AdminPortalIndex />,
           },
           {
-            path: 'overview',
-            lazy: loadAdminOverviewRoute,
-          },
-          {
-            path: 'registrations',
-            lazy: loadAdminRegistrationsRoute,
-          },
-          {
-            path: 'classes',
-            lazy: loadAdminClassesRoute,
-          },
-          {
-            path: 'classes/:userUuid',
-            lazy: loadAdminClassesRoute,
-          },
-          {
-            path: 'users',
-            lazy: loadAdminUsersRoute,
-          },
-          {
-            path: 'period-settings',
-            lazy: loadAdminPeriodSettingsRoute,
-          },
-          {
-            path: 'timetable',
-            lazy: loadAdminTimetableRoute,
+            // Management Services — TA bị chặn, redirect sang Exam Services.
+            element: <RoleGuard roleName={MANAGEMENT_SERVICES_ROLES} redirectTo={paths.adminPortalExamQuestions} />,
             children: [
               {
-                index: true,
-                element: <Navigate to={paths.adminPortalTimetableAll} replace />,
+                path: 'overview',
+                lazy: loadAdminOverviewRoute,
               },
               {
-                path: 'all',
-                lazy: loadAdminTimetableAllRoute,
+                path: 'registrations',
+                lazy: loadAdminRegistrationsRoute,
               },
               {
-                path: 'grade/:gradeId',
-                lazy: loadAdminTimetableByGradeRoute,
+                path: 'classes',
+                lazy: loadAdminClassesRoute,
+              },
+              {
+                path: 'classes/:userUuid',
+                lazy: loadAdminClassesRoute,
+              },
+              {
+                path: 'users',
+                lazy: loadAdminUsersRoute,
+              },
+              {
+                path: 'period-settings',
+                lazy: loadAdminPeriodSettingsRoute,
+              },
+              {
+                path: 'timetable',
+                lazy: loadAdminTimetableRoute,
+                children: [
+                  {
+                    index: true,
+                    element: <Navigate to={paths.adminPortalTimetableAll} replace />,
+                  },
+                  {
+                    path: 'all',
+                    lazy: loadAdminTimetableAllRoute,
+                  },
+                  {
+                    path: 'grade/:gradeId',
+                    lazy: loadAdminTimetableByGradeRoute,
+                  },
+                ],
+              },
+              {
+                path: 'study-weeks',
+                lazy: loadAdminStudyWeeksRoute,
+              },
+              {
+                path: 'study-weeks/:weekUuid',
+                lazy: loadAdminStudyWeekDetailRoute,
+                children: [
+                  {
+                    index: true,
+                    element: <Navigate to="grade/1" replace />,
+                  },
+                  {
+                    path: 'grade/:gradeId',
+                    lazy: loadAdminStudyWeekByGradeRoute,
+                  },
+                  {
+                    path: 'grade/:gradeId/lessons/:lessonUuid',
+                    lazy: loadAdminStudyWeekLessonDetailRoute,
+                  },
+                ],
+              },
+              {
+                path: 'record-attendances',
+                lazy: loadAdminRecordAttendancesRoute,
+              },
+              {
+                path: 'learning-resources',
+                lazy: loadAdminLearningResourcesRoute,
+              },
+              {
+                path: 'costs',
+                lazy: loadAdminCostsRoute,
               },
             ],
           },
           {
-            path: 'study-weeks',
-            lazy: loadAdminStudyWeeksRoute,
-          },
-          {
-            path: 'study-weeks/:weekUuid',
-            lazy: loadAdminStudyWeekDetailRoute,
+            // Exam Services dành cho TEACHER (vai trò admin) — MANAGER bị chặn truy cập.
+            element: <RoleGuard roleName={EXAM_SERVICES_ROLES} />,
             children: [
               {
-                index: true,
-                element: <Navigate to="grade/1" replace />,
+                path: 'exam/questions',
+                lazy: loadAdminQuestionsRoute,
               },
               {
-                path: 'grade/:gradeId',
-                lazy: loadAdminStudyWeekByGradeRoute,
+                path: 'exam/omr',
+                lazy: loadAdminOmrRoute,
               },
               {
-                path: 'grade/:gradeId/lessons/:lessonUuid',
-                lazy: loadAdminStudyWeekLessonDetailRoute,
+                path: 'exam/exams',
+                lazy: loadAdminExamsRoute,
+              },
+              {
+                path: 'exam/exams/create',
+                lazy: loadAdminExamCreateRoute,
+              },
+              {
+                path: 'exam/exams/:examUuid/edit',
+                lazy: loadAdminExamEditRoute,
               },
             ],
-          },
-          {
-            path: 'record-attendances',
-            lazy: loadAdminRecordAttendancesRoute,
-          },
-          {
-            path: 'learning-resources',
-            lazy: loadAdminLearningResourcesRoute,
-          },
-          {
-            path: 'costs',
-            lazy: loadAdminCostsRoute,
-          },
-          {
-            path: 'exam/questions',
-            lazy: loadAdminQuestionsRoute,
-          },
-          {
-            path: 'exam/omr',
-            lazy: loadAdminOmrRoute,
-          },
-          {
-            path: 'exam/exams',
-            lazy: loadAdminExamsRoute,
-          },
-          {
-            path: 'exam/exams/create',
-            lazy: loadAdminExamCreateRoute,
-          },
-          {
-            path: 'exam/exams/:examUuid/edit',
-            lazy: loadAdminExamEditRoute,
           },
         ],
       },

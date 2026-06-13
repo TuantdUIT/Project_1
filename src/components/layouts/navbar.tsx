@@ -5,6 +5,7 @@ import { Bell, GraduationCap, LogOut, Menu, User, X } from 'lucide-react';
 import { paths } from '@/config/paths';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useLoginModal } from '@/lib/auth/login-modal-context';
+import { ADMIN_PORTAL_ROLES } from '@/lib/auth/permissions';
 
 const navItems = [
   { label: 'Khóa học', to: paths.courses },
@@ -22,6 +23,8 @@ export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, role, isAuthenticated, logout } = useAuth();
   const { open } = useLoginModal();
+  // Hiển thị lối vào Admin Portal cho mọi vai trò được phép (MANAGER, TEACHER).
+  const canAccessAdminPortal = role != null && ADMIN_PORTAL_ROLES.includes(role.roleName);
 
   /**
    * Ý nghĩa: Tạo class active/inactive cho NavLink dựa trên route hiện tại.
@@ -124,7 +127,7 @@ export default function Navbar() {
                             <User size={18} className="text-on-surface-variant" />
                             Hồ sơ của tôi
                           </button>
-                          {role?.roleName === 'MANAGER' && (
+                          {canAccessAdminPortal && (
                             <NavLink
                               to={paths.adminPortal}
                               onClick={() => setIsProfileOpen(false)}
@@ -219,7 +222,7 @@ export default function Navbar() {
                   </NavLink>
                 ))}
 
-                {role?.roleName === 'MANAGER' && (
+                {canAccessAdminPortal && (
                   <NavLink
                     to={paths.adminPortal}
                     onClick={() => setIsMobileMenuOpen(false)}

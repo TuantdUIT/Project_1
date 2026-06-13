@@ -1,16 +1,39 @@
-﻿import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
-import type { EmployeeRATemplate } from '@/features/Management_Services/employee-ra-template/types';
+import type {
+  EmployeeRATemplate,
+  ReqUpdateEmployeeRATemplate,
+} from '@/features/Management_Services/employee-ra-template/types';
 
 const EMPLOYEE_RA_TEMPLATES_BASE = '/api/v1/employee-ra-templates';
+const employeeRATemplatesKey = ['employee-ra-template'] as const;
 
 export const employeeRATemplateByTimetableTemplateKey = (ttUuid?: string) =>
-  ['employee-ra-template', 'by-tt', ttUuid] as const;
+  [...employeeRATemplatesKey, 'by-tt', ttUuid] as const;
+
+export function getEmployeeRATemplates() {
+  return apiClient.get<EmployeeRATemplate[]>(EMPLOYEE_RA_TEMPLATES_BASE);
+}
 
 export function getEmployeeRATemplateByTimetableTemplateId(ttUuid: string) {
   return apiClient.get<EmployeeRATemplate>(
     `${EMPLOYEE_RA_TEMPLATES_BASE}/timetable-template/${ttUuid}`,
   );
+}
+
+export function updateEmployeeRATemplate(templateUuid: string, body: ReqUpdateEmployeeRATemplate) {
+  return apiClient.put<EmployeeRATemplate>(`${EMPLOYEE_RA_TEMPLATES_BASE}/${templateUuid}`, body);
+}
+
+export function deleteEmployeeRATemplate(templateUuid: string) {
+  return apiClient.delete<void>(`${EMPLOYEE_RA_TEMPLATES_BASE}/${templateUuid}`);
+}
+
+export function useEmployeeRATemplatesQuery() {
+  return useQuery({
+    queryKey: [...employeeRATemplatesKey, 'all'],
+    queryFn: getEmployeeRATemplates,
+  });
 }
 
 export function useEmployeeRATemplateByTimetableTemplate(ttUuid?: string) {
@@ -19,5 +42,24 @@ export function useEmployeeRATemplateByTimetableTemplate(ttUuid?: string) {
     queryFn: () => getEmployeeRATemplateByTimetableTemplateId(ttUuid ?? ''),
     enabled: Boolean(ttUuid),
     retry: false,
+  });
+}
+
+export function useUpdateEmployeeRATemplate() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ templateUuid, body }: { templateUuid: string; body: ReqUpdateEmployeeRATemplate }) =>
+      updateEmployeeRATemplate(templateUuid, body),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: employeeRATemplatesKey }),
+  });
+}
+
+export function useDeleteEmployeeRATemplate() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: deleteEmployeeRATemplate,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: employeeRATemplatesKey }),
   });
 }

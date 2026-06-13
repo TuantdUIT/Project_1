@@ -5,6 +5,7 @@ export type ReqCreateStudyWeekDTO = components['schemas']['ReqCreateStudyWeekDTO
 export type ReqUpdateStudyWeekDTO = components['schemas']['ReqUpdateStudyWeekDTO'];
 
 export type Lesson = components['schemas']['ResLessonDTO'];
+export type LessonEmployeeAssignment = components['schemas']['ResLessonEmployeeAssignmentDTO'];
 export type ReqUpdateLessonDTO = components['schemas']['ReqUpdateLessonDTO'];
 export type ReqUpdateLessonStatusDTO = components['schemas']['ReqUpdateLessonStatusDTO'];
 

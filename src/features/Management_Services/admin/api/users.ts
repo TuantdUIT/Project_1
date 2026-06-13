@@ -32,7 +32,9 @@ export function createUser(body: ReqCreateUserDTO) {
 }
 
 export function updateUser(userUuid: string, body: UserUpdatePayload) {
-  return apiClient.put<ResUserDTO>(`/api/v1/users/${userUuid}`, body);
+  // Backend yêu cầu `id` ngay trong body (ReqUpdateUserDTO.id là bắt buộc),
+  // không chỉ trên URL — nếu thiếu sẽ báo "User id khong duoc de trong".
+  return apiClient.put<ResUserDTO>(`/api/v1/users/${userUuid}`, { ...body, id: userUuid });
 }
 
 export function deleteUser(userUuid: string) {

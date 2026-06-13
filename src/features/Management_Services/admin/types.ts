@@ -12,7 +12,7 @@ export type ResRoleDTO = components['schemas']['ResRoleDTO'];
 
 export type UserUpdatePayload = Omit<ReqUpdateUserDTO, 'id'>;
 
-export type StaffRoleName = 'MANAGER' | 'TEACHER' | 'TA' | 'ADMIN';
+export type StaffRoleName = 'TEACHER' | 'MANAGER' | 'TA' | 'COLAB_TEACHER';
 
 export type StaffRoleOption = {
   id: number;

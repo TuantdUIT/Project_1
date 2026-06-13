@@ -3,6 +3,7 @@ import { Plus, Trash2, X } from 'lucide-react';
 import { useGradesQuery, useLessonTypesQuery } from '@/features/Management_Services/curriculum';
 import {
   useCreatePeriodSetting,
+  useDeletePeriodSetting,
   useUpdatePeriodSetting,
 } from '@/features/Management_Services/period-setting';
 import type {
@@ -75,12 +76,30 @@ export default function PeriodSettingFormModal(props: PeriodSettingFormModalProp
 
   const [form, setForm] = useState<FormState>(initial);
   const [error, setError] = useState('');
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const gradesQuery = useGradesQuery();
   const lessonTypesQuery = useLessonTypesQuery();
   const createSetting = useCreatePeriodSetting();
   const updateSetting = useUpdatePeriodSetting();
-  const isPending = createSetting.isPending || updateSetting.isPending;
+  const deleteSetting = useDeletePeriodSetting();
+  const isPending = createSetting.isPending || updateSetting.isPending || deleteSetting.isPending;
+
+  async function handleDelete() {
+    if (props.mode !== 'update' || !props.setting.uuid_period_setting) return;
+    setError('');
+    try {
+      await deleteSetting.mutateAsync(props.setting.uuid_period_setting);
+      props.onClose();
+    } catch (deleteErr) {
+      setConfirmDelete(false);
+      setError(
+        deleteErr instanceof Error
+          ? deleteErr.message
+          : 'Không xóa được template. Có thể đang có period dùng template này.',
+      );
+    }
+  }
 
   useEffect(() => {
     setForm(initial);
@@ -415,21 +434,60 @@ export default function PeriodSettingFormModal(props: PeriodSettingFormModalProp
 
         {error ? <p className="mt-4 text-[13px] font-semibold text-rose-600">{error}</p> : null}
 
-        <div className="mt-6 flex items-center justify-end gap-3">
-          <button
-            type="button"
-            onClick={props.onClose}
-            className="h-11 rounded-xl border border-slate-300 px-4 text-[14px] font-extrabold text-slate-600 transition hover:bg-slate-50"
-          >
-            Hủy
-          </button>
-          <button
-            type="submit"
-            disabled={isPending}
-            className="h-11 rounded-xl bg-[#1870FF] px-5 text-[14px] font-extrabold text-white shadow-[0_12px_22px_rgba(24,112,255,0.26)] transition hover:bg-[#0f62e6] disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {isPending ? 'Đang lưu...' : isCreate ? 'Tạo template' : 'Lưu thay đổi'}
-          </button>
+        {!isCreate && confirmDelete ? (
+          <div className="mt-4 flex flex-col gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-[13px] font-bold text-rose-700">
+              Xóa template này? Chỉ xóa được nếu chưa có period nào sử dụng.
+            </p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setConfirmDelete(false)}
+                className="h-9 rounded-lg border border-slate-300 bg-white px-3 text-[13px] font-extrabold text-slate-600 transition hover:bg-slate-50"
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={deleteSetting.isPending}
+                className="h-9 rounded-lg bg-rose-600 px-3 text-[13px] font-extrabold text-white transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {deleteSetting.isPending ? 'Đang xóa...' : 'Xác nhận xóa'}
+              </button>
+            </div>
+          </div>
+        ) : null}
+
+        <div className="mt-6 flex items-center justify-between gap-3">
+          {!isCreate ? (
+            <button
+              type="button"
+              onClick={() => setConfirmDelete(true)}
+              className="inline-flex h-11 items-center gap-1.5 rounded-xl border border-rose-100 bg-rose-50 px-4 text-[14px] font-extrabold text-rose-600 transition hover:bg-rose-100"
+            >
+              <Trash2 size={15} />
+              Xóa
+            </button>
+          ) : (
+            <span />
+          )}
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={props.onClose}
+              className="h-11 rounded-xl border border-slate-300 px-4 text-[14px] font-extrabold text-slate-600 transition hover:bg-slate-50"
+            >
+              Hủy
+            </button>
+            <button
+              type="submit"
+              disabled={isPending}
+              className="h-11 rounded-xl bg-[#1870FF] px-5 text-[14px] font-extrabold text-white shadow-[0_12px_22px_rgba(24,112,255,0.26)] transition hover:bg-[#0f62e6] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isPending ? 'Đang lưu...' : isCreate ? 'Tạo template' : 'Lưu thay đổi'}
+            </button>
+          </div>
         </div>
       </form>
     </div>

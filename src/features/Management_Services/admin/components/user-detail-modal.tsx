@@ -48,6 +48,24 @@ export default function UserDetailModal({
 
   const [form, setForm] = useState({ ...originals, password: '' });
 
+  // Luôn hiển thị vai trò hiện tại của nhân sự trong dropdown, kể cả khi
+  // vai trò đó không nằm trong danh sách được phép gán của người dùng hiện tại.
+  const selectableRoleOptions = useMemo(() => {
+    const currentRole = user.role;
+    if (!currentRole?.id || roleOptions.some((option) => option.id === currentRole.id)) {
+      return roleOptions;
+    }
+
+    return [
+      {
+        id: currentRole.id,
+        name: (currentRole.name ?? '') as StaffRoleOption['name'],
+        description: currentRole.description,
+      },
+      ...roleOptions,
+    ];
+  }, [roleOptions, user.role]);
+
   useEffect(() => {
     setForm({ ...originals, password: '' });
     setError('');
@@ -202,7 +220,7 @@ export default function UserDetailModal({
                     required
                   >
                     <option value="">Chọn vai trò</option>
-                    {roleOptions.map((role) => (
+                    {selectableRoleOptions.map((role) => (
                       <option key={`${role.name}-${role.id}`} value={role.id}>
                         {role.name}
                       </option>

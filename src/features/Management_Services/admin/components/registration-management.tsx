@@ -498,7 +498,7 @@ function AcceptStudentModal({
 
           <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5">
             <p className="mb-2 text-[12px] font-extrabold uppercase tracking-[0.12em] text-slate-500">
-              SID gần nhất
+              Mã học sinh gần nhất
             </p>
             <div className="space-y-1.5">
               {sidGradeConfigs.map((grade) => (

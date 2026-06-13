@@ -1,16 +1,17 @@
-﻿import { CalendarRange } from 'lucide-react';
-import { useTimetableViewQuery } from '@/features/Management_Services/timetable-template/hooks/use-timetable-view-query';
+import { CalendarRange, RefreshCw } from 'lucide-react';
+import { useWeekSelection } from '@/features/Management_Services/timetable-template/hooks/use-week-selection';
+import { useLessonsWeekViewQuery } from '@/features/Management_Services/timetable-template/hooks/use-lessons-week-view-query';
 import {
   primaryGradeTitle,
   type PrimaryGradeId,
 } from '@/features/Management_Services/timetable-template/lib/supplement-grades';
-import PartialErrorBanner from './partial-error-banner';
 import TimetableFilterChips from './timetable-filter-chips';
 import TimetableGrid from './timetable-grid';
 import WeekSpinner from './week-spinner';
 
 export default function TimetableView({ primaryGradeId }: { primaryGradeId: PrimaryGradeId }) {
-  const viewQuery = useTimetableViewQuery(primaryGradeId);
+  const { selectedWeek } = useWeekSelection();
+  const viewQuery = useLessonsWeekViewQuery(primaryGradeId, selectedWeek?.week_uuid);
   const title = primaryGradeTitle(primaryGradeId);
 
   if (viewQuery.isLoading) {
@@ -30,11 +31,17 @@ export default function TimetableView({ primaryGradeId }: { primaryGradeId: Prim
         <WeekSpinner />
         <TimetableFilterChips />
         <TimetableTitle title={title} subtitle="Thời Khóa Biểu tuần" />
-        <PartialErrorBanner
-          failedNames={viewQuery.failedLabels}
-          tone="danger"
-          onRetry={viewQuery.refetchAll}
-        />
+        <div className="flex flex-col gap-3 rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-rose-700 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-[14px] font-bold">Không tải được buổi học của tuần.</p>
+          <button
+            type="button"
+            onClick={viewQuery.refetch}
+            className="inline-flex h-9 items-center justify-center gap-2 rounded-xl bg-rose-600 px-3 text-[13px] font-black text-white transition hover:bg-rose-700"
+          >
+            <RefreshCw size={14} />
+            Tải lại
+          </button>
+        </div>
       </div>
     );
   }
@@ -45,17 +52,14 @@ export default function TimetableView({ primaryGradeId }: { primaryGradeId: Prim
       <TimetableFilterChips />
       <TimetableTitle title={title} subtitle="Thời Khóa Biểu tuần" />
 
-      {viewQuery.hasPartialError ? (
-        <PartialErrorBanner
-          failedNames={viewQuery.failedLabels}
-          onRetry={viewQuery.refetchFailed}
-        />
-      ) : null}
-
       <TimetableGrid
         items={viewQuery.items}
         lessonTypes={viewQuery.lessonTypes}
-        emptyMessage={`${title} chưa có Thời Khóa Biểu.`}
+        emptyMessage={
+          selectedWeek
+            ? `${title} chưa có buổi học trong tuần này.`
+            : 'Chưa chọn tuần học.'
+        }
       />
     </div>
   );

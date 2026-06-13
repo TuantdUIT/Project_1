@@ -3,6 +3,7 @@ import type { EmployeeRATemplateItem } from '@/features/Management_Services/empl
 
 export type TimetableTemplate = components['schemas']['ResTimetableTemplateDTO'];
 export type TimetableTemplateItem = components['schemas']['ResTimetableTemplateItemDTO'];
+export type ReqUpdateTimetableTemplate = components['schemas']['ReqUpdateTimetableTemplateDTO'];
 export type LessonType = components['schemas']['ResLessonTypeDTO'];
 
 export type DayOfWeek =

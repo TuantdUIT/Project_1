@@ -1,7 +1,6 @@
 ﻿import { useEffect, useMemo, useState } from 'react';
-import { Eye, Filter, Plus, Search, Trash2, Users } from 'lucide-react';
+import { Filter, Plus, Search, Users } from 'lucide-react';
 import {
-  useDeleteUser,
   useUsersQuery,
   type ResUserDTO,
   type StaffRoleName,
@@ -9,6 +8,8 @@ import {
 import UserCreateModal from '@/features/Management_Services/admin/components/user-create-modal';
 import UserDetailModal from '@/features/Management_Services/admin/components/user-detail-modal';
 import { buildStaffRoleOptions, isStaffUser } from '@/features/Management_Services/admin/helper/roles';
+import { useAuth } from '@/lib/auth/auth-context';
+import { filterAssignableRoles } from '@/lib/auth/permissions';
 import { formatDate } from '@/utils/date';
 
 const cardClass = 'rounded-2xl border border-slate-200/80 bg-white shadow-[0_16px_36px_rgba(15,23,42,0.24)]';
@@ -24,14 +25,18 @@ export default function UserManagement() {
   const [roleFilter, setRoleFilter] = useState<StaffRoleName | ''>('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [detailTarget, setDetailTarget] = useState<ResUserDTO | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<ResUserDTO | null>(null);
 
   const usersQuery = useUsersQuery({ page: 1, size: 1000, sort: 'createdAt,desc' });
-  const deleteUser = useDeleteUser();
 
+  const { role } = useAuth();
   const allUsers = usersQuery.data?.result ?? [];
   const staffUsers = useMemo(() => allUsers.filter(isStaffUser), [allUsers]);
-  const roleOptions = useMemo(() => buildStaffRoleOptions(staffUsers), [staffUsers]);
+  const roleOptions = useMemo(() => buildStaffRoleOptions(), []);
+  // Vai trò mà người dùng hiện tại được phép gán (hiện không giới hạn).
+  const assignableRoleOptions = useMemo(
+    () => filterAssignableRoles(roleOptions, role?.roleName),
+    [roleOptions, role?.roleName],
+  );
 
   const normalizedSearch = search.trim().toLowerCase();
   const filteredStaffUsers = staffUsers.filter((user) => {
@@ -62,15 +67,6 @@ export default function UserManagement() {
     setPage((current) => Math.min(current, totalPages));
   }, [totalPages]);
 
-  async function confirmDelete() {
-    if (!deleteTarget?.id) {
-      return;
-    }
-
-    await deleteUser.mutateAsync(deleteTarget.id);
-    setDeleteTarget(null);
-  }
-
   return (
     <div className="space-y-6">
       <section className={cardClass}>
@@ -82,7 +78,7 @@ export default function UserManagement() {
             <div>
               <h2 className="text-[18px] font-extrabold leading-tight text-slate-950">Quản lý nhân sự</h2>
               <p className="mt-1 text-[13px] font-semibold text-slate-500">
-                Tài khoản MANAGER, TEACHER, TA và ADMIN
+                Tài khoản TEACHER, MANAGER, TA và COLAB_TEACHER
               </p>
             </div>
           </div>
@@ -145,12 +141,15 @@ export default function UserManagement() {
                   <th className="px-6 py-4">SĐT</th>
                   <th className="px-6 py-4">Role</th>
                   <th className="px-6 py-4">Ngày tạo</th>
-                  <th className="px-6 py-4 text-right">Thao tác</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {users.map((user) => (
-                  <tr key={user.id} className="h-[76px] transition hover:bg-slate-50/70">
+                  <tr
+                    key={user.id}
+                    onClick={() => setDetailTarget(user)}
+                    className="h-[76px] cursor-pointer transition hover:bg-slate-50/70"
+                  >
                     <td className="px-6 py-4">
                       <p className="text-[16px] font-extrabold text-slate-950">{user.user_fullname ?? '—'}</p>
                     </td>
@@ -160,33 +159,12 @@ export default function UserManagement() {
                       <RolePill name={user.role?.name} />
                     </td>
                     <td className="px-6 py-4 text-[14px] font-medium text-slate-900">{formatDate(user.created_at)}</td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-end gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setDetailTarget(user)}
-                          className="flex h-9 items-center gap-1.5 rounded-xl border border-[#1870FF] px-3 text-[13px] font-extrabold text-[#1870FF] transition hover:bg-[rgba(24,112,255,0.08)]"
-                        >
-                          <Eye size={15} />
-                          Xem
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setDeleteTarget(user)}
-                          disabled={deleteUser.isPending}
-                          className="flex h-9 items-center gap-1.5 rounded-xl border border-slate-300 px-3 text-[13px] font-extrabold text-slate-600 transition hover:border-rose-400 hover:bg-rose-50 hover:text-rose-600 disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                          <Trash2 size={15} />
-                          Xóa
-                        </button>
-                      </div>
-                    </td>
                   </tr>
                 ))}
 
                 {users.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center text-[14px] font-semibold text-slate-500">
+                    <td colSpan={5} className="px-6 py-12 text-center text-[14px] font-semibold text-slate-500">
                       {usersQuery.isLoading
                         ? 'Đang tải danh sách nhân sự...'
                         : normalizedSearch || roleFilter
@@ -226,24 +204,15 @@ export default function UserManagement() {
       </section>
 
       {showCreateModal ? (
-        <UserCreateModal roleOptions={roleOptions} onClose={() => setShowCreateModal(false)} />
+        <UserCreateModal roleOptions={assignableRoleOptions} onClose={() => setShowCreateModal(false)} />
       ) : null}
 
       {detailTarget?.id ? (
         <UserDetailModal
           userUuid={detailTarget.id}
           fallback={detailTarget}
-          roleOptions={roleOptions}
+          roleOptions={assignableRoleOptions}
           onClose={() => setDetailTarget(null)}
-        />
-      ) : null}
-
-      {deleteTarget ? (
-        <DeleteConfirmModal
-          user={deleteTarget}
-          isSubmitting={deleteUser.isPending}
-          onCancel={() => setDeleteTarget(null)}
-          onConfirm={confirmDelete}
         />
       ) : null}
     </div>
@@ -285,45 +254,3 @@ function SectionHeader({
   );
 }
 
-function DeleteConfirmModal({
-  user,
-  isSubmitting,
-  onCancel,
-  onConfirm,
-}: {
-  user: ResUserDTO;
-  isSubmitting: boolean;
-  onCancel: () => void;
-  onConfirm: () => void;
-}) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4">
-      <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
-        <p className="text-[12px] font-extrabold uppercase tracking-[0.16em] text-rose-500">Xóa nhân sự</p>
-        <h3 className="mt-1 text-[22px] font-extrabold leading-tight text-slate-950">
-          {user.user_fullname ?? user.user_email ?? 'Nhân sự này'}
-        </h3>
-        <p className="mt-3 text-[14px] font-medium text-slate-600">
-          Thao tác này sẽ xóa tài khoản nhân sự và không thể hoàn tác.
-        </p>
-        <div className="mt-6 flex items-center justify-end gap-3">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="h-11 rounded-xl border border-slate-300 px-4 text-[14px] font-extrabold text-slate-600 transition hover:bg-slate-50"
-          >
-            Hủy
-          </button>
-          <button
-            type="button"
-            onClick={onConfirm}
-            disabled={isSubmitting}
-            className="h-11 rounded-xl bg-rose-600 px-4 text-[14px] font-extrabold text-white transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {isSubmitting ? 'Đang xóa...' : 'Xác nhận xóa'}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}

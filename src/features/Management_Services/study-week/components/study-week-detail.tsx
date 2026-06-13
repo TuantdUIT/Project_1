@@ -1,5 +1,4 @@
 ﻿import { useNavigate } from 'react-router';
-import { useLessonPersonnelByGrade } from '@/features/Management_Services/study-week/hooks/use-lesson-personnel-by-grade';
 import { useLessonsByWeekAndGrade } from '@/features/Management_Services/study-week/hooks/use-lessons-by-week-and-grade';
 import {
   STUDY_WEEK_GRADE_LABEL,
@@ -18,12 +17,11 @@ export default function StudyWeekDetail({
   const navigate = useNavigate();
   const resolvedGradeId = isStudyWeekGradeId(gradeId) ? gradeId : 1;
   const lessonsQuery = useLessonsByWeekAndGrade(weekUuid, resolvedGradeId);
-  const personnelQuery = useLessonPersonnelByGrade(lessonsQuery.lessons, resolvedGradeId);
   const gradeLabel = STUDY_WEEK_GRADE_LABEL[resolvedGradeId];
 
   return (
     <div className="space-y-4">
-      <GradeNavButtons weekUuid={weekUuid} />
+      <GradeNavButtons weekUuid={weekUuid} activeGradeId={resolvedGradeId} />
 
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
         <table className="w-full text-left">
@@ -45,13 +43,6 @@ export default function StudyWeekDetail({
                 lesson={lesson}
                 weekUuid={weekUuid}
                 gradeId={resolvedGradeId}
-                personnel={
-                  lesson.lesson_uuid
-                    ? personnelQuery.personnelByLessonUuid.get(lesson.lesson_uuid) ?? []
-                    : []
-                }
-                isPersonnelLoading={personnelQuery.isLoading}
-                isPersonnelError={personnelQuery.isError}
                 onOpen={navigate}
               />
             ))}

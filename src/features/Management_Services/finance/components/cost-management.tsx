@@ -10,7 +10,7 @@ import {
   Trash2,
   X,
 } from 'lucide-react';
-import { useUsersQuery } from '@/features/Management_Services/admin';
+import { useNonStudentUsersQuery } from '@/features/Management_Services/admin';
 import type { ResUserDTO } from '@/features/Management_Services/admin/types';
 import {
   useCostTagsQuery,
@@ -80,9 +80,12 @@ function formatAdminUserName(user?: ResUserDTO) {
   return `${fullName} (${email} - ${role})`;
 }
 
-function formatCostUserName(user?: Cost['paid_by_user']) {
-  if (!user) return '-';
-  return `${user.user_fullname ?? '-'} (${user.user_email ?? '-'} - ${user.role_name ?? '-'})`;
+function formatCreatorName(createdBy: string | undefined, users: ResUserDTO[]) {
+  if (!createdBy) return '-';
+  const match = users.find(
+    (user) => user.id === createdBy || user.user_email === createdBy,
+  );
+  return match?.user_fullname ?? createdBy;
 }
 
 function buildInitialCostForm(cost?: Cost): CostFormState {
@@ -137,13 +140,13 @@ export default function CostManagement() {
 
   const costsQuery = useCostsQuery();
   const tagsQuery = useCostTagsQuery();
-  const usersQuery = useUsersQuery({ page: 1, size: 2000 });
+  const usersQuery = useNonStudentUsersQuery();
   const deleteCostMutation = useDeleteCost();
   const deleteTagMutation = useDeleteCostTag();
 
   const costs = costsQuery.data ?? [];
   const tags = tagsQuery.data ?? [];
-  const users = usersQuery.data?.result ?? [];
+  const users = usersQuery.data ?? [];
 
   const filteredCosts = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -313,6 +316,7 @@ export default function CostManagement() {
 
             <CostTable
               costs={filteredCosts}
+              users={users}
               isLoading={costsQuery.isLoading}
               onEdit={(cost) => setCostModal({ mode: 'edit', cost })}
               onDelete={handleDeleteCost}
@@ -350,11 +354,13 @@ export default function CostManagement() {
 
 function CostTable({
   costs,
+  users,
   isLoading,
   onEdit,
   onDelete,
 }: {
   costs: Cost[];
+  users: ResUserDTO[];
   isLoading: boolean;
   onEdit: (cost: Cost) => void;
   onDelete: (cost: Cost) => void;
@@ -367,10 +373,10 @@ function CostTable({
             <tr>
               <th className="px-5 py-4">Tên</th>
               <th className="px-5 py-4">Người chi</th>
+              <th className="px-5 py-4">Người tạo</th>
               <th className="px-5 py-4">Số tiền</th>
               <th className="px-5 py-4">Nợ</th>
               <th className="px-5 py-4">Trạng thái</th>
-              <th className="px-5 py-4">Nhãn</th>
               <th className="px-5 py-4">Cập nhật</th>
               <th className="px-5 py-4 text-right">Thao tác</th>
             </tr>
@@ -381,7 +387,8 @@ function CostTable({
               return (
                 <tr key={cost.cost_uuid} className="hover:bg-slate-50">
                   <td className="px-5 py-4 text-[14px] font-black text-slate-950">{cost.cost_name ?? '-'}</td>
-                  <td className="px-5 py-4 text-[13px] font-semibold text-slate-600">{formatCostUserName(cost.paid_by_user)}</td>
+                  <td className="px-5 py-4 text-[13px] font-semibold text-slate-600">{cost.paid_by_user?.user_fullname ?? '-'}</td>
+                  <td className="px-5 py-4 text-[13px] font-bold text-slate-600">{formatCreatorName(cost.created_by, users)}</td>
                   <td className="px-5 py-4 text-[14px] font-black text-slate-900">{formatVND(cost.amount)}</td>
                   <td className="px-5 py-4 text-[14px] font-black text-rose-600">{formatVND(cost.debt)}</td>
                   <td className="px-5 py-4">
@@ -389,7 +396,6 @@ function CostTable({
                       {statusLabels[status]}
                     </span>
                   </td>
-                  <td className="px-5 py-4 text-[13px] font-bold text-slate-600">{cost.cost_tag?.name ?? '-'}</td>
                   <td className="px-5 py-4 text-[13px] font-semibold text-slate-500">{formatDateTime(cost.updated_at, '-')}</td>
                   <td className="px-5 py-4">
                     <div className="flex justify-end gap-2">

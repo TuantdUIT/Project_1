@@ -1,6 +1,6 @@
 ﻿import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router';
-import { ArrowLeft, Eye, GraduationCap, Mail, User, Users } from 'lucide-react';
+import { ArrowLeft, GraduationCap, Mail, User, Users } from 'lucide-react';
 import {
   useStudentByUuidQuery,
   useStudentsQuery,
@@ -218,12 +218,20 @@ function ClassListPanel() {
                 <th className="px-6 py-4">Khối</th>
                 <th className="px-6 py-4">Lớp</th>
                 <th className="px-6 py-4">Trường</th>
-                <th className="px-6 py-4 text-right">Thao tác</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filteredStudents.map((student) => (
-                <tr key={student.user_uuid} className="h-[78px] transition hover:bg-slate-50/70">
+                <tr
+                  key={student.user_uuid}
+                  onClick={() => {
+                    if (student.user_uuid) {
+                      const query = searchParams.toString();
+                      navigate(`${paths.adminPortalClassDetail(student.user_uuid)}${query ? `?${query}` : ''}`);
+                    }
+                  }}
+                  className="h-[78px] cursor-pointer transition hover:bg-slate-50/70"
+                >
                   <td className="px-6 py-4">
                     <p className="text-[16px] font-extrabold text-slate-950">{student.user_fullname}</p>
                     <p className="mt-1 text-[12px] font-medium text-slate-500">
@@ -236,30 +244,12 @@ function ClassListPanel() {
                   </td>
                   <td className="px-6 py-4 text-[14px] font-medium text-slate-900">{student.student_class ?? '—'}</td>
                   <td className="px-6 py-4 text-[14px] font-medium text-slate-900">{student.school ?? '—'}</td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center justify-end gap-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (student.user_uuid) {
-                            const query = searchParams.toString();
-                            navigate(`${paths.adminPortalClassDetail(student.user_uuid)}${query ? `?${query}` : ''}`);
-                          }
-                        }}
-                        disabled={!student.user_uuid}
-                        className="flex h-9 items-center gap-1.5 rounded-xl border border-[#1870FF] px-3 text-[13px] font-extrabold text-[#1870FF] transition hover:bg-[rgba(24,112,255,0.08)] disabled:cursor-not-allowed disabled:opacity-60"
-                      >
-                        <Eye size={15} />
-                        Xem chi tiết
-                      </button>
-                    </div>
-                  </td>
                 </tr>
               ))}
 
               {filteredStudents.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-[14px] font-semibold text-slate-500">
+                  <td colSpan={4} className="px-6 py-12 text-center text-[14px] font-semibold text-slate-500">
                     {studentsQuery.isLoading
                       ? 'Đang tải...'
                       : normalizedSearch
