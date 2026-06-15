@@ -27,13 +27,13 @@ export default function StudyWeekDetail({
         <table className="w-full text-left">
           <thead className="bg-slate-50 text-[12px] font-black uppercase tracking-[0.08em] text-slate-500">
             <tr>
-              <th className="px-5 py-3">Thu</th>
-              <th className="px-5 py-3">Ngay</th>
-              <th className="px-5 py-3">Gio</th>
-              <th className="px-5 py-3">Loai buoi</th>
-              <th className="px-5 py-3">Nhan su</th>
-              <th className="px-5 py-3">Thoi gian ket thuc</th>
-              <th className="px-5 py-3">Trang thai</th>
+              <th className="px-5 py-3">Thứ</th>
+              <th className="px-5 py-3">Ngày</th>
+              <th className="px-5 py-3">Giờ</th>
+              <th className="px-5 py-3">Loại buổi</th>
+              <th className="px-5 py-3">Nhân sự</th>
+              <th className="px-5 py-3">Thời gian kết thúc</th>
+              <th className="px-5 py-3">Trạng thái</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -51,19 +51,19 @@ export default function StudyWeekDetail({
 
         {lessonsQuery.isLoading ? (
           <p className="px-5 py-6 text-center text-[14px] font-semibold text-slate-500">
-            Dang tai buoi hoc...
+            Đang tải buổi học...
           </p>
         ) : null}
 
         {lessonsQuery.isError ? (
           <p className="px-5 py-6 text-center text-[14px] font-semibold text-rose-600">
-            Khong tai duoc danh sach buoi hoc.
+            Không tải được danh sách buổi học.
           </p>
         ) : null}
 
         {!lessonsQuery.isLoading && !lessonsQuery.isError && !lessonsQuery.lessons.length ? (
           <p className="px-5 py-6 text-center text-[14px] font-semibold text-slate-500">
-            Khoi {gradeLabel} chua co buoi hoc nao trong tuan nay.
+            Khối {gradeLabel} chưa có buổi học nào trong tuần này.
           </p>
         ) : null}
       </div>

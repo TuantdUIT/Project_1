@@ -153,7 +153,7 @@ function LessonPersonnelCell({ personnel }: { personnel: LessonEmployeeAssignmen
           className="flex max-w-full items-center gap-1.5 rounded-lg bg-blue-50 px-2.5 py-1.5 text-[12px] font-black text-[#1870FF]"
         >
           <UsersRound size={13} strokeWidth={2.5} className="shrink-0" />
-          <span className="truncate">{item.full_name || item.email || 'Nhan su'}</span>
+          <span className="truncate">{item.full_name || item.email || 'Nhân sự'}</span>
           {item.role_name ? (
             <span className="shrink-0 text-[10px] uppercase text-blue-500/80">· {item.role_name}</span>
           ) : null}

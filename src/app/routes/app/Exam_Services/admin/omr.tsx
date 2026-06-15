@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import {
   Plus, Upload, Loader2, RefreshCw, Trash2, CheckCircle2, AlertCircle,
-  FileText, ScanLine, Info, FileBarChart, Eye,
+  FileText, ScanLine, Info, FileBarChart, Eye, Download,
 } from 'lucide-react';
 import { useToastExam } from '@/hooks/hook_ES/use-toast-exam';
 import { useExamsQuery } from '@/features/Exam_Services/exam/api/exams';
@@ -9,6 +9,7 @@ import {
   useCreateExamPaperMutation,
   useCreateScoringJobMutation,
   getScoringJob,
+  downloadExamPaper,
 } from '@/features/Exam_Services/omr/api/omr';
 import { useOmrStore } from '@/features/Exam_Services/omr/lib/omr-store';
 import { OmrJobDetailDialog } from '@/features/Exam_Services/omr/components/omr-job-detail-dialog';
@@ -60,6 +61,7 @@ export default function AdminOmrRoute() {
   const [paperCode, setPaperCode] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [refreshing, setRefreshing] = useState<string | null>(null);
+  const [downloadingPaper, setDownloadingPaper] = useState<string | null>(null);
   const [detailJobUuid, setDetailJobUuid] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -76,7 +78,28 @@ export default function AdminOmrRoute() {
 
   const selectedExamName = examUuid ? examNameByUuid[examUuid] : undefined;
 
-  // ── Bước 1: tạo mã đề ──
+  // ── Tải file đề thi (PDF) của một mã đề ──
+  async function handleDownloadPaper(exUuid?: string, code?: string, examName?: string) {
+    if (!exUuid || !code) return;
+    setDownloadingPaper(code);
+    try {
+      const blob = await downloadExamPaper(exUuid, code);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `de-thi-${examName ?? exUuid}-${code}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      showToast('Tải đề thi thất bại', 'error');
+    } finally {
+      setDownloadingPaper(null);
+    }
+  }
+
+  // ── Bước 1: tạo mã đề (tạo xong tự tải file đề thi) ──
   function handleCreatePaper() {
     if (!examUuid) { showToast('Vui lòng chọn bài thi', 'error'); return; }
     if (!paperCode.trim()) { showToast('Vui lòng nhập mã đề', 'error'); return; }
@@ -85,8 +108,10 @@ export default function AdminOmrRoute() {
       {
         onSuccess: (res) => {
           addPaper({ ...res, examName: selectedExamName, savedAt: new Date().toISOString() });
-          showToast(`Đã tạo mã đề ${res.paperCode ?? paperCode}`);
+          const code = res.paperCode ?? paperCode.trim();
+          showToast(`Đã tạo mã đề ${code} — đang tải đề thi`);
           setPaperCode('');
+          void handleDownloadPaper(res.examUuid ?? examUuid, code, selectedExamName);
         },
         onError: () => showToast('Tạo mã đề thất bại', 'error'),
       },
@@ -198,7 +223,7 @@ export default function AdminOmrRoute() {
                 <th className={thCls}>Bài thi</th>
                 <th className={`${thCls} text-center`}>Số câu</th>
                 <th className={thCls}>Tạo lúc</th>
-                <th className={`${thCls} text-center`}>Xóa</th>
+                <th className={`${thCls} text-center`}>Thao tác</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -208,15 +233,26 @@ export default function AdminOmrRoute() {
                   <td className={tdCls}>{p.examName ?? examNameByUuid[p.examUuid ?? ''] ?? '—'}</td>
                   <td className={`${tdCls} text-center`}>{p.questions?.length ?? 0}</td>
                   <td className={tdCls}>{fmtDateTime(p.generatedAt ?? p.savedAt)}</td>
-                  <td className="px-4 py-3 text-center">
-                    <button
-                      type="button"
-                      onClick={() => removePaper(p.paperUuid)}
-                      title="Xóa khỏi danh sách (cục bộ)"
-                      className="p-1.5 rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-500 transition-colors"
-                    >
-                      <Trash2 size={15} />
-                    </button>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center justify-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => handleDownloadPaper(p.examUuid, p.paperCode, p.examName ?? examNameByUuid[p.examUuid ?? ''])}
+                        disabled={downloadingPaper === p.paperCode}
+                        title="Tải file đề thi (PDF)"
+                        className="p-1.5 rounded-lg text-slate-400 hover:bg-blue-50 hover:text-blue-600 transition-colors disabled:opacity-60"
+                      >
+                        {downloadingPaper === p.paperCode ? <Loader2 size={15} className="animate-spin" /> : <Download size={15} />}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => removePaper(p.paperUuid)}
+                        title="Xóa khỏi danh sách (cục bộ)"
+                        className="p-1.5 rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-500 transition-colors"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

@@ -33,14 +33,18 @@ type PendingMetrics = {
 };
 
 const numberInputClass =
-  'h-11 w-24 rounded-xl border border-slate-200 bg-white px-3 text-center text-[15px] font-black text-slate-950 outline-none transition focus:border-[#1870FF] focus:ring-4 focus:ring-[rgba(24,112,255,0.12)]';
+  'h-11 w-24 rounded-xl border border-slate-200 bg-white px-3 text-center text-[15px] font-black text-slate-950 outline-none transition focus:border-[#1870FF] focus:ring-4 focus:ring-[rgba(24,112,255,0.12)] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none';
 
 function extractErrorMessage(error: unknown) {
   return parseApiError(error).message;
 }
 
 function getDefaultLessonTime(lesson: Lesson) {
-  return lesson.real_lesson_length ?? lesson.lesson_type?.lesson_time ?? 0;
+  // Số phút công mặc định = thời lượng thực tế của buổi học (giờ kết thúc − giờ bắt đầu,
+  // quy ra phút) do manager nhập qua "Lưu giờ kết thúc" → lưu thành real_lesson_length.
+  // Dùng `||` để khi chưa nhập giờ kết thúc (real_lesson_length = 0) thì fallback sang
+  // thời lượng chuẩn của loại buổi thay vì để 0.
+  return lesson.real_lesson_length || lesson.lesson_type?.lesson_time || 0;
 }
 
 function buildAssigneeRows(lesson: Lesson): AssigneeRow[] {
@@ -103,6 +107,8 @@ export default function RecordAttendancePanel({ lesson }: { lesson: Lesson }) {
             {
               initiallyTicked: isTicked,
               currentlyTicked: isTicked,
+              // Giữ nguyên số phút công đã lưu của record (kể cả 0); chỉ dùng default cho
+              // dòng chưa có record. Công thực tế được chốt qua sync khi nhập giờ kết thúc.
               initialLessonTime: existingRecord?.ra_lesson_time ?? defaultLessonTime,
               initialOvertime: existingRecord?.ra_overtime ?? 0,
               raAttdUuid: existingRecord?.ra_attd_uuid,
@@ -350,7 +356,8 @@ export default function RecordAttendancePanel({ lesson }: { lesson: Lesson }) {
                   const row = rows[assignee.userUuid];
                   const isTicked = pendingTicks[assignee.userUuid] ?? Boolean(row?.currentlyTicked);
                   const metrics = pendingMetrics[assignee.userUuid] ?? {};
-                  const lessonTime = metrics.lessonTime ?? row?.initialLessonTime ?? 0;
+                  // Chỉ dòng đang điểm danh (Có mặt) mới hiển thị công; dòng chưa điểm danh = 0.
+                  const lessonTime = isTicked ? (metrics.lessonTime ?? row?.initialLessonTime ?? 0) : 0;
                   const overtime = metrics.overtime ?? row?.initialOvertime ?? 0;
 
                   return (

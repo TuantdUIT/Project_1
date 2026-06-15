@@ -21,7 +21,7 @@ const fieldClass =
 const selectClass =
   'h-11 rounded-xl border border-slate-300 bg-white px-3 text-[14px] font-extrabold text-slate-950 outline-none transition focus:border-[#1870FF] focus:ring-4 focus:ring-[rgba(24,112,255,0.14)]';
 
-const studentDetailTabs = ['Tổng quan', 'Điểm số', 'Học phí', 'Bài tập'] as const;
+const studentDetailTabs = ['Tổng quan', 'Học phí'] as const;
 
 type StudentDetailTab = (typeof studentDetailTabs)[number];
 
@@ -542,14 +542,10 @@ function StudentDetailPanel({ userUuid }: { userUuid: string }) {
             onToggleEditing={toggleEditing}
           />
         </div>
-      ) : activeTab === 'Học phí' ? (
-        student.user_uuid ? (
-          <StudentPeriodsSection userUuid={student.user_uuid} />
-        ) : (
-          <StudentFutureSection title="Học phí / Period" />
-        )
+      ) : student.user_uuid ? (
+        <StudentPeriodsSection userUuid={student.user_uuid} />
       ) : (
-        <StudentDetailEmptyTab title={activeTab} />
+        <StudentFutureSection title="Học phí / Period" />
       )}
     </div>
   );
@@ -625,17 +621,6 @@ function StudentFutureSection({ title }: { title: string }) {
     <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-6">
       <p className="text-[14px] font-extrabold uppercase tracking-[0.08em] text-slate-400">{title}</p>
       <p className="mt-3 text-[14px] font-semibold text-slate-500">Khu vực đã sẵn sàng để nối dữ liệu ở task sau.</p>
-    </div>
-  );
-}
-
-function StudentDetailEmptyTab({ title }: { title: StudentDetailTab }) {
-  return (
-    <div className="flex min-h-[360px] items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
-      <div>
-        <p className="text-[18px] font-extrabold text-slate-900">{title}</p>
-        <p className="mt-2 text-[14px] font-semibold text-slate-500">Chưa có dữ liệu để hiển thị.</p>
-      </div>
     </div>
   );
 }

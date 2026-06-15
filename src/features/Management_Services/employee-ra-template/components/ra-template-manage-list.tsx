@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { UserRoundCheck } from 'lucide-react';
+import { Plus, UserRoundCheck } from 'lucide-react';
 import { useEmployeeRATemplatesQuery } from '@/features/Management_Services/employee-ra-template/api/employee-ra-templates';
 import type { EmployeeRATemplate } from '@/features/Management_Services/employee-ra-template/types';
 import { useTimetableTemplatesQuery } from '@/features/Management_Services/timetable-template/api/templates';
@@ -14,6 +14,7 @@ import {
 } from '@/features/Management_Services/template-hub/components/template-filter-bar';
 import { formatDate } from '@/utils/date';
 import RaTemplateDetailModal from './ra-template-detail-modal';
+import RaTemplateCreateModal from './ra-template-create-modal';
 
 const cardClass =
   'rounded-2xl border border-slate-200/80 bg-white shadow-[0_16px_36px_rgba(15,23,42,0.24)]';
@@ -31,6 +32,7 @@ export default function RaTemplateManageList() {
 
   const [filter, setFilter] = useState<TemplateFilterState>(EMPTY_TEMPLATE_FILTER);
   const [detailTarget, setDetailTarget] = useState<EmployeeRATemplate | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
 
   const templates = templatesQuery.data ?? [];
   const timetableTemplates = timetableTemplatesQuery.data ?? [];
@@ -104,6 +106,14 @@ export default function RaTemplateManageList() {
               </p>
             </div>
           </div>
+          <button
+            type="button"
+            onClick={() => setIsCreating(true)}
+            className="inline-flex h-10 items-center gap-2 self-start rounded-xl bg-[#1870FF] px-4 text-[13px] font-extrabold text-white shadow-[0_10px_22px_rgba(24,112,255,0.26)] transition hover:bg-[#0f62e6]"
+          >
+            <Plus size={15} />
+            Tạo template
+          </button>
         </header>
 
         <div className="border-t border-slate-100 p-5 sm:p-6">
@@ -124,7 +134,7 @@ export default function RaTemplateManageList() {
                 <th className="px-6 py-4">Mẫu TKB liên kết</th>
                 <th className="px-6 py-4">Khối</th>
                 <th className="px-6 py-4">Năm học</th>
-                <th className="px-6 py-4">Số phân công</th>
+                <th className="px-6 py-4">Số nhân sự</th>
                 <th className="px-6 py-4">Ngày tạo</th>
               </tr>
             </thead>
@@ -185,6 +195,8 @@ export default function RaTemplateManageList() {
           onClose={() => setDetailTarget(null)}
         />
       ) : null}
+
+      {isCreating ? <RaTemplateCreateModal onClose={() => setIsCreating(false)} /> : null}
     </>
   );
 }

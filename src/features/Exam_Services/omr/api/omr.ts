@@ -14,6 +14,15 @@ export function useCreateExamPaperMutation() {
   });
 }
 
+// ── Tải file đề thi đã tạo (PDF) ────────────────────────────────────────────
+// GET /api/v1/omr/exams/{examUuid}/exam-papers/{paperCode}/download
+export function downloadExamPaper(examUuid: string, paperCode: string) {
+  return apiClientES.get<Blob>(
+    `/api/v1/omr/exams/${examUuid}/exam-papers/${encodeURIComponent(paperCode)}/download`,
+    { responseType: 'blob', headers: { Accept: 'application/pdf' } },
+  );
+}
+
 // ── Bước 3: Upload phiếu quét (scoring job) ─────────────────────────────────
 // POST /api/v1/omr/scoring-jobs  — multipart/form-data: file(.pdf) + examUuid
 export function createScoringJob(examUuid: string, file: File) {

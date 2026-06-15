@@ -353,9 +353,7 @@ export default function PeriodSettingFormModal(props: PeriodSettingFormModalProp
           <div className="mb-3 flex items-center justify-between">
             <div>
               <p className="text-[14px] font-extrabold text-slate-950">Lesson Type Configs</p>
-              <p className="text-[12px] font-semibold text-slate-500">
-                Cấu hình loại buổi học của khóa. Cập nhật sẽ replace toàn bộ danh sách.
-              </p>
+              
             </div>
             <button
               type="button"
@@ -373,6 +371,12 @@ export default function PeriodSettingFormModal(props: PeriodSettingFormModalProp
             </p>
           ) : (
             <div className="space-y-2">
+              <div className="grid grid-cols-[2fr_1fr_1fr_auto] items-center gap-2 px-2">
+                <span className="text-[12px] font-bold uppercase tracking-[0.08em] text-slate-500">Loại buổi học</span>
+                <span className="text-[12px] font-bold uppercase tracking-[0.08em] text-slate-500">Số buổi học một tuần</span>
+                <span className="text-[12px] font-bold uppercase tracking-[0.08em] text-slate-500">Thứ tự</span>
+                <span className="w-11" aria-hidden />
+              </div>
               {form.lessonTypes.map((row, index) => (
                 <div
                   key={index}

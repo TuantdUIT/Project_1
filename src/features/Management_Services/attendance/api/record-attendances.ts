@@ -102,6 +102,27 @@ export function deleteRecordAttendance(raAttdUuid: string) {
   return apiClient.delete<void>(`${RECORD_ATTENDANCES_BASE}/${raAttdUuid}`);
 }
 
+/**
+ * Khi manager kết thúc buổi học (nhập giờ kết thúc → real_lesson_length), cập nhật
+ * số phút công (`lessonTime`) của tất cả nhân sự đã điểm danh ở buổi đó về đúng
+ * thời lượng buổi học. Chỉ gửi `lessonTime` nên `overtime` được giữ nguyên (partial update).
+ */
+export async function syncLessonTimeForLesson(lessonUuid: string, lessonTime: number) {
+  const records = await getRecordAttendances();
+  const targets = records.filter(
+    (record) => record.lesson?.lesson_uuid === lessonUuid && record.ra_attd_uuid,
+  );
+
+  const results = await Promise.allSettled(
+    targets.map((record) => updateRecordAttendance(record.ra_attd_uuid as string, { lessonTime })),
+  );
+
+  return {
+    total: targets.length,
+    updated: results.filter((result) => result.status === 'fulfilled').length,
+  };
+}
+
 export function getRecordAttendanceWeeklySummary(params: RecordAttendanceWeeklySummaryParams) {
   return apiClient.get<RecordAttendanceWeeklySummary[]>(
     `${RECORD_ATTENDANCES_BASE}/weekly-summary?${buildWeeklySummaryParams(params)}`,
@@ -196,6 +217,16 @@ export function useDeleteRecordAttendance() {
       queryClient.removeQueries({ queryKey: [...recordAttendancesKey, raAttdUuid] });
       invalidateRecordAttendanceQueries(queryClient);
     },
+  });
+}
+
+export function useSyncLessonWorkingTime() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ lessonUuid, lessonTime }: { lessonUuid: string; lessonTime: number }) =>
+      syncLessonTimeForLesson(lessonUuid, lessonTime),
+    onSuccess: () => invalidateRecordAttendanceQueries(queryClient),
   });
 }
 

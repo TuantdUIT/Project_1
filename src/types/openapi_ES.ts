@@ -260,6 +260,38 @@ export interface paths {
         patch: operations["updateExamStatus"];
         trace?: never;
     };
+    "/storage/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["downloadByRelativePath"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/storage/download/path": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["downloadByRelativePath_1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/student/attempts": {
         parameters: {
             query?: never;
@@ -472,6 +504,7 @@ export interface components {
             gradeId?: number;
             questionContent?: string;
             imagePath?: string;
+            relativePath?: string;
             questionTopic?: string;
             /** @enum {string} */
             questionType?: "MCQ" | "TFQ" | "SAQ";
@@ -540,6 +573,7 @@ export interface components {
             questionUuid?: string;
             questionContent?: string;
             imagePath?: string;
+            relativePath?: string;
             questionTopic?: string;
             /** @enum {string} */
             questionType?: "MCQ" | "TFQ" | "SAQ";
@@ -639,6 +673,7 @@ export interface components {
             questionUuid?: string;
             questionContent?: string;
             imagePath?: string;
+            relativePath?: string;
             questionTopic?: string;
             /** @enum {string} */
             questionType?: "MCQ" | "TFQ" | "SAQ";
@@ -707,6 +742,7 @@ export interface components {
             questionType?: "MCQ" | "TFQ" | "SAQ";
             questionContent?: string;
             imagePath?: string;
+            relativePath?: string;
             questionTopic?: string;
             score?: number;
             fromQuestionGroup?: boolean;
@@ -761,7 +797,9 @@ export interface components {
             /** Format: int32 */
             violationCount?: number;
             rawImageUrl?: string;
+            rawImageRelativePath?: string;
             scoredImageUrl?: string;
+            scoredImageRelativePath?: string;
             questions?: components["schemas"]["ResAttemptQuestionDTO"][];
         };
         JsonNode: unknown;
@@ -822,7 +860,9 @@ export interface components {
             /** Format: int32 */
             pageCount?: number;
             rawImageUrl?: string;
+            rawImageRelativePath?: string;
             scoredImageUrl?: string;
+            scoredImageRelativePath?: string;
             /** Format: int64 */
             resultCount?: number;
             /** Format: int64 */
@@ -853,7 +893,9 @@ export interface components {
             status?: "EXTRACTED" | "IMPORTING" | "COMPLETED" | "FAILED";
             score?: number;
             rawImageUrl?: string;
+            rawImageRelativePath?: string;
             scoredImageUrl?: string;
+            scoredImageRelativePath?: string;
             errorMessage?: string;
         };
         ReqOmrAnswerDTO: {
@@ -915,6 +957,7 @@ export interface components {
             /** Format: uuid */
             generatedByUserUuid?: string;
             pdfUrl?: string;
+            relativePath?: string;
             questions?: components["schemas"]["ResExamPaperQuestionDTO"][];
         };
         ResExamPaperQuestionDTO: {
@@ -927,6 +970,7 @@ export interface components {
             /** @enum {string} */
             questionType?: "MCQ" | "TFQ" | "SAQ";
             imagePath?: string;
+            relativePath?: string;
             score?: number;
             fromQuestionGroup?: boolean;
             /** Format: uuid */
@@ -935,6 +979,7 @@ export interface components {
         };
         UploadFileResDTO: {
             fileName?: string;
+            relativePath?: string;
             /** Format: date-time */
             uploadedAt?: string;
         };
@@ -978,33 +1023,33 @@ export interface components {
             sort?: string[];
         };
         PageResExamAttemptSummaryDTO: {
-            /** Format: int32 */
-            totalPages?: number;
             /** Format: int64 */
             totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
+            first?: boolean;
             /** Format: int32 */
             size?: number;
             content?: components["schemas"]["ResExamAttemptSummaryDTO"][];
             /** Format: int32 */
             number?: number;
             sort?: components["schemas"]["SortObject"];
-            first?: boolean;
-            last?: boolean;
+            pageable?: components["schemas"]["PageableObject"];
             /** Format: int32 */
             numberOfElements?: number;
-            pageable?: components["schemas"]["PageableObject"];
+            last?: boolean;
             empty?: boolean;
         };
         PageableObject: {
             /** Format: int64 */
             offset?: number;
             sort?: components["schemas"]["SortObject"];
-            unpaged?: boolean;
+            paged?: boolean;
             /** Format: int32 */
             pageNumber?: number;
             /** Format: int32 */
             pageSize?: number;
-            paged?: boolean;
+            unpaged?: boolean;
         };
         ResExamAttemptSummaryDTO: {
             /** Format: uuid */
@@ -1029,65 +1074,67 @@ export interface components {
             /** Format: int32 */
             violationCount?: number;
             rawImageUrl?: string;
+            rawImageRelativePath?: string;
             scoredImageUrl?: string;
+            scoredImageRelativePath?: string;
         };
         SortObject: {
             empty?: boolean;
-            unsorted?: boolean;
             sorted?: boolean;
+            unsorted?: boolean;
         };
         PageResQuestionDTO: {
-            /** Format: int32 */
-            totalPages?: number;
             /** Format: int64 */
             totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
+            first?: boolean;
             /** Format: int32 */
             size?: number;
             content?: components["schemas"]["ResQuestionDTO"][];
             /** Format: int32 */
             number?: number;
             sort?: components["schemas"]["SortObject"];
-            first?: boolean;
-            last?: boolean;
+            pageable?: components["schemas"]["PageableObject"];
             /** Format: int32 */
             numberOfElements?: number;
-            pageable?: components["schemas"]["PageableObject"];
+            last?: boolean;
             empty?: boolean;
         };
         PageResQuestionGroupDTO: {
-            /** Format: int32 */
-            totalPages?: number;
             /** Format: int64 */
             totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
+            first?: boolean;
             /** Format: int32 */
             size?: number;
             content?: components["schemas"]["ResQuestionGroupDTO"][];
             /** Format: int32 */
             number?: number;
             sort?: components["schemas"]["SortObject"];
-            first?: boolean;
-            last?: boolean;
+            pageable?: components["schemas"]["PageableObject"];
             /** Format: int32 */
             numberOfElements?: number;
-            pageable?: components["schemas"]["PageableObject"];
+            last?: boolean;
             empty?: boolean;
         };
         PageResExamDTO: {
-            /** Format: int32 */
-            totalPages?: number;
             /** Format: int64 */
             totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
+            first?: boolean;
             /** Format: int32 */
             size?: number;
             content?: components["schemas"]["ResExamDTO"][];
             /** Format: int32 */
             number?: number;
             sort?: components["schemas"]["SortObject"];
-            first?: boolean;
-            last?: boolean;
+            pageable?: components["schemas"]["PageableObject"];
             /** Format: int32 */
             numberOfElements?: number;
-            pageable?: components["schemas"]["PageableObject"];
+            last?: boolean;
             empty?: boolean;
         };
     };
@@ -1621,6 +1668,50 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ResExamDTO"];
+                };
+            };
+        };
+    };
+    downloadByRelativePath: {
+        parameters: {
+            query: {
+                path: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": string;
+                };
+            };
+        };
+    };
+    downloadByRelativePath_1: {
+        parameters: {
+            query: {
+                path: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": string;
                 };
             };
         };

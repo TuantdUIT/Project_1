@@ -31,7 +31,7 @@ export function attachPersonnelToTimetableItems(
       const scopedKey = key ? scopedSlotKey(templateUuid, key) : null;
 
       if (!scopedKey || !validKeys.has(scopedKey)) {
-        console.warn('Bo qua EmployeeRATemplate item khong khop timetable slot', personnel);
+        console.warn('Bỏ qua EmployeeRATemplate item không khớp timetable slot', personnel);
         continue;
       }
 

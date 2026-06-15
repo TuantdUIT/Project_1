@@ -158,7 +158,6 @@ export default function RegistrationManagement() {
               <Input value={form.parentName} onChange={(value) => setForm({ ...form, parentName: value })} placeholder="Tên phụ huynh" />
               <Input value={form.parentNumber} onChange={(value) => setForm({ ...form, parentNumber: value })} placeholder="SĐT phụ huynh" />
               <Input value={form.school} onChange={(value) => setForm({ ...form, school: value })} placeholder="Trường" />
-              <Input value={form.className} onChange={(value) => setForm({ ...form, className: value })} placeholder="Lớp nguyện vọng" />
               <select
                 value={form.gradeId}
                 onChange={(event) => setForm({ ...form, gradeId: event.target.value })}

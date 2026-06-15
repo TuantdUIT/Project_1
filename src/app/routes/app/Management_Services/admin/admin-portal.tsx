@@ -72,7 +72,7 @@ export default function AdminPortalRoute() {
           : location.pathname.startsWith(paths.adminPortalLearningResources)
             ? 'Tài liệu học tập'
           : location.pathname.startsWith(paths.adminPortalRecordAttendances)
-            ? 'Chấm công nhân sự'
+            ? 'Thống kê chấm công nhân sự'
           : location.pathname.startsWith(paths.adminPortalCosts)
             ? 'Chi phí'
             : location.pathname.startsWith(paths.adminPortalStudyWeeks)

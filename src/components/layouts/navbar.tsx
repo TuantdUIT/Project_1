@@ -154,13 +154,11 @@ export default function Navbar() {
               <div className="flex items-center gap-4">
                 <button
                   onClick={() => open()}
-                  className="text-sm font-bold text-on-surface transition-colors hover:text-indigo-deep"
+                  className="rounded-lg bg-[#1870FF] px-4 py-2 text-sm font-bold text-white shadow-[0_10px_22px_rgba(24,112,255,0.26)] transition-colors hover:bg-[#0f62e6]"
                 >
                   Đăng nhập
                 </button>
-                <button className="btn-primary px-6 py-2 text-sm">
-                  Đăng ký
-                </button>
+               
               </div>
             )}
           </div>
@@ -245,9 +243,7 @@ export default function Navbar() {
                   >
                     Đăng nhập
                   </button>
-                  <button className="btn-primary px-6 py-3 text-sm">
-                    Đăng ký
-                  </button>
+                 
                 </div>
               )}
 

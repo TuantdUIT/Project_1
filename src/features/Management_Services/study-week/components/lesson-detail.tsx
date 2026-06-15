@@ -4,6 +4,7 @@ import { BookOpen, CalendarDays, ChevronDown, Clock3, GraduationCap, Save, Users
 import { paths } from '@/config/paths';
 import AttendancePanel from '@/features/Management_Services/attendance/components/attendance-panel';
 import RecordAttendancePanel from '@/features/Management_Services/attendance/components/record-attendance-panel';
+import { useSyncLessonWorkingTime } from '@/features/Management_Services/attendance/api/record-attendances';
 import { useLessonQuery, useUpdateLesson } from '@/features/Management_Services/study-week/api/lessons';
 import {
   DEFAULT_STUDY_WEEK_GRADE_ID,
@@ -107,6 +108,7 @@ export default function LessonDetail() {
   const lessonQuery = useLessonQuery(lessonUuid);
   const lesson = lessonQuery.data;
   const updateLesson = useUpdateLesson();
+  const syncLessonWorkingTime = useSyncLessonWorkingTime();
   const [isStudentOpen, setStudentOpen] = useState(true);
   const [isStaffOpen, setStaffOpen] = useState(false);
   const [endTimeValue, setEndTimeValue] = useState('');
@@ -120,15 +122,15 @@ export default function LessonDetail() {
   }
 
   if (lessonQuery.isLoading) {
-    return <p className="rounded-2xl bg-white p-6 text-[14px] font-semibold text-slate-500">Dang tai buoi hoc...</p>;
+    return <p className="rounded-2xl bg-white p-6 text-[14px] font-semibold text-slate-500">Đang tải buổi học...</p>;
   }
 
   if (lessonQuery.isError || !lesson) {
     return (
       <div className="rounded-2xl border border-rose-200 bg-rose-50 p-6 text-rose-700">
-        <p className="text-[14px] font-bold">Khong tim thay buoi hoc.</p>
+        <p className="text-[14px] font-bold">Không tìm thấy buổi học.</p>
         <Link to={paths.adminPortalStudyWeekByGrade(weekUuid, numericGradeId)} className="mt-3 inline-block text-[13px] font-black underline">
-          Quay lai tuan hoc
+          Quay lại tuần học
         </Link>
       </div>
     );
@@ -149,39 +151,39 @@ export default function LessonDetail() {
   return (
     <div className="space-y-5">
       <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_18px_45px_rgba(15,23,42,0.10)]">
-        <p className="text-[12px] font-black uppercase tracking-[0.22em] text-slate-400">Chi tiet buoi hoc</p>
+        <p className="text-[12px] font-black uppercase tracking-[0.22em] text-slate-400">Chi tiết buổi học</p>
 
         <div className="mt-10 grid gap-4 lg:grid-cols-[minmax(120px,0.8fr)_minmax(260px,2.1fr)_minmax(130px,0.95fr)_minmax(120px,0.9fr)_minmax(140px,1fr)] lg:gap-0">
           <LessonInfoBlock
             icon={<CalendarDays size={22} />}
-            label="Tuan"
+            label="Tuần"
             value={`${lesson.study_week?.week_number ?? '-'}`}
           />
           <LessonInfoBlock
             icon={<CalendarDays size={22} />}
-            label="Ngay hoc"
+            label="Ngày học"
             value={`${formatWeekday(lesson.lesson_date)} · ${formatDate(lesson.lesson_date)}`}
           />
           <LessonInfoBlock
             icon={<Clock3 size={22} />}
-            label="Bat dau"
+            label="Bắt đầu"
             value={normalizeLessonStartTime(lesson.lesson_start_time)}
           />
           <LessonInfoBlock
             icon={<GraduationCap size={22} />}
-            label="Khoi"
+            label="Khối"
             value={lessonGradeName}
           />
           <LessonInfoBlock
             icon={<BookOpen size={22} />}
-            label="Loai buoi"
+            label="Loại buổi"
             value={lesson.lesson_type?.lesson_type_name ?? '-'}
           />
         </div>
 
         <div className="mt-6 grid gap-4 lg:grid-cols-[minmax(220px,1fr)_minmax(220px,1fr)]">
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-            <p className="text-[12px] font-black uppercase tracking-[0.16em] text-slate-400">Trang thai buoi hoc</p>
+            <p className="text-[12px] font-black uppercase tracking-[0.16em] text-slate-400">Trạng thái buổi học</p>
             <div className="mt-3 flex flex-wrap items-center gap-3">
               <span className={`inline-flex rounded-full px-4 py-2 text-[13px] font-black ${getLessonStatusClass(effectiveStatus)}`}>
                 {getLessonStatusLabel(effectiveStatus)}
@@ -190,7 +192,7 @@ export default function LessonDetail() {
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-            <p className="text-[12px] font-black uppercase tracking-[0.16em] text-slate-400">Thoi gian ket thuc</p>
+            <p className="text-[12px] font-black uppercase tracking-[0.16em] text-slate-400">Thời gian kết thúc</p>
             <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
               <input
                 type="text"
@@ -211,8 +213,16 @@ export default function LessonDetail() {
                     lessonUuid: lesson.lesson_uuid,
                     body: { realLessonLength: nextLength },
                   });
+
+                  // Kết thúc buổi dạy → cập nhật công của nhân sự đã điểm danh = thời lượng buổi học.
+                  if (nextLength > 0) {
+                    await syncLessonWorkingTime.mutateAsync({
+                      lessonUuid: lesson.lesson_uuid,
+                      lessonTime: nextLength,
+                    });
+                  }
                 }}
-                disabled={updateLesson.isPending}
+                disabled={updateLesson.isPending || syncLessonWorkingTime.isPending}
                 className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#1870FF] px-4 text-[14px] font-extrabold text-white transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Save size={16} />
@@ -224,8 +234,8 @@ export default function LessonDetail() {
       </section>
 
       <DropdownSection
-        title="Diem danh hoc sinh"
-        description="Danh sach hoc sinh theo khoi cua buoi hoc"
+        title="Điểm danh học sinh"
+        description="Danh sách học sinh theo khối của buổi học"
         icon={<GraduationCap size={22} />}
         isOpen={isStudentOpen}
         onToggle={() => setStudentOpen((current) => !current)}
@@ -234,8 +244,8 @@ export default function LessonDetail() {
       </DropdownSection>
 
       <DropdownSection
-        title="Diem danh nhan su"
-        description="Giang vien, tro giang va nhan su ho tro"
+        title="Điểm danh nhân sự"
+        description="Giảng viên, trợ giảng và nhân sự hỗ trợ"
         icon={<UsersRound size={22} />}
         isOpen={isStaffOpen}
         onToggle={() => setStaffOpen((current) => !current)}

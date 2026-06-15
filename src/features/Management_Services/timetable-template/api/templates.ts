@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
 import type {
+  ReqCreateTimetableTemplate,
   ReqUpdateTimetableTemplate,
   TimetableTemplate,
 } from '@/features/Management_Services/timetable-template/types';
@@ -14,6 +15,10 @@ export function getTimetableTemplates() {
 
 export function getTemplateByGradeId(gradeId: number) {
   return apiClient.get<TimetableTemplate>(`${TIMETABLE_TEMPLATES_BASE}/grade-id/${gradeId}`);
+}
+
+export function createTimetableTemplate(body: ReqCreateTimetableTemplate) {
+  return apiClient.post<TimetableTemplate>(TIMETABLE_TEMPLATES_BASE, body);
 }
 
 export function updateTimetableTemplate(templateUuid: string, body: ReqUpdateTimetableTemplate) {
@@ -36,6 +41,15 @@ export function useTemplateByGradeIdQuery(gradeId?: number) {
     queryKey: [...timetableTemplatesKey, 'by-grade-id', gradeId],
     queryFn: () => getTemplateByGradeId(gradeId ?? 0),
     enabled: gradeId != null,
+  });
+}
+
+export function useCreateTimetableTemplate() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: createTimetableTemplate,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: timetableTemplatesKey }),
   });
 }
 

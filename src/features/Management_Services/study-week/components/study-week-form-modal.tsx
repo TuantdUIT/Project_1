@@ -99,7 +99,7 @@ export default function StudyWeekFormModal({ studyWeek, onClose }: StudyWeekForm
           </div>
         ) : (
           <div className="mb-4 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-[13px] font-semibold text-blue-700">
-            Nếu để trống ngày bắt đầu/kết thúc, backend sẽ tự tính khoảng tuần.
+            Dựa vào ngày kết thúc của tuần trước để đặt ngày bắt đầu của tuần này
           </div>
         )}
 

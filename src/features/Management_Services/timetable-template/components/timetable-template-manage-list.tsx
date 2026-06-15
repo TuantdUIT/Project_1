@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { CalendarRange } from 'lucide-react';
+import { CalendarRange, Plus } from 'lucide-react';
 import { useTimetableTemplatesQuery } from '@/features/Management_Services/timetable-template/api/templates';
+import TimetableTemplateCreateModal from './timetable-template-create-modal';
 import type { TimetableTemplate } from '@/features/Management_Services/timetable-template/types';
 import { useGradesQuery } from '@/features/Management_Services/curriculum';
 import { useStudyWeeksQuery } from '@/features/Management_Services/study-week';
@@ -27,6 +28,7 @@ export default function TimetableTemplateManageList() {
 
   const [filter, setFilter] = useState<TemplateFilterState>(EMPTY_TEMPLATE_FILTER);
   const [detailTarget, setDetailTarget] = useState<TimetableTemplate | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
 
   const templates = templatesQuery.data ?? [];
   const grades = gradesQuery.data?.grades ?? [];
@@ -85,6 +87,14 @@ export default function TimetableTemplateManageList() {
               </p>
             </div>
           </div>
+          <button
+            type="button"
+            onClick={() => setIsCreating(true)}
+            className="inline-flex h-10 items-center gap-2 self-start rounded-xl bg-[#1870FF] px-4 text-[13px] font-extrabold text-white shadow-[0_10px_22px_rgba(24,112,255,0.26)] transition hover:bg-[#0f62e6]"
+          >
+            <Plus size={15} />
+            Tạo template
+          </button>
         </header>
 
         <div className="border-t border-slate-100 p-5 sm:p-6">
@@ -171,6 +181,8 @@ export default function TimetableTemplateManageList() {
           onClose={() => setDetailTarget(null)}
         />
       ) : null}
+
+      {isCreating ? <TimetableTemplateCreateModal onClose={() => setIsCreating(false)} /> : null}
     </>
   );
 }
